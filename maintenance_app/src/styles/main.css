@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Main Base Reset & Global Typography — Corporate Identity
+   ========================================================================== */
+
+/* Sem @import de fontes da internet: esta app tem de arrancar 100% offline.
+   A pilha de fontes do sistema é definida em theme.css (--font-family). */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  font-family: var(--font-family, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  background-color: var(--color-bg-alt, #F4F6F8);
+  color: var(--color-text, #14181E);
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-body, 19px);
+  line-height: var(--lh-body, 1.5);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input, textarea, select, [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  font-family: inherit;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-focus); border-radius: 2px; }
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text, #14181E);
+  font-weight: 700;
+  line-height: var(--lh-tight, 1.25);
+}
+
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-alt);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  /* o conteúdo nunca pode ficar debaixo da barra inferior fixa */
+  padding: 16px 16px calc(var(--bottom-nav-height) + 48px);
+}
+
+/* Splash screen */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  /* Fundo branco: o logotipo mmcrespo é verde/azul sobre branco e só se lê aqui.
+     Antes era --color-navy (preto) e o logo aparecia numa caixa branca a flutuar. */
+  background: var(--color-splash-bg, #FFFFFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10000;
+  animation: splashFadeOut 400ms ease-out 1.6s forwards;
+}
+
+.splash-screen.hidden {
+  display: none !important;
+}
+
+.splash-logo {
+  width: 176px;
+  height: auto;
+  animation: splashPulse 1.2s ease-in-out;
+}
+
+.splash-text {
+  color: var(--color-text-secondary);
+  font-size: var(--fs-body);
+  letter-spacing: 0.01em;
+  text-transform: none; /* caixa alta a 18px não cabia em 390px */
+  margin-top: 18px;
+  font-weight: 600;
+  animation: splashTextIn 600ms ease-out 400ms both;
+}
+
+@keyframes splashPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splashTextIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splashFadeOut {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-brand-primary, #0284c7);
+  outline-offset: 2px;
+}

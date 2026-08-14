@@ -1,0 +1,1349 @@
+{
+  "label": "baseline",
+  "at": "2026-08-14T09:09:13.004Z",
+  "url": "http://localhost:5173",
+  "viewport": "390x844 iPhone 13",
+  "bar": {
+    "minTouchPx": 48,
+    "minTextPx": 18,
+    "maxTaps": 3
+  },
+  "tapFlow": {
+    "taps": 6,
+    "sequence": [
+      "abrir a app (ícone)",
+      "botão + na barra inferior",
+      "toque no campo de localização",
+      "escrever a descrição",
+      "escrever o tempo gasto",
+      "guardar"
+    ],
+    "reportPersisted": false,
+    "reportsBefore": 0,
+    "reportsAfter": 0,
+    "notes": [
+      "BLOQUEIO: dropdown de localização não abre nenhuma opção — impossível escolher local no formulário"
+    ]
+  },
+  "totals": {
+    "screens": 5,
+    "targetsUnder48": 42,
+    "textUnder18": 154,
+    "smallestTargetPx": 13,
+    "smallestTextPx": 10.4,
+    "hOverflowScreens": [],
+    "consoleErrors": []
+  },
+  "verdict": {
+    "touchPass": false,
+    "textPass": false,
+    "tapPass": false,
+    "noErrors": true
+  },
+  "screens": [
+    {
+      "screen": "01-home",
+      "shot": "shots/01-home.png",
+      "smallTargets": [
+        {
+          "tag": "input",
+          "id": "input-search-sectors",
+          "cls": "form-input search-input",
+          "text": "",
+          "w": 358,
+          "h": 45
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip active",
+          "text": "Todos os Setores",
+          "w": 127.1,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip ",
+          "text": "⚠️ Com Avarias (0)",
+          "w": 137.8,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip crit ",
+          "text": "🔴 Críticas (0)",
+          "w": 108.9,
+          "h": 30
+        }
+      ],
+      "smallText": [
+        {
+          "tag": "h1",
+          "cls": "greeting",
+          "px": 15.2,
+          "text": "Olá,"
+        },
+        {
+          "tag": "span",
+          "cls": "user-name",
+          "px": 15.2,
+          "text": "Técnico"
+        },
+        {
+          "tag": "p",
+          "cls": "subtitle",
+          "px": 10.4,
+          "text": "Estádio Municipal de Leiria"
+        },
+        {
+          "tag": "span",
+          "cls": "status-text",
+          "px": 11.5,
+          "text": "Online"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Ativas:"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Críticas:"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Em Curso:"
+        },
+        {
+          "tag": "p",
+          "cls": "section-subtitle",
+          "px": 12.8,
+          "text": "Navegue pelas bancadas, salas técnicas e equipamentos"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip active",
+          "px": 12.2,
+          "text": "Todos os Setores"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip ",
+          "px": 12.2,
+          "text": "⚠️ Com Avarias (0)"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip crit ",
+          "px": 12.2,
+          "text": "🔴 Críticas (0)"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Bancada Poente (Principal & VIP)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "6 Salas / Divisões"
+        },
+        {
+          "tag": "span",
+          "cls": "sec-status-badge ok",
+          "px": 11.2,
+          "text": "✓ Operacional"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Bancada Nascente"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "4 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Topo Norte"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Topo Sul"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "3 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Relvado & Pista de Atletismo"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "5 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Balneários & Zonas Técnicas"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "7 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Exterior, Portões & Apoio"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Setores"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Ocorrências"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Métricas"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Definições"
+        }
+      ],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "02-ocorrencias",
+      "shot": "shots/02-ocorrencias.png",
+      "smallTargets": [
+        {
+          "tag": "input",
+          "id": "input-search-reports",
+          "cls": "form-input search-input",
+          "text": "",
+          "w": 358,
+          "h": 45
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip active",
+          "text": "Todos",
+          "w": 61.6,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip crit ",
+          "text": "🔴 Críticas",
+          "w": 90.7,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip ",
+          "text": "⏳ Pendentes",
+          "w": 107.6,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip inprog ",
+          "text": "⚙️ Em Curso",
+          "w": 103.5,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip done ",
+          "text": "✅ Resolvidos",
+          "w": 111,
+          "h": 30
+        }
+      ],
+      "smallText": [
+        {
+          "tag": "h1",
+          "cls": "greeting",
+          "px": 15.2,
+          "text": "Olá,"
+        },
+        {
+          "tag": "span",
+          "cls": "user-name",
+          "px": 15.2,
+          "text": "Técnico"
+        },
+        {
+          "tag": "p",
+          "cls": "subtitle",
+          "px": 10.4,
+          "text": "Estádio Municipal de Leiria"
+        },
+        {
+          "tag": "span",
+          "cls": "status-text",
+          "px": 11.5,
+          "text": "Online"
+        },
+        {
+          "tag": "p",
+          "cls": "section-subtitle",
+          "px": 12.8,
+          "text": "Registo e Acompanhamento de Trabalhos"
+        },
+        {
+          "tag": "span",
+          "cls": "section-badge",
+          "px": 12,
+          "text": "0 filtradas"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip active",
+          "px": 12.2,
+          "text": "Todos"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip crit ",
+          "px": 12.2,
+          "text": "🔴 Críticas"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip ",
+          "px": 12.2,
+          "text": "⏳ Pendentes"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip inprog ",
+          "px": 12.2,
+          "text": "⚙️ Em Curso"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip done ",
+          "px": 12.2,
+          "text": "✅ Resolvidos"
+        },
+        {
+          "tag": "h3",
+          "cls": "empty-title",
+          "px": 16,
+          "text": "Sem registos de manutenção"
+        },
+        {
+          "tag": "p",
+          "cls": "empty-desc",
+          "px": 12.8,
+          "text": "Tente ajustar os filtros ou registar uma nova intervenção."
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Setores"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Ocorrências"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Métricas"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Definições"
+        }
+      ],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "03-metricas",
+      "shot": "shots/03-metricas.png",
+      "smallTargets": [],
+      "smallText": [
+        {
+          "tag": "h1",
+          "cls": "greeting",
+          "px": 15.2,
+          "text": "Olá,"
+        },
+        {
+          "tag": "span",
+          "cls": "user-name",
+          "px": 15.2,
+          "text": "Técnico"
+        },
+        {
+          "tag": "p",
+          "cls": "subtitle",
+          "px": 10.4,
+          "text": "Estádio Municipal de Leiria"
+        },
+        {
+          "tag": "span",
+          "cls": "status-text",
+          "px": 11.5,
+          "text": "Online"
+        },
+        {
+          "tag": "p",
+          "cls": "section-subtitle",
+          "px": 12.8,
+          "text": "Produtividade & Estado Operacional do Estádio"
+        },
+        {
+          "tag": "span",
+          "cls": "section-badge",
+          "px": 12,
+          "text": "0 Registos"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-label",
+          "px": 11.5,
+          "text": "Taxa Resolução"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-subtext",
+          "px": 11.5,
+          "text": "0/0"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-label",
+          "px": 11.5,
+          "text": "Críticas Ativas"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-subtext",
+          "px": 11.5,
+          "text": "Tudo calmo"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-label",
+          "px": 11.5,
+          "text": "Tempo Investido"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-subtext",
+          "px": 11.5,
+          "text": "0 min totais"
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-label",
+          "px": 11.5,
+          "text": "Em Curso / Pend."
+        },
+        {
+          "tag": "span",
+          "cls": "kpi-subtext",
+          "px": 11.5,
+          "text": "0 em curso · 0 pend."
+        },
+        {
+          "tag": "h3",
+          "cls": "analytics-card-title",
+          "px": 15.2,
+          "text": "Distribuição por Setor do Estádio"
+        },
+        {
+          "tag": "span",
+          "cls": "analytics-card-tag",
+          "px": 11.2,
+          "text": "Top 5 Locais"
+        },
+        {
+          "tag": "div",
+          "cls": "empty-stats",
+          "px": 16,
+          "text": "Sem dados registados."
+        },
+        {
+          "tag": "h3",
+          "cls": "analytics-card-title",
+          "px": 15.2,
+          "text": "Divisão por Nível de Severidade"
+        },
+        {
+          "tag": "div",
+          "cls": "priority-stat-title",
+          "px": 10.9,
+          "text": "Crítica / Urgente"
+        },
+        {
+          "tag": "div",
+          "cls": "priority-stat-title",
+          "px": 10.9,
+          "text": "Média / Normal"
+        },
+        {
+          "tag": "div",
+          "cls": "priority-stat-title",
+          "px": 10.9,
+          "text": "Baixa / Preventiva"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Setores"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Ocorrências"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Métricas"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Definições"
+        }
+      ],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "04-definicoes",
+      "shot": "shots/04-definicoes.png",
+      "smallTargets": [
+        {
+          "tag": "button",
+          "id": "btn-add-room-settings",
+          "cls": "btn-primary-cta",
+          "text": "+ Nova Divisão",
+          "w": 117.1,
+          "h": 26
+        },
+        {
+          "tag": "input",
+          "id": "settings-room-search",
+          "cls": "form-input",
+          "text": "",
+          "w": 328,
+          "h": 46
+        },
+        {
+          "tag": "input",
+          "id": "input-new-material",
+          "cls": "form-input",
+          "text": "",
+          "w": 278.7,
+          "h": 46
+        },
+        {
+          "tag": "button",
+          "id": "btn-add-material",
+          "cls": "btn-primary-cta",
+          "text": "+",
+          "w": 41.3,
+          "h": 46
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-del-mat",
+          "text": "×",
+          "w": 8.4,
+          "h": 16
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-del-mat",
+          "text": "×",
+          "w": 8.4,
+          "h": 16
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-del-mat",
+          "text": "×",
+          "w": 8.4,
+          "h": 16
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-del-mat",
+          "text": "×",
+          "w": 8.4,
+          "h": 16
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-del-mat",
+          "text": "×",
+          "w": 8.4,
+          "h": 16
+        }
+      ],
+      "smallText": [
+        {
+          "tag": "h1",
+          "cls": "greeting",
+          "px": 15.2,
+          "text": "Olá,"
+        },
+        {
+          "tag": "span",
+          "cls": "user-name",
+          "px": 15.2,
+          "text": "Técnico"
+        },
+        {
+          "tag": "p",
+          "cls": "subtitle",
+          "px": 10.4,
+          "text": "Estádio Municipal de Leiria"
+        },
+        {
+          "tag": "span",
+          "cls": "status-text",
+          "px": 11.5,
+          "text": "Online"
+        },
+        {
+          "tag": "p",
+          "cls": "section-subtitle",
+          "px": 12.8,
+          "text": "Gestão de Setores, Salas Técnicas e Materiais"
+        },
+        {
+          "tag": "h3",
+          "cls": "analytics-card-title",
+          "px": 15.2,
+          "text": "Divisões do Estádio (33)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "Base de dados de 1000+ chaves"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-primary-cta",
+          "px": 12.5,
+          "text": "+ Nova Divisão"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Bancada Poente (Principal & VIP)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12,
+          "text": "6 div"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Bancada Nascente"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12,
+          "text": "4 div"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Topo Norte"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Topo Sul"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12,
+          "text": "3 div"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Relvado & Pista de Atletismo"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12,
+          "text": "5 div"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Balneários & Zonas Técnicas"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12,
+          "text": "7 div"
+        },
+        {
+          "tag": "strong",
+          "cls": null,
+          "px": 15.2,
+          "text": "Exterior, Portões & Apoio"
+        },
+        {
+          "tag": "h3",
+          "cls": "analytics-card-title",
+          "px": 15.2,
+          "text": "Materiais & Ferramentas (5)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "Chave de Fendas"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "Chave Inglesa"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "Fita Isoladora"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "Silicone"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "Tinta de Marcação"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Setores"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Ocorrências"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Métricas"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Definições"
+        }
+      ],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "05-nova-ocorrencia",
+      "shot": "shots/05-nova-ocorrencia.png",
+      "smallTargets": [
+        {
+          "tag": "input",
+          "id": "input-search-sectors",
+          "cls": "form-input search-input",
+          "text": "",
+          "w": 358,
+          "h": 45
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip active",
+          "text": "Todos os Setores",
+          "w": 127.1,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip ",
+          "text": "⚠️ Com Avarias (0)",
+          "w": 137.8,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "filter-chip crit ",
+          "text": "🔴 Críticas (0)",
+          "w": 108.9,
+          "h": 30
+        },
+        {
+          "tag": "button",
+          "id": "btn-cancel-report",
+          "cls": "btn-close-detail",
+          "text": "×",
+          "w": 16.8,
+          "h": 28.8
+        },
+        {
+          "tag": "input",
+          "id": "search-location-input",
+          "cls": "searchable-select-input",
+          "text": "",
+          "w": 271.5,
+          "h": 46
+        },
+        {
+          "tag": "button",
+          "id": "btn-new-location-inline",
+          "cls": "btn-secondary",
+          "text": "+ Local",
+          "w": 70.5,
+          "h": 46
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-secondary priority-select-btn",
+          "text": "🟢 Baixa",
+          "w": 111.3,
+          "h": 42
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-secondary priority-select-btn active",
+          "text": "🟡 Média",
+          "w": 111.3,
+          "h": 42
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "cls": "btn-secondary priority-select-btn",
+          "text": "🔴 Crítica",
+          "w": 111.3,
+          "h": 42
+        },
+        {
+          "tag": "label",
+          "id": null,
+          "cls": "form-label",
+          "text": "Descrição do Trabalho / Avaria *",
+          "w": 350,
+          "h": 19.2
+        },
+        {
+          "tag": "button",
+          "id": "btn-toggle-mic",
+          "cls": "btn-mic-record",
+          "text": "Gravar Nota de Voz",
+          "w": 40,
+          "h": 40
+        },
+        {
+          "tag": "label",
+          "id": null,
+          "cls": "form-label",
+          "text": "Data e Hora *",
+          "w": 211.2,
+          "h": 19.2
+        },
+        {
+          "tag": "label",
+          "id": null,
+          "cls": "form-label",
+          "text": "Tempo Gasto (min) *",
+          "w": 126.8,
+          "h": 19.2
+        },
+        {
+          "tag": "input",
+          "id": "input-time-spent",
+          "cls": "form-input",
+          "text": "",
+          "w": 126.8,
+          "h": 46
+        },
+        {
+          "tag": "input",
+          "id": null,
+          "cls": "mat-checkbox",
+          "text": "Chave de Fendas",
+          "w": 13,
+          "h": 13
+        },
+        {
+          "tag": "input",
+          "id": null,
+          "cls": "mat-checkbox",
+          "text": "Chave Inglesa",
+          "w": 13,
+          "h": 13
+        },
+        {
+          "tag": "input",
+          "id": null,
+          "cls": "mat-checkbox",
+          "text": "Fita Isoladora",
+          "w": 13,
+          "h": 13
+        },
+        {
+          "tag": "input",
+          "id": null,
+          "cls": "mat-checkbox",
+          "text": "Silicone",
+          "w": 13,
+          "h": 13
+        },
+        {
+          "tag": "input",
+          "id": null,
+          "cls": "mat-checkbox",
+          "text": "Tinta de Marcação",
+          "w": 13,
+          "h": 13
+        },
+        {
+          "tag": "input",
+          "id": "input-photo-before",
+          "cls": "form-input",
+          "text": "",
+          "w": 171,
+          "h": 34
+        },
+        {
+          "tag": "input",
+          "id": "input-photo-after",
+          "cls": "form-input",
+          "text": "",
+          "w": 171,
+          "h": 34
+        },
+        {
+          "tag": "button",
+          "id": "btn-save-report",
+          "cls": "btn-primary-cta",
+          "text": "Guardar Registo",
+          "w": 350,
+          "h": 46
+        }
+      ],
+      "smallText": [
+        {
+          "tag": "h1",
+          "cls": "greeting",
+          "px": 15.2,
+          "text": "Olá,"
+        },
+        {
+          "tag": "span",
+          "cls": "user-name",
+          "px": 15.2,
+          "text": "Técnico"
+        },
+        {
+          "tag": "p",
+          "cls": "subtitle",
+          "px": 10.4,
+          "text": "Estádio Municipal de Leiria"
+        },
+        {
+          "tag": "span",
+          "cls": "status-text",
+          "px": 11.5,
+          "text": "Online"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Ativas:"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Críticas:"
+        },
+        {
+          "tag": "span",
+          "cls": "stat-label",
+          "px": 11.5,
+          "text": "Em Curso:"
+        },
+        {
+          "tag": "p",
+          "cls": "section-subtitle",
+          "px": 12.8,
+          "text": "Navegue pelas bancadas, salas técnicas e equipamentos"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip active",
+          "px": 12.2,
+          "text": "Todos os Setores"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip ",
+          "px": 12.2,
+          "text": "⚠️ Com Avarias (0)"
+        },
+        {
+          "tag": "button",
+          "cls": "filter-chip crit ",
+          "px": 12.2,
+          "text": "🔴 Críticas (0)"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Bancada Poente (Principal & VIP)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "6 Salas / Divisões"
+        },
+        {
+          "tag": "span",
+          "cls": "sec-status-badge ok",
+          "px": 11.2,
+          "text": "✓ Operacional"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Bancada Nascente"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "4 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Topo Norte"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Topo Sul"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "3 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Relvado & Pista de Atletismo"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "5 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Balneários & Zonas Técnicas"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.5,
+          "text": "7 Salas / Divisões"
+        },
+        {
+          "tag": "h3",
+          "cls": "sector-name",
+          "px": 15.4,
+          "text": "Exterior, Portões & Apoio"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Setores"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Ocorrências"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Métricas"
+        },
+        {
+          "tag": "span",
+          "cls": "nav-label",
+          "px": 12.8,
+          "text": "Definições"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 11.2,
+          "text": "Registo Técnico de Campo"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Setor / Localização *"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary",
+          "px": 12.8,
+          "text": "+ Local"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Nível de Prioridade *"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary priority-select-btn",
+          "px": 14.4,
+          "text": "🟢 Baixa"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary priority-select-btn active",
+          "px": 14.4,
+          "text": "🟡 Média"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary priority-select-btn",
+          "px": 14.4,
+          "text": "🔴 Crítica"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Estado Inicial"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary status-select-btn active",
+          "px": 14.4,
+          "text": "⏳ Pendente"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary status-select-btn",
+          "px": 14.4,
+          "text": "⚙️ Em Curso"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary status-select-btn",
+          "px": 14.4,
+          "text": "✅ Resolvido"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Descrição do Trabalho / Avaria *"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Nota de Voz Rápida (Áudio)"
+        },
+        {
+          "tag": "div",
+          "cls": "audio-record-status",
+          "px": 13.6,
+          "text": "Toque no microfone para ditar ou gravar uma nota de áudio."
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Data e Hora *"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Tempo Gasto (min) *"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Materiais e Ferramentas"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 13.6,
+          "text": "Chave de Fendas"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 13.6,
+          "text": "Chave Inglesa"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 13.6,
+          "text": "Fita Isoladora"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 13.6,
+          "text": "Silicone"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 13.6,
+          "text": "Tinta de Marcação"
+        },
+        {
+          "tag": "label",
+          "cls": "form-label",
+          "px": 12.8,
+          "text": "Fotografias & Evidências"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 12,
+          "text": "Foto Antes"
+        },
+        {
+          "tag": "label",
+          "cls": null,
+          "px": 12,
+          "text": "Foto Depois"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-primary-cta",
+          "px": 16,
+          "text": "Guardar Registo"
+        }
+      ],
+      "hOverflowPx": 0
+    }
+  ]
+}

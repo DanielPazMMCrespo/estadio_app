@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <!-- Tema claro por defeito. O escuro é opção e só entra se o sistema o pedir. -->
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#101418" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="description" content="Gestão de relatórios de manutenção diária – Estádio Municipal de Leiria" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Manutenção – Estádio Municipal de Leiria</title>
+
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <link rel="stylesheet" href="/src/styles/theme.css" />
+  <link rel="stylesheet" href="/src/styles/components.css" />
+</head>
+<body>
+  <!-- Splash Screen with Logo Animation -->
+  <div class="splash-screen" id="splash-screen">
+    <img src="/icons/logo-mmcrespo.png" alt="mmcrespo" class="splash-logo" />
+    <p class="splash-text">Estádio Municipal de Leiria</p>
+  </div>
+
+  <div id="app" class="app-container">
+    <header id="header-container" class="app-header"></header>
+    <main id="main-content" class="main-content">
+      <div id="dashboard-feed" class="dashboard-feed"></div>
+    </main>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  </div>
+
+  <!-- Failsafe: remove splash even if module fails -->
+  <script>setTimeout(function(){var s=document.getElementById('splash-screen');if(s)s.remove();},3000);</script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

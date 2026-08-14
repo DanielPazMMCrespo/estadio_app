@@ -1,0 +1,450 @@
+/* ==========================================================================
+   Design Tokens & Theme Variables — TEMA CLARO POR DEFEITO
+   Estádio Municipal de Leiria — Maintenance PWA
+
+   REGRA DE OURO DESTE FICHEIRO:
+   toda a cor NASCE no `:root` simples. Nenhuma cor tem a sua única definição
+   dentro de um @media ou de um [data-theme] — se tivesse, o tema por defeito
+   ficava sem essa cor. Os blocos de tema escuro apenas REDEFINEM tokens.
+
+   Ordem dos blocos (importa):
+     1. :root                                  -> tema claro (defeito)
+     2. @media (prefers-color-scheme: dark)
+          :root:not([data-theme="light"])       -> escuro só se o utilizador
+                                                   não tiver escolhido claro
+     3. :root[data-theme="dark"]                -> escolha explícita ganha
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---------------------------------------------------------------------
+     SUPERFÍCIES — cartão branco sobre cinzento claro (como o Limble novo)
+     --------------------------------------------------------------------- */
+  --color-bg: #FFFFFF;            /* cabeçalho, barra inferior, folhas */
+  --color-bg-alt: #F4F6F8;        /* o cinzento por trás dos cartões */
+  --color-card: #FFFFFF;
+  --color-card-elevated: #FFFFFF;
+  --color-surface: #EFF2F6;       /* pastilhas, faixas, barras de progresso */
+  --color-surface-hover: #E4E9EF;
+  --color-border: #D8DEE4;
+  --color-border-focus: #A9B4C0;
+  --color-border-subtle: #E6EAEF;
+
+  /* ---------------------------------------------------------------------
+     TEXTO — #4A5560 é o mais claro permitido para texto de leitura
+     --------------------------------------------------------------------- */
+  --color-text: #14181E;
+  --color-text-secondary: #4A5560;
+  --color-text-muted: #4A5560;    /* propositadamente igual: nada mais claro */
+  --color-on-accent: #FFFFFF;     /* texto sobre azul/verde/vermelho cheios */
+
+  /* Pilha de fontes do sistema — nada vem da internet (app 100% offline) */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+
+  /* ---------------------------------------------------------------------
+     ESCALA TIPOGRÁFICA — mínimo real de 18px em qualquer texto de leitura.
+     Valores em px de propósito: rem depende do html e já tinha derrapado
+     para 10–14px. Nunca usar valores abaixo de --fs-label.
+     --------------------------------------------------------------------- */
+  --fs-nav: 18px;        /* rótulos da barra inferior (espaço horizontal apertado) */
+  --fs-label: 18px;      /* rótulos, badges, metadados — o mínimo absoluto */
+  --fs-body: 19px;       /* texto corrente */
+  --fs-body-lg: 21px;    /* nomes de salas, descrições importantes */
+  --fs-title: 24px;      /* títulos de cartão / secção */
+  --fs-display: 30px;    /* título de ecrã */
+  --fs-kpi: 34px;        /* números grandes de métricas */
+  --lh-tight: 1.25;
+  --lh-body: 1.5;
+
+  /* ---------------------------------------------------------------------
+     MARCA E SEMÂNTICA (MMCrespo)
+     Dois valores por cor: o CHEIO (fundos sólidos com texto branco) e o
+     de TEXTO (escurecido, para ler sobre branco com contraste >= 4.5:1).
+     --------------------------------------------------------------------- */
+  --color-brand-primary: #0284c7;      /* azul MMCrespo — ação primária, ligações */
+  --color-brand-primary-hover: #0369A1;
+  --color-brand-text: #0369A1;         /* azul como texto sobre branco */
+
+  --color-stadium-green: #059669;      /* verde MMCrespo — concluído, ok */
+  --color-stadium-glow: #0284c7;       /* legado: cor de destaque = azul */
+  --color-success: #059669;
+  --color-success-text: #047857;
+
+  --color-gold: #B45309;               /* âmbar — atenção, pendente, offline */
+  --color-gold-hover: #92400E;
+  --color-warning-text: #B45309;
+
+  --color-danger: #C81E1E;             /* crítico, avariado, apagar */
+  --color-danger-text: #B01717;
+  --color-danger-glow: rgba(200, 30, 30, 0.12);
+
+  --color-info: #0284c7;
+  --color-info-text: #0369A1;
+
+  /* Tintas de 1 passo — fundos de estado, calmos, nunca saturados */
+  --tint-blue:  #EAF4FB;
+  --tint-green: #E8F6F0;
+  --tint-amber: #FCF3E7;
+  --tint-red:   #FCECEC;
+  --tint-neutral: #EFF2F6;
+
+  /* Cores decorativas de setor: só o glifo é colorido, a caixa fica neutra */
+  --sec-poente:   #B45309;
+  --sec-nascente: #0369A1;
+  --sec-norte:    #6D28D9;
+  --sec-sul:      #BE123C;
+  --sec-relvado:  #047857;
+  --sec-tecnica:  #92400E;
+  --sec-exterior: #475569;
+
+  /* ---------------------------------------------------------------------
+     GEOMETRIA — cantos suaves, como os cartões do Limble novo
+     --------------------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-card: 12px;
+  --radius-btn: 10px;
+  --radius-input: 10px;
+
+  /* ---------------------------------------------------------------------
+     SOMBRAS — desenhadas para fundo claro. Cinzento-azulado muito diluído;
+     rgba(0,0,0,.35) suja o branco e foi retirado.
+     --------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 30, 0.05), 0 1px 3px rgba(20, 24, 30, 0.04);
+  --shadow-md: 0 1px 2px rgba(20, 24, 30, 0.05), 0 4px 10px rgba(20, 24, 30, 0.06);
+  --shadow-lg: 0 2px 4px rgba(20, 24, 30, 0.05), 0 12px 28px rgba(20, 24, 30, 0.10);
+  --shadow-up: 0 -2px 10px rgba(20, 24, 30, 0.07);
+  --shadow-glow-green: none;
+  --shadow-glow-gold: none;
+  --shadow-focus-ring: 0 0 0 3px rgba(2, 132, 199, 0.22);
+
+  /* Véu por trás de modais e folhas */
+  --color-overlay: rgba(20, 24, 30, 0.45);
+
+  /* Cabeçalho translúcido (o conteúdo passa por baixo ao rolar) */
+  --color-header-bg: rgba(255, 255, 255, 0.92);
+
+  /* Toast: escuro de propósito, para saltar à vista sobre uma UI clara */
+  --color-toast-bg: #14181E;
+  --color-toast-text: #FFFFFF;
+  --color-toast-border: #2B323B;
+
+  /* Splash */
+  --color-splash-bg: #FFFFFF;
+
+  /* ---------------------------------------------------------------------
+     ALTURAS E ALVOS
+     --------------------------------------------------------------------- */
+  --min-touch: 48px;      /* alvo mínimo de toque — mão com luva */
+  --touch-gap: 8px;       /* folga mínima entre alvos adjacentes */
+  --header-height: 64px;
+  --bottom-nav-height: 84px; /* mais alto: rótulos a 18px precisam de espaço */
+  --cta-height: 56px;
+
+  /* Legado: tokens usados por src/ui/locationModal.js e main.css.
+     --color-navy passou a ser o AZUL-ESCURO DE TEXTO, não um fundo. */
+  --color-navy: #14181E;
+  --color-navy-header: #14181E;
+  --color-gold-accent: var(--color-gold);
+  --color-gold-light: var(--tint-amber);
+}
+
+/* ==========================================================================
+   TEMA ESCURO — OPÇÃO, NÃO DEFEITO
+   Só redefine tokens. Aplica-se quando o telemóvel está em escuro E o
+   utilizador não escolheu claro.
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-bg: #101418;
+    --color-bg-alt: #0A0D10;
+    --color-card: #171C22;
+    --color-card-elevated: #1D242B;
+    --color-surface: #222A32;
+    --color-surface-hover: #2C353E;
+    --color-border: #2E3841;
+    --color-border-focus: #4A5764;
+    --color-border-subtle: #232B33;
+
+    --color-text: #F4F7FA;
+    --color-text-secondary: #C3CDD8;
+    --color-text-muted: #C3CDD8;
+    --color-on-accent: #FFFFFF;
+
+    --color-brand-primary: #38A9E4;
+    --color-brand-primary-hover: #5CBCF0;
+    --color-brand-text: #7CCBF3;
+
+    --color-stadium-green: #10B981;
+    --color-stadium-glow: #38A9E4;
+    --color-success: #10B981;
+    --color-success-text: #5BD9AC;
+
+    --color-gold: #D97706;
+    --color-gold-hover: #F59E0B;
+    --color-warning-text: #F0A64A;
+
+    --color-danger: #E14343;
+    --color-danger-text: #FF8A8A;
+    --color-danger-glow: rgba(225, 67, 67, 0.18);
+
+    --color-info: #38A9E4;
+    --color-info-text: #7CCBF3;
+
+    --tint-blue:  #16303F;
+    --tint-green: #12332A;
+    --tint-amber: #33260F;
+    --tint-red:   #351A1A;
+    --tint-neutral: #222A32;
+
+    --sec-poente:   #F0A64A;
+    --sec-nascente: #7CCBF3;
+    --sec-norte:    #BFA8FF;
+    --sec-sul:      #FF8FA8;
+    --sec-relvado:  #5BD9AC;
+    --sec-tecnica:  #F0BC5A;
+    --sec-exterior: #A9B7C6;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
+    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+    --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
+    --shadow-focus-ring: 0 0 0 3px rgba(56, 169, 228, 0.35);
+
+    --color-overlay: rgba(0, 0, 0, 0.65);
+    --color-header-bg: rgba(16, 20, 24, 0.92);
+
+    --color-toast-bg: #1D242B;
+    --color-toast-text: #F4F7FA;
+    --color-toast-border: #3A454F;
+
+    --color-splash-bg: #101418;
+
+    --color-navy: #F4F7FA;
+    --color-navy-header: #F4F7FA;
+    --color-gold-light: var(--tint-amber);
+  }
+}
+
+/* Escolha explícita do utilizador: escuro ganha em qualquer sistema. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #101418;
+  --color-bg-alt: #0A0D10;
+  --color-card: #171C22;
+  --color-card-elevated: #1D242B;
+  --color-surface: #222A32;
+  --color-surface-hover: #2C353E;
+  --color-border: #2E3841;
+  --color-border-focus: #4A5764;
+  --color-border-subtle: #232B33;
+
+  --color-text: #F4F7FA;
+  --color-text-secondary: #C3CDD8;
+  --color-text-muted: #C3CDD8;
+  --color-on-accent: #FFFFFF;
+
+  --color-brand-primary: #38A9E4;
+  --color-brand-primary-hover: #5CBCF0;
+  --color-brand-text: #7CCBF3;
+
+  --color-stadium-green: #10B981;
+  --color-stadium-glow: #38A9E4;
+  --color-success: #10B981;
+  --color-success-text: #5BD9AC;
+
+  --color-gold: #D97706;
+  --color-gold-hover: #F59E0B;
+  --color-warning-text: #F0A64A;
+
+  --color-danger: #E14343;
+  --color-danger-text: #FF8A8A;
+  --color-danger-glow: rgba(225, 67, 67, 0.18);
+
+  --color-info: #38A9E4;
+  --color-info-text: #7CCBF3;
+
+  --tint-blue:  #16303F;
+  --tint-green: #12332A;
+  --tint-amber: #33260F;
+  --tint-red:   #351A1A;
+  --tint-neutral: #222A32;
+
+  --sec-poente:   #F0A64A;
+  --sec-nascente: #7CCBF3;
+  --sec-norte:    #BFA8FF;
+  --sec-sul:      #FF8FA8;
+  --sec-relvado:  #5BD9AC;
+  --sec-tecnica:  #F0BC5A;
+  --sec-exterior: #A9B7C6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
+  --shadow-focus-ring: 0 0 0 3px rgba(56, 169, 228, 0.35);
+
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --color-header-bg: rgba(16, 20, 24, 0.92);
+
+  --color-toast-bg: #1D242B;
+  --color-toast-text: #F4F7FA;
+  --color-toast-border: #3A454F;
+
+  --color-splash-bg: #101418;
+
+  --color-navy: #F4F7FA;
+  --color-navy-header: #F4F7FA;
+  --color-gold-light: var(--tint-amber);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+body {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-bottom: calc(var(--bottom-nav-height) + 24px);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* ===== APP HEADER ===== */
+.app-header {
+  background: var(--color-header-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: none;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+/* !important porque src/ui/header.js escreve font-size inline (0.95rem / 0.65rem)
+   no style="" destes elementos. Quando o JS for limpo, remover os !important. */
+.app-header .header-brand .greeting {
+  font-size: var(--fs-title) !important;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.header-brand .user-name {
+  color: var(--color-brand-text);
+}
+
+.app-header .header-brand .subtitle {
+  font-size: var(--fs-label) !important;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: var(--lh-tight);
+  text-transform: none; /* caixa alta a 18px não cabia na largura do telefone */
+}
+
+/* Status Badge — online = verde (ok), offline = âmbar (atenção) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: var(--min-touch);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.status-badge.online {
+  background: var(--tint-green);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-border);
+}
+
+.status-badge.online .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.status-badge.offline {
+  background: var(--tint-amber);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-border);
+}
+
+.status-badge.offline .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ===== CARDS & SURFACES ===== */
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+/* ===== ANIMATIONS ===== */
+.animate-fade-in {
+  animation: fadeInSlide 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

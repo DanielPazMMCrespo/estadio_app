@@ -1,0 +1,80 @@
+{
+  "label": "p0",
+  "at": "2026-08-14T09:31:48.490Z",
+  "url": "http://localhost:5173",
+  "viewport": "390x844 iPhone 13",
+  "bar": {
+    "minTouchPx": 48,
+    "minTextPx": 18,
+    "maxTaps": 3
+  },
+  "tapFlow": {
+    "taps": 6,
+    "sequence": [
+      "abrir a app (ícone)",
+      "botão + na barra inferior",
+      "toque no campo de localização",
+      "escrever a descrição",
+      "escrever o tempo gasto",
+      "guardar"
+    ],
+    "reportPersisted": false,
+    "reportsBefore": 0,
+    "reportsAfter": 0,
+    "notes": [
+      "BLOQUEIO: dropdown de localização não abre nenhuma opção — impossível escolher local no formulário"
+    ]
+  },
+  "totals": {
+    "screens": 5,
+    "targetsUnder48": 0,
+    "textUnder18": 0,
+    "smallestTargetPx": null,
+    "smallestTextPx": null,
+    "hOverflowScreens": [],
+    "consoleErrors": []
+  },
+  "verdict": {
+    "touchPass": true,
+    "textPass": true,
+    "tapPass": false,
+    "noErrors": true
+  },
+  "screens": [
+    {
+      "screen": "01-home",
+      "shot": "shots/01-home.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "02-ocorrencias",
+      "shot": "shots/02-ocorrencias.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "03-metricas",
+      "shot": "shots/03-metricas.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "04-definicoes",
+      "shot": "shots/04-definicoes.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "05-nova-ocorrencia",
+      "shot": "shots/05-nova-ocorrencia.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    }
+  ]
+}

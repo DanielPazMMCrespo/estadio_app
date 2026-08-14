@@ -1,0 +1,54 @@
+{
+  "label": "validar-views",
+  "at": "2026-08-14T10:35:10.025Z",
+  "url": "http://localhost:5173",
+  "viewport": "390x844 iPhone 13",
+  "bar": {
+    "minTouchPx": 48,
+    "minTextPx": 18,
+    "maxTaps": 3
+  },
+  "tapFlow": {
+    "taps": 3,
+    "sequence": [
+      "abrir a app (ícone)",
+      "escrever a descrição",
+      "guardar"
+    ],
+    "reportPersisted": true,
+    "reportsBefore": 0,
+    "reportsAfter": 1,
+    "notes": []
+  },
+  "totals": {
+    "screens": 2,
+    "targetsUnder48": 0,
+    "textUnder18": 0,
+    "smallestTargetPx": null,
+    "smallestTextPx": null,
+    "hOverflowScreens": [],
+    "consoleErrors": []
+  },
+  "verdict": {
+    "touchPass": true,
+    "textPass": true,
+    "tapPass": true,
+    "noErrors": true
+  },
+  "screens": [
+    {
+      "screen": "01-home",
+      "shot": "shots/01-home.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "02-ocorrencias",
+      "shot": "shots/02-ocorrencias.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    }
+  ]
+}

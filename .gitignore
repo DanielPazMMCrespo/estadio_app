@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production build
+dist/
+*/dist/
+
+# Logs & Environment
+*.log
+.env
+.env.local
+.env.*.local
+
+# Testing & Reports
+playwright-report/
+*/playwright-report/
+test-results/
+*/test-results/
+
+# Editor & System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/
+*/.claude/
+.agents/

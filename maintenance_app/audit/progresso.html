@@ -1,0 +1,328 @@
+<title>Bancada de Ensaio Leiria</title>
+<style>
+  /* ---------- tokens: light is the ground truth ---------- */
+  :root {
+    --paper:      #F4F6F1;
+    --paper-2:    #EAEDE6;
+    --card:       #FFFFFF;
+    --ink:        #14181E;
+    --ink-2:      #444C56;
+    --ink-3:      #6E7781;
+    --line:       #CDD2C8;
+    --line-soft:  #E1E5DC;
+    --steel:      #2B4A6F;
+    --amber:      #B35F09;
+    --amber-bg:   #FBEEDC;
+    --turf:       #2A6B3D;
+    --turf-bg:    #E4EFE5;
+    --flag:       #A82318;
+    --flag-bg:    #F8E5E2;
+    --shadow:     0 1px 0 rgba(20,24,30,.05), 0 2px 6px rgba(20,24,30,.05);
+
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #10130F;
+      --paper-2:   #171B15;
+      --card:      #1B201A;
+      --ink:       #EEF1EA;
+      --ink-2:     #B8C0B4;
+      --ink-3:     #8C948A;
+      --line:      #333A30;
+      --line-soft: #262C23;
+      --steel:     #7FA8D4;
+      --amber:     #E8A85C;
+      --amber-bg:  #34260F;
+      --turf:      #7FC791;
+      --turf-bg:   #17301D;
+      --flag:      #F0897D;
+      --flag-bg:   #351714;
+      --shadow:    0 1px 0 rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #10130F;
+    --paper-2:   #171B15;
+    --card:      #1B201A;
+    --ink:       #EEF1EA;
+    --ink-2:     #B8C0B4;
+    --ink-3:     #8C948A;
+    --line:      #333A30;
+    --line-soft: #262C23;
+    --steel:     #7FA8D4;
+    --amber:     #E8A85C;
+    --amber-bg:  #34260F;
+    --turf:      #7FC791;
+    --turf-bg:   #17301D;
+    --flag:      #F0897D;
+    --flag-bg:   #351714;
+    --shadow:    0 1px 0 rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: var(--s6) var(--s4) var(--s7); }
+
+  /* ---------- masthead ---------- */
+  .mast { border-bottom: 2px solid var(--ink); padding-bottom: var(--s4); margin-bottom: var(--s5); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 var(--s2);
+  }
+  h1 {
+    margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1.08; letter-spacing: -.02em;
+    font-weight: 800; text-wrap: balance;
+  }
+  .dek { margin: var(--s3) 0 0; color: var(--ink-2); max-width: 62ch; font-size: 17px; }
+  .stamp {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    margin-top: var(--s3); display: flex; flex-wrap: wrap; gap: var(--s3) var(--s4);
+  }
+
+  h2 {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 700;
+    margin: var(--s6) 0 var(--s3); padding-bottom: var(--s2); border-bottom: 1px solid var(--line);
+  }
+
+  /* ---------- gauges ---------- */
+  .gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--s3); }
+  .gauge {
+    background: var(--card); border: 1px solid var(--line); border-radius: 3px;
+    padding: var(--s4); box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: var(--s2);
+  }
+  .gauge-label { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .gauge-row { display: flex; align-items: baseline; gap: var(--s2); font-variant-numeric: tabular-nums; }
+  .gauge-from { font-family: var(--mono); font-size: 17px; color: var(--ink-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .gauge-arrow { color: var(--ink-3); font-size: 13px; }
+  .gauge-now { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  .gauge-target { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .gauge.pass .gauge-now { color: var(--turf); }
+  .gauge.fail .gauge-now { color: var(--flag); }
+  .bar { height: 4px; background: var(--line-soft); border-radius: 2px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--flag); }
+  .gauge.pass .bar > i { background: var(--turf); }
+
+  /* ---------- pieces ledger ---------- */
+  .ledger { display: flex; flex-direction: column; gap: var(--s2); }
+  .piece {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line);
+    border-radius: 3px; padding: var(--s3) var(--s4); box-shadow: var(--shadow);
+    display: grid; grid-template-columns: 44px 1fr auto; gap: var(--s3); align-items: start;
+  }
+  .piece.done   { border-left-color: var(--turf); }
+  .piece.loop   { border-left-color: var(--amber); }
+  .piece.wait   { border-left-color: var(--line); }
+  .piece-id {
+    font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--ink-3);
+    padding-top: 2px; letter-spacing: -.02em;
+  }
+  .piece-body { min-width: 0; }
+  .piece-name { font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+  .piece-note { color: var(--ink-2); font-size: 15px; margin-top: 2px; }
+  .piece-note code {
+    font-family: var(--mono); font-size: 13px; background: var(--paper-2);
+    border: 1px solid var(--line-soft); border-radius: 2px; padding: 0 4px;
+  }
+  .piece-meta { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); flex-shrink: 0; }
+  .pill {
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 2px; white-space: nowrap; border: 1px solid transparent;
+  }
+  .pill.done { background: var(--turf-bg); color: var(--turf); border-color: var(--turf); }
+  .pill.loop { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+  .pill.wait { background: var(--paper-2); color: var(--ink-3); border-color: var(--line); }
+  .rounds { font-family: var(--mono); font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  /* ---------- findings ---------- */
+  .finds { display: flex; flex-direction: column; gap: var(--s2); }
+  .find {
+    display: grid; grid-template-columns: auto 1fr; gap: var(--s3);
+    background: var(--card); border: 1px solid var(--line); border-radius: 3px;
+    padding: var(--s3) var(--s4); box-shadow: var(--shadow);
+  }
+  .sev {
+    font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 2px; height: fit-content; white-space: nowrap;
+  }
+  .sev.block { background: var(--flag-bg); color: var(--flag); border: 1px solid var(--flag); }
+  .sev.bug   { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+  .sev.gap   { background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .sev.ok    { background: var(--turf-bg); color: var(--turf); border: 1px solid var(--turf); }
+  .find-txt { font-size: 15px; }
+  .find-txt strong { font-weight: 700; }
+  .find-txt code {
+    font-family: var(--mono); font-size: 13px; background: var(--paper-2);
+    border: 1px solid var(--line-soft); border-radius: 2px; padding: 0 4px;
+  }
+
+  .foot {
+    margin-top: var(--s7); padding-top: var(--s4); border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+  }
+  @media (max-width: 560px) {
+    .piece { grid-template-columns: 34px 1fr; }
+    .piece-meta { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">Estádio Municipal de Leiria &middot; app de manutenção</p>
+    <h1>Bancada de Ensaio</h1>
+    <p class="dek">
+      Cada peça tem um construtor e um crítico separados. O crítico abre o ecrã real num
+      telemóvel, põe-o ao lado da app do Limble sem etiquetas e escolhe o melhor para um
+      técnico de 60 anos, de luvas, com uma mão. Se o nosso não ganhar, a peça volta ao construtor.
+    </p>
+    <div class="stamp">
+      <span id="stamp-time">medição: —</span>
+      <span>viewport: 390&times;844</span>
+      <span>ferro: <code>audit/measure.mjs</code></span>
+    </div>
+  </header>
+
+  <h2>A barra</h2>
+  <div class="gauges" id="gauges"></div>
+
+  <h2>Decisões tomadas</h2>
+  <div class="finds" id="decisions"></div>
+
+  <h2>Peças</h2>
+  <div class="ledger" id="ledger"></div>
+
+  <h2>O que a medição encontrou</h2>
+  <div class="finds" id="finds"></div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+/* ============================================================
+   Estado. Uma única fonte de verdade — editar só isto.
+   ============================================================ */
+const STATE = {
+  measuredAt: "2026-08-14 10:09",
+  round: 0,
+
+  gauges: [
+    { label: "toques até gravar", from: 6,   now: 6,   target: "≤ 3",  pass: false, pct: 100 },
+    { label: "alvos < 48px",      from: 42,  now: 42,  target: "0",    pass: false, pct: 100 },
+    { label: "texto < 18px",      from: 154, now: 154, target: "0",    pass: false, pct: 100 },
+    { label: "erros de consola",  from: 0,   now: 0,   target: "0",    pass: true,  pct: 0 }
+  ],
+
+  pieces: [
+    { id: "P0", name: "Fundação: tokens, 18px, 48px, tema único",
+      note: "Escala tipográfica, alvos de toque, barra inferior branca sobre preto, Google Fonts a quebrar o offline.",
+      status: "wait", rounds: 0 },
+    { id: "P1", name: "Camada de dados v4",
+      note: "Tabelas novas para tarefas, notas, ferramentas e equipamento. Migração segura a partir da v3.",
+      status: "wait", rounds: 0 },
+    { id: "P2", name: "Avaria registada em ≤3 toques",
+      note: "Hoje é impossível: o seletor de local nunca abre opções, logo o botão + não grava nada.",
+      status: "wait", rounds: 0 },
+    { id: "P3", name: "Tarefas para hoje e amanhã",
+      note: "Não existe. A construir.",
+      status: "wait", rounds: 0 },
+    { id: "P4", name: "Notas soltas",
+      note: "Não existe. A construir.",
+      status: "wait", rounds: 0 },
+    { id: "P5", name: "Stock de ferramentas",
+      note: "Só existe uma lista de nomes, sem quantidades nem saídas.",
+      status: "wait", rounds: 0 },
+    { id: "P6", name: "Equipamento instalado no estádio",
+      note: "Não existe. A construir.",
+      status: "wait", rounds: 0 },
+    { id: "P7", name: "Navegação para 6 domínios",
+      note: "A barra tem 4 abas e não cabe o que falta.",
+      status: "wait", rounds: 0 },
+    { id: "P8", name: "Sincronização e confiança offline",
+      note: "Não existe motor de sync. A fila cresce para sempre e nunca é drenada.",
+      status: "wait", rounds: 0 },
+    { id: "P9", name: "Lista de ocorrências e ficha de detalhe",
+      note: "Legível de perto, mas não a um metro de distância com luvas.",
+      status: "wait", rounds: 0 }
+  ],
+
+  decisions: [
+    { sev: "ok", txt: "<strong>Tema claro por defeito.</strong> Fundo branco, texto <code>#14181E</code>, azul MMCrespo <code>#0284c7</code>. É o que se lê ao sol e é o que o Limble novo faz. O escuro fica como opção." },
+    { sev: "ok", txt: "<strong>Quatro abas mais Mais.</strong> <code>Hoje · Avarias · Tarefas · Mais</code>. Ferramentas, equipamento, setores e notas vivem dentro de Mais, em linhas grandes." },
+    { sev: "ok", txt: "<strong>Julgamos contra a app Limble nova</strong> (março 2026), não a antiga. Interior claro, cartões brancos, pastilhas de ação no topo, sem botão flutuante. 39 imagens reais guardadas." },
+    { sev: "ok", txt: "<strong>Onde ganhamos ao Limble:</strong> ele põe os metadados a 13–14px, nós pomos tudo a 18px. Ele pede cinco campos para abrir uma ordem, nós gravamos só com a descrição." }
+  ],
+
+  findings: [
+    { sev: "block", txt: "<strong>Não dá para registar uma avaria pelo botão +.</strong> O <code>#location-dropdown</code> nunca é preenchido por código nenhum. Sem local escolhido, o guardar recusa. Só funciona entrando por <em>+ Avaria</em> dentro de uma sala." },
+    { sev: "block", txt: "<strong>Não existe sincronização.</strong> Os ficheiros <code>syncEngine.js</code>, <code>syncQueue.js</code> e <code>connectivity.js</code> que a documentação indica não estão no disco. A <code>sync_queue</code> só cresce." },
+    { sev: "bug",   txt: "<strong>O estado online/offline nunca muda.</strong> O <code>main.js</code> chama <code>header.setOnlineState()</code>, mas o componente só tem <code>updateStatus()</code>. Fica preso no que estava ao abrir." },
+    { sev: "bug",   txt: "<strong>Os toasts não têm estilo.</strong> As classes <code>.toast</code> nunca foram escritas no CSS. As mensagens de confirmação aparecem como texto solto." },
+    { sev: "bug",   txt: "<strong>O tipo de letra vem da internet.</strong> O <code>main.css</code> importa a Inter do Google Fonts — numa app que tem de funcionar offline total." },
+    { sev: "bug",   txt: "<strong>As fotos não são comprimidas.</strong> Guarda o ficheiro original da câmara no IndexedDB. A compressão só acontece se o técnico abrir o editor de anotações." },
+    { sev: "gap",   txt: "<strong>Texto mais pequeno medido: 10,4px.</strong> A barra são 18px. O corpo das fichas está a 13,6px e as etiquetas a 11,5px." },
+    { sev: "gap",   txt: "<strong>Alvo de toque mais pequeno medido: 13px.</strong> Os botões de apagar são <code>8,4×16px</code>. Com luvas, é impossível." },
+    { sev: "gap",   txt: "<strong>Data/hora e tempo gasto são obrigatórios</strong> para registar uma avaria. Quem está ao lado de uma máquina a fazer barulho não sabe quanto tempo vai gastar." }
+  ]
+};
+
+/* ============================================================ */
+const el = (id) => document.getElementById(id);
+
+el("stamp-time").textContent = "medição: " + STATE.measuredAt;
+
+el("gauges").innerHTML = STATE.gauges.map(g => `
+  <div class="gauge ${g.pass ? "pass" : "fail"}">
+    <span class="gauge-label">${g.label}</span>
+    <div class="gauge-row">
+      ${g.from !== g.now ? `<span class="gauge-from">${g.from}</span><span class="gauge-arrow">&rarr;</span>` : ""}
+      <span class="gauge-now">${g.now}</span>
+      <span class="gauge-target">alvo ${g.target}</span>
+    </div>
+    <div class="bar"><i style="width:${g.pct}%"></i></div>
+  </div>`).join("");
+
+const STATUS_PT = { done: "ganhou cego", loop: "em loop", wait: "à espera" };
+
+el("ledger").innerHTML = STATE.pieces.map(p => `
+  <div class="piece ${p.status}">
+    <span class="piece-id">${p.id}</span>
+    <div class="piece-body">
+      <div class="piece-name">${p.name}</div>
+      <div class="piece-note">${p.note}</div>
+    </div>
+    <div class="piece-meta">
+      <span class="pill ${p.status}">${STATUS_PT[p.status]}</span>
+      <span class="rounds">${p.rounds} ronda${p.rounds === 1 ? "" : "s"}</span>
+    </div>
+  </div>`).join("");
+
+const SEV_PT = { block: "bloqueio", bug: "erro", gap: "falha", ok: "decidido" };
+const row = (f) => `
+  <div class="find">
+    <span class="sev ${f.sev}">${SEV_PT[f.sev]}</span>
+    <div class="find-txt">${f.txt}</div>
+  </div>`;
+
+el("decisions").innerHTML = STATE.decisions.map(row).join("");
+el("finds").innerHTML = STATE.findings.map(row).join("");
+
+const won = STATE.pieces.filter(p => p.status === "done").length;
+el("foot").textContent =
+  `${won} de ${STATE.pieces.length} peças ganharam a comparação cega · ronda ${STATE.round} · ` +
+  `esta página é reescrita a cada ronda`;
+</script>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 70" fill="none">
+  <!-- mmcrespo Icon (Stylized Energy / Technology Leaf Circle) -->
+  <g transform="translate(0, 5)">
+    <!-- Outer Teardrop Loop -->
+    <path d="M 28 5 
+             C 14 5, 5 16, 5 30 
+             C 5 44, 16 55, 30 55 
+             C 42 55, 52 46, 54 34 
+             A 12 12 0 0 0 42 22 
+             C 38 22, 34 25, 34 30 
+             C 34 33, 36 35, 39 35" 
+          stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none" />
+    
+    <!-- Inner Circle Dot -->
+    <circle cx="28" cy="28" r="10" stroke="#FFFFFF" stroke-width="4.5" fill="none"/>
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="68" y="36" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="25" letter-spacing="-0.5">mmcrespo</text>
+  <text x="68" y="52" fill="rgba(255, 255, 255, 0.7)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="400" font-size="9" letter-spacing="0.5">energia | tecnologia | edifícios</text>
+</svg>

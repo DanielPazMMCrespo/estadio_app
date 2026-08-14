@@ -1,0 +1,94 @@
+{
+  "label": "validar-detail",
+  "at": "2026-08-14T11:37:24.274Z",
+  "url": "http://localhost:5173",
+  "viewport": "390x844 iPhone 13",
+  "bar": {
+    "minTouchPx": 48,
+    "minTextPx": 18,
+    "maxTaps": 3
+  },
+  "tapFlow": {
+    "taps": 3,
+    "sequence": [
+      "abrir a app (ícone)",
+      "escrever a descrição",
+      "guardar"
+    ],
+    "reportPersisted": true,
+    "reportsBefore": 0,
+    "reportsAfter": 1,
+    "notes": []
+  },
+  "totals": {
+    "screens": 2,
+    "targetsUnder48": 1,
+    "textUnder18": 5,
+    "smallestTargetPx": 40,
+    "smallestTextPx": 12.8,
+    "hOverflowScreens": [],
+    "consoleErrors": []
+  },
+  "verdict": {
+    "touchPass": false,
+    "textPass": false,
+    "tapPass": true,
+    "noErrors": true
+  },
+  "screens": [
+    {
+      "screen": "01-home",
+      "shot": "shots/01-home.png",
+      "smallTargets": [
+        {
+          "tag": "button",
+          "id": "btn-qc-mic",
+          "cls": "btn-secondary",
+          "text": "Ditar",
+          "w": 89.7,
+          "h": 40
+        }
+      ],
+      "smallText": [
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 15.2,
+          "text": "Ditar"
+        },
+        {
+          "tag": "button",
+          "cls": "btn-secondary touch-target",
+          "px": 16.8,
+          "text": "+ Adicionar Fotos, Áudio ou Materiais (Formulário Completo)"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 16,
+          "text": "#ca093d"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 12.8,
+          "text": "MÉDIA"
+        },
+        {
+          "tag": "span",
+          "cls": null,
+          "px": 16,
+          "text": "Estádio — local não indicado"
+        }
+      ],
+      "hOverflowPx": 0
+    },
+    {
+      "screen": "02-ocorrencias",
+      "shot": "shots/02-ocorrencias.png",
+      "smallTargets": [],
+      "smallText": [],
+      "hOverflowPx": 0
+    }
+  ]
+}
