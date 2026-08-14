@@ -1,12 +1,11 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { getPhotoDataUrl } from '../db/db.js';
-import { AudioService } from '../services/audioService.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
 
 /**
  * Report Detail Component — Bottom Sheet / Full Screen Modal with
- * Priority & Status Manager, Audio Player, Photo Lightbox, and PDF Work Order Export.
+ * Priority & Status Manager, Photo Lightbox, and PDF Work Order Export.
  */
 export class ReportDetailComponent {
   constructor(options = {}) {
@@ -16,7 +15,6 @@ export class ReportDetailComponent {
     this.onClose = options.onClose || null;
     this.modalEl = null;
     this.currentReport = null;
-    this.audioPlayer = null;
   }
 
   async open(reportId) {
@@ -87,20 +85,6 @@ export class ReportDetailComponent {
       }
     }
 
-    // Audio Voice Note Player
-    let audioHtml = '';
-    if (r.audioBlob) {
-      const audioUrl = AudioService.getPlayableUrl(r.audioBlob);
-      audioHtml = `
-        <div class="detail-section">
-          <h4 class="detail-section-title">Nota de Voz Gravada (${r.audioDuration || 0}s)</h4>
-          <div class="audio-player-widget">
-            <audio controls src="${audioUrl}" class="detail-audio-element" preload="metadata"></audio>
-          </div>
-        </div>
-      `;
-    }
-
     this.modalEl = document.createElement('div');
     this.modalEl.className = 'bottom-sheet-overlay animate-fade-in';
     this.modalEl.innerHTML = `
@@ -132,7 +116,7 @@ export class ReportDetailComponent {
 
         <!-- Work Description -->
         <div class="detail-section">
-          <h4 class="detail-section-title">Descrição da Avaria / Trabalho</h4>
+          <h4 class="detail-section-title">Descrição da Intervenção</h4>
           <div class="detail-text-box">${this.esc(r.description || '')}</div>
         </div>
 
@@ -155,7 +139,6 @@ export class ReportDetailComponent {
           </div>
         ` : ''}
 
-        ${audioHtml}
         ${photosHtml}
 
         <!-- Resolution Notes if Resolved -->
@@ -228,12 +211,12 @@ export class ReportDetailComponent {
 
     // Delete
     this.modalEl.querySelector('#btn-delete-report')?.addEventListener('click', async () => {
-      if (!confirm('Eliminar este registo de ocorrência?')) return;
+      if (!confirm('Eliminar este registo de intervenção?')) return;
       try {
         const id = this.currentReport?.id;
         if (id) {
           await reportsRepo.remove(id);
-          toast.success('Registo eliminado');
+          toast.success('Intervenção eliminada');
           this.close();
           if (this.onDelete) this.onDelete(id);
         }

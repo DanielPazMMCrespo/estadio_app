@@ -25,13 +25,33 @@ const arg = (name, dflt) => {
   return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt;
 };
 
-const URL_BASE = arg('url', 'http://localhost:5173');
+const URL_BASE = arg('url', 'http://127.0.0.1:5173');
 const LABEL = arg('label', 'run');
 const OUT_DIR = join(HERE, LABEL === 'run' ? '.' : LABEL);
 const SHOTS = join(OUT_DIR, 'shots');
 
 const MIN_TOUCH = 48;
 const MIN_TEXT = 18;
+
+/**
+ * Every screen the app can reach, as [routeId, screenLabel].
+ * Route ids are the ones src/main.js navigateTo() actually accepts.
+ * Adding a screen to the app means adding it here — otherwise the bar
+ * only gets enforced where the harness happens to look, which is how
+ * 72 undersized text nodes hid on the newer screens.
+ */
+const ROUTES = [
+  ['home',      '01-hoje'],
+  ['history',   '02-avarias'],
+  ['tasks',     '03-tarefas'],
+  ['more',      '04-mais'],
+  ['tools',     '05-ferramentas'],
+  ['equipment', '06-equipamento'],
+  ['notes',     '07-notas'],
+  ['sectors',   '08-setores'],
+  ['settings',  '09-definicoes'],
+  ['metrics',   '10-metricas'],
+];
 
 mkdirSync(SHOTS, { recursive: true });
 
@@ -99,6 +119,37 @@ const PROBE_TEXT = `(() => {
   return out;
 })()`;
 
+/**
+ * Text that is actually being cut off by its own box. The touch/text probes
+ * both pass on a label that renders at 19px and then gets clipped to
+ * "Equipamento Insta…", so clipping needs its own probe.
+ */
+const PROBE_CLIPPED = `(() => {
+  const out = [];
+  for (const el of document.querySelectorAll('*')) {
+    if (el.children.length) continue;
+    const t = (el.textContent || '').trim();
+    if (t.length < 3) continue;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const overW = el.scrollWidth > el.clientWidth + 2;
+    const overH = el.scrollHeight > el.clientHeight + 2;
+    if (!overW && !overH) continue;
+    // only count it when the box actually hides the overflow
+    const hides = cs.overflow !== 'visible' || cs.textOverflow === 'ellipsis'
+      || cs.overflowX === 'hidden' || cs.overflowY === 'hidden';
+    if (!hides) continue;
+    out.push({
+      text: t.replace(/\\s+/g, ' ').slice(0, 50),
+      cls: (typeof el.className === 'string' && el.className ? el.className.split(' ')[0] : null),
+      axis: overW ? 'largura' : 'altura',
+    });
+  }
+  return out.slice(0, 40);
+})()`;
+
 /** Horizontal overflow of the document — a phone page must never scroll sideways. */
 const PROBE_OVERFLOW = `({
   scrollW: document.documentElement.scrollWidth,
@@ -113,9 +164,10 @@ async function auditScreen(page, name) {
   await page.waitForTimeout(450);
   const shot = join(SHOTS, `${name}.png`);
   await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
-  const [touch, text, overflow] = await Promise.all([
+  const [touch, text, clipped, overflow] = await Promise.all([
     page.evaluate(PROBE_TOUCH).catch(() => []),
     page.evaluate(PROBE_TEXT).catch(() => []),
+    page.evaluate(PROBE_CLIPPED).catch(() => []),
     page.evaluate(PROBE_OVERFLOW).catch(() => ({ scrollW: 0, clientW: 0 })),
   ]);
   return {
@@ -123,6 +175,7 @@ async function auditScreen(page, name) {
     shot: `shots/${name}.png`,
     smallTargets: touch,
     smallText: text,
+    clipped,
     hOverflowPx: Math.max(0, overflow.scrollW - overflow.clientW),
   };
 }
@@ -232,39 +285,58 @@ async function main() {
   // ---- tap flow first (it wipes state, so run before screen tour)
   const flow = await measureTapFlow(page);
 
-  // ---- screen tour on a seeded-clean app
+  // ---- screen tour on a seeded app
   await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2200);
 
-  screens.push(await auditScreen(page, '01-home'));
+  // Every route the app can reach. Driven through the app's own router so the
+  // tour cannot silently skip a screen when nav markup changes.
+  // A route that fails to render is a failure, not an omission.
+  for (const [route, name] of ROUTES) {
+    const reached = await page.evaluate((r) => {
+      if (window.app && typeof window.app.navigateTo === 'function') {
+        window.app.navigateTo(r);
+        return true;
+      }
+      return false;
+    }, route).catch(() => false);
 
-  const tabs = [
-    ['history', '02-ocorrencias'],
-    ['metrics', '03-metricas'],
-    ['settings', '04-definicoes'],
-  ];
-  for (const [tab, name] of tabs) {
-    const el = page.locator(`.nav-tab[data-tab="${tab}"]`);
-    if (await el.count()) {
-      await el.first().click().catch(() => {});
-      screens.push(await auditScreen(page, name));
+    if (!reached) {
+      screens.push({
+        screen: name, shot: null, unreachable: true,
+        smallTargets: [], smallText: [], clipped: [], hOverflowPx: 0,
+      });
+      continue;
     }
+    const s = await auditScreen(page, name);
+    // A screen that renders nothing is broken, even if it breaks no rule.
+    s.bodyChars = await page.evaluate(
+      () => (document.getElementById('dashboard-feed')?.innerText || '').trim().length
+    ).catch(() => 0);
+    screens.push(s);
   }
 
-  // back home then open the new-report sheet
-  await page.locator('.nav-tab[data-tab="map"]').first().click().catch(() => {});
-  await page.waitForTimeout(400);
-  const plus = page.locator('#btn-nav-quick-add');
-  if (await plus.count()) {
-    await plus.first().click().catch(() => {});
-    screens.push(await auditScreen(page, '05-nova-ocorrencia'));
+  // ---- the quick-capture sheet / full form, opened from home
+  await page.evaluate(() => window.app?.navigateTo?.('home')).catch(() => {});
+  await page.waitForTimeout(500);
+  for (const sel of ['#btn-open-full-form', '#btn-nav-quick-add', '#btn-full-form']) {
+    const el = page.locator(sel);
+    if (await el.count()) {
+      await el.first().click().catch(() => {});
+      await page.waitForTimeout(500);
+      screens.push(await auditScreen(page, '11-formulario-completo'));
+      break;
+    }
   }
 
   // ---- aggregate
   const allTargets = screens.flatMap((s) => s.smallTargets.map((t) => ({ ...t, screen: s.screen })));
   const allText = screens.flatMap((s) => s.smallText.map((t) => ({ ...t, screen: s.screen })));
-  const worstTarget = allTargets.reduce((a, b) => (a && a.h <= b.h ? a : b), null);
+  const allClipped = screens.flatMap((s) => (s.clipped || []).map((t) => ({ ...t, screen: s.screen })));
+  const worstTarget = allTargets.reduce((a, b) => (a && Math.min(a.w, a.h) <= Math.min(b.w, b.h) ? a : b), null);
   const worstText = allText.reduce((a, b) => (a && a.px <= b.px ? a : b), null);
+  const unreachable = screens.filter((s) => s.unreachable).map((s) => s.screen);
+  const emptyScreens = screens.filter((s) => !s.unreachable && s.bodyChars !== undefined && s.bodyChars < 5).map((s) => s.screen);
 
   const result = {
     label: LABEL,
@@ -277,15 +349,20 @@ async function main() {
       screens: screens.length,
       targetsUnder48: allTargets.length,
       textUnder18: allText.length,
+      clippedText: allClipped.length,
       smallestTargetPx: worstTarget ? Math.min(worstTarget.w, worstTarget.h) : null,
       smallestTextPx: worstText ? worstText.px : null,
       hOverflowScreens: screens.filter((s) => s.hOverflowPx > 1).map((s) => s.screen),
+      unreachableScreens: unreachable,
+      emptyScreens,
       consoleErrors: [...new Set(consoleErrors)],
     },
     verdict: {
       touchPass: allTargets.length === 0,
       textPass: allText.length === 0,
+      clipPass: allClipped.length === 0,
       tapPass: flow.reportPersisted && flow.taps <= 3,
+      allScreensReachable: unreachable.length === 0 && emptyScreens.length === 0,
       noErrors: consoleErrors.length === 0,
     },
     screens,
@@ -311,8 +388,26 @@ function renderMd(r) {
   L.push(`|---|---|---|---|`);
   L.push(`| Alvos de toque | >= 48px | ${r.totals.targetsUnder48} abaixo (menor ${r.totals.smallestTargetPx ?? '—'}px) | ${r.verdict.touchPass ? 'SIM' : 'NAO'} |`);
   L.push(`| Corpo de texto | >= 18px | ${r.totals.textUnder18} abaixo (menor ${r.totals.smallestTextPx ?? '—'}px) | ${r.verdict.textPass ? 'SIM' : 'NAO'} |`);
+  L.push(`| Texto cortado | 0 | ${r.totals.clippedText} | ${r.verdict.clipPass ? 'SIM' : 'NAO'} |`);
   L.push(`| Toques até avaria registada | <= 3 | ${r.tapFlow.taps} ${r.tapFlow.reportPersisted ? '(gravou)' : '(NAO GRAVOU)'} | ${r.verdict.tapPass ? 'SIM' : 'NAO'} |`);
+  L.push(`| Ecrãs a abrir e com conteúdo | ${r.screens.length} | ${r.screens.length - r.totals.unreachableScreens.length - r.totals.emptyScreens.length} | ${r.verdict.allScreensReachable ? 'SIM' : 'NAO'} |`);
   L.push(`| Erros de consola | 0 | ${r.totals.consoleErrors.length} | ${r.verdict.noErrors ? 'SIM' : 'NAO'} |`);
+  L.push('');
+  L.push(`## Resumo por ecrã`);
+  L.push(`| ecrã | alvos < 48px | texto < 18px | cortado | overflow |`);
+  L.push(`|---|---|---|---|---|`);
+  for (const s of r.screens) {
+    if (s.unreachable) { L.push(`| ${s.screen} | **NÃO ABRE** | — | — | — |`); continue; }
+    L.push(`| ${s.screen} | ${s.smallTargets.length} | ${s.smallText.length} | ${(s.clipped || []).length} | ${s.hOverflowPx}px |`);
+  }
+  if (r.totals.unreachableScreens.length) {
+    L.push('');
+    L.push(`**Ecrãs que não abrem:** ${r.totals.unreachableScreens.join(', ')}`);
+  }
+  if (r.totals.emptyScreens.length) {
+    L.push('');
+    L.push(`**Ecrãs que abrem vazios:** ${r.totals.emptyScreens.join(', ')}`);
+  }
   L.push('');
   L.push(`## Sequência de toques`);
   r.tapFlow.sequence.forEach((s, i) => L.push(`${i + 1}. ${s}`));
@@ -334,9 +429,16 @@ function renderMd(r) {
   L.push('');
   L.push(`## Por ecrã`);
   for (const s of r.screens) {
+    if (s.unreachable) continue;
+    if (!s.smallTargets.length && !s.smallText.length && !(s.clipped || []).length) continue;
     L.push('');
     L.push(`### ${s.screen} — \`${s.shot}\``);
-    L.push(`alvos < 48px: **${s.smallTargets.length}** · texto < 18px: **${s.smallText.length}** · overflow: ${s.hOverflowPx}px`);
+    L.push(`alvos < 48px: **${s.smallTargets.length}** · texto < 18px: **${s.smallText.length}** · cortado: **${(s.clipped || []).length}** · overflow: ${s.hOverflowPx}px`);
+    if ((s.clipped || []).length) {
+      L.push('');
+      L.push(`Texto cortado (top 12):`);
+      s.clipped.slice(0, 12).forEach((t) => L.push(`- por ${t.axis} \`${t.cls || '?'}\` "${t.text}"`));
+    }
     if (s.smallTargets.length) {
       L.push('');
       L.push(`Alvos pequenos (top 12):`);

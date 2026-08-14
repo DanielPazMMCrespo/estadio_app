@@ -327,7 +327,7 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
-  padding: 12px 18px;
+  padding: 8px 16px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -342,35 +342,18 @@ body {
   margin: 0 auto;
 }
 
-.header-brand {
-  display: flex;
-  flex-direction: column;
+/* O logótipo mmcrespo é a única marca de que ele precisa aqui. Fica pequeno:
+   o cabeçalho é moldura, não é conteúdo. */
+.header-logo {
+  height: 34px;
+  width: auto;
+  max-width: 130px;
+  object-fit: contain;
+  display: block;
 }
 
-/* !important porque src/ui/header.js escreve font-size inline (0.95rem / 0.65rem)
-   no style="" destes elementos. Quando o JS for limpo, remover os !important. */
-.app-header .header-brand .greeting {
-  font-size: var(--fs-title) !important;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-  line-height: var(--lh-tight);
-  letter-spacing: -0.01em;
-}
-
-.header-brand .user-name {
-  color: var(--color-brand-text);
-}
-
-.app-header .header-brand .subtitle {
-  font-size: var(--fs-label) !important;
-  color: var(--color-text-secondary);
-  margin-top: 2px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: var(--lh-tight);
-  text-transform: none; /* caixa alta a 18px não cabia na largura do telefone */
-}
+/* Os !important que existiam aqui foram removidos: o header.js já não escreve
+   font-size inline. Se voltarem estilos inline ao JS, o problema é o JS. */
 
 /* Status Badge — online = verde (ok), offline = âmbar (atenção) */
 .status-badge {

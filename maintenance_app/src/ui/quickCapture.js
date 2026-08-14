@@ -1,5 +1,6 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo } from '../db/locationsRepo.js';
+import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 
 export class QuickCaptureComponent {
@@ -10,6 +11,7 @@ export class QuickCaptureComponent {
     this.selectedLocId = null;
     this.selectedLocName = null;
     this.priority = 'medium';
+    this.dictationCleanup = null;
   }
 
   async open(prefill = {}) {
@@ -40,7 +42,7 @@ export class QuickCaptureComponent {
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
           <div>
-            <h3 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--color-text);">Nova Avaria</h3>
+            <h3 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--color-text);">Nova Intervenção</h3>
           </div>
           <button type="button" class="btn-close-detail" id="btn-cancel-capture" style="width: 48px; height: 48px; font-size: 1.5rem;">&times;</button>
         </div>
@@ -48,8 +50,14 @@ export class QuickCaptureComponent {
         <div style="flex: 1; overflow-y: auto; padding-bottom: 24px;">
           <!-- DESCRIÇÃO (OBRIGATÓRIO) -->
           <div class="form-group" style="margin-bottom: 16px;">
-            <label class="form-label" style="font-size: 1rem; color: var(--color-text); font-weight: 700;">O que aconteceu? *</label>
-            <textarea id="qc-description" class="form-textarea" placeholder="Ex: O projetor da torre norte está fundido..." style="height: 120px; font-size: 1.1rem; padding: 12px;"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="font-size: 1rem; color: var(--color-text); font-weight: 700; margin: 0;">Descrição da Intervenção *</label>
+              <button type="button" id="qc-btn-mic" class="btn-secondary touch-target" style="padding: 6px 14px; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; min-height: 40px;" title="Ditar por voz">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <span>Ditar</span>
+              </button>
+            </div>
+            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do filtro ou reparação..." style="height: 110px; font-size: 1.1rem; padding: 12px;"></textarea>
           </div>
 
           <!-- LOCALIZAÇÃO -->
@@ -71,27 +79,12 @@ export class QuickCaptureComponent {
               <button type="button" class="btn-secondary touch-target priority-btn" data-priority="critical" style="flex:1;">Crítica</button>
             </div>
           </div>
-
-          <!-- Opcionais escondidos/simplificados -->
-          <div style="display: flex; gap: 12px; justify-content: space-around; margin-top: 24px;">
-            <button type="button" id="qc-btn-photo" class="touch-target" style="display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; border: none; color: var(--color-brand-primary);">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              <span style="font-size: 0.8rem; font-weight: 600;">Adicionar Foto</span>
-            </button>
-            <button type="button" id="qc-btn-mic" class="touch-target" style="display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; border: none; color: var(--color-brand-primary);">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              <span style="font-size: 0.8rem; font-weight: 600;">Nota de Voz</span>
-            </button>
-          </div>
-          
-          <input type="file" id="qc-photo-input" accept="image/*" capture="environment" style="display: none;" />
-          <div id="qc-photo-preview" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto;"></div>
         </div>
 
-        <!-- GRAVAR (SEMPRE VISÍVEL NO FUNDO, ENORME) -->
+        <!-- GRAVAR (SEMPRE VISÍVEL NO FUNDO) -->
         <div style="padding-top: 12px; background: var(--color-bg); border-top: 1px solid var(--color-border);">
-          <button type="button" id="btn-save-capture" class="btn-primary-cta touch-target" style="width: 100%; height: 64px; font-size: 1.2rem; font-weight: 800; border-radius: var(--radius-md);">
-            Gravar Avaria
+          <button type="button" id="btn-save-capture" class="btn-primary-cta touch-target" style="width: 100%; height: 56px; font-size: 1.15rem; font-weight: 800; border-radius: var(--radius-md);">
+            Gravar Intervenção
           </button>
         </div>
       </div>
@@ -134,6 +127,21 @@ export class QuickCaptureComponent {
       });
     }
 
+    // Dictation Button
+    const micBtn = this.modal.querySelector('#qc-btn-mic');
+    const descInput = this.modal.querySelector('#qc-description');
+    if (micBtn && descInput) {
+      if (this.dictationCleanup) {
+        this.dictationCleanup();
+      }
+      this.dictationCleanup = speechService.attachDictation(micBtn, descInput, {
+        activeHtml: `
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
+          <span style="color:var(--color-danger);">A ouvir... (Parar)</span>
+        `
+      });
+    }
+
     // Location search
     const locInput = this.modal.querySelector('#qc-loc-search');
     const locDropdown = this.modal.querySelector('#qc-loc-dropdown');
@@ -152,7 +160,6 @@ export class QuickCaptureComponent {
         if (matches.length === 0) {
           locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted);">Nenhum local encontrado</div>';
         } else {
-          // Opções grandes (>= 56px) para homem de luvas
           locDropdown.innerHTML = matches.map(l => `
             <div class="loc-option touch-target" data-id="${l.id}" data-name="${this.esc(l.name)}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
               <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${this.esc(l.name)}</div>
@@ -198,10 +205,10 @@ export class QuickCaptureComponent {
           return;
         }
 
-        // Se ele digitou algo no input mas não escolheu da lista, usamos o texto
+        // Se digitou algo no input mas não escolheu da lista, usamos o texto
         if (locInput && locInput.value !== this.selectedLocName) {
            this.selectedLocName = locInput.value.trim() || 'Estádio — local não indicado';
-           this.selectedLocId = null; // desliga o ID porque não bate certo
+           this.selectedLocId = null;
         }
 
         if (this.selectedLocId) {
@@ -209,7 +216,6 @@ export class QuickCaptureComponent {
         }
         localStorage.setItem('last_used_loc_name', this.selectedLocName);
 
-        // Prepara dados
         const newReport = {
           locationId: this.selectedLocId,
           locationName: this.selectedLocName,
@@ -218,20 +224,21 @@ export class QuickCaptureComponent {
           description: desc,
           date: new Date().toISOString(),
           timeSpent: 0,
-          photos: [], // fotos temporárias se implementadas aqui
+          photos: [],
+          audioBlob: null,
           audioDuration: 0,
-          materials: []
+          materials: ''
         };
 
         try {
           await reportsRepo.create(newReport);
           this.close();
-          toast.success('Avaria registada no telemóvel');
+          toast.success('Intervenção registada no telemóvel');
           if (typeof this.onSave === 'function') {
             this.onSave();
           }
         } catch (e) {
-          toast.error('Erro ao guardar avaria.');
+          toast.error('Erro ao guardar intervenção.');
           console.error(e);
         }
       };
@@ -252,6 +259,7 @@ export class QuickCaptureComponent {
   }
 
   close() {
+    speechService.stopListening();
     if (this.modal) {
       this.modal.remove();
       this.modal = null;

@@ -171,7 +171,7 @@ export class StadiumMapComponent {
 
           <div class="drawer-actions">
             <button type="button" class="btn-secondary" id="btn-view-sector-reports">
-              Ver Avarias no Feed
+              Ver Intervenções no Feed
             </button>
             <button type="button" class="btn-primary-cta" id="btn-quick-new-report">
               + Registar Aqui
@@ -267,7 +267,7 @@ export class StadiumMapComponent {
           drawerContent.innerHTML = `
             <div class="drawer-empty-state">
               <span class="check-icon">✓</span>
-              <p>Sem avarias ativas neste setor. Tudo operacional!</p>
+              <p>Sem intervenções ativas neste setor. Tudo operacional!</p>
             </div>
           `;
         } else {

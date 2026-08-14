@@ -2982,3 +2982,29 @@ html, body { max-width: 100%; overflow-x: hidden; }
   border-radius: 3px;
 }
 
+/* ==========================================================================
+   DITADO POR VOZ (SPEECH-TO-TEXT) ESTILOS
+   ========================================================================== */
+
+.dictation-active,
+.btn-secondary.dictation-active,
+.nv-mic.nv-mic--rec {
+  background: rgba(220, 38, 38, 0.15) !important;
+  color: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+  animation: pulse-dictation 1.5s infinite;
+}
+
+@keyframes pulse-dictation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+

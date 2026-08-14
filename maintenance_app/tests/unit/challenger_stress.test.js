@@ -112,26 +112,41 @@ describe('Empirical Challenger Stress & Boundary Test Suite', () => {
       container = document.getElementById('header-container');
     });
 
-    it('prevents XSS attacks in operator user name', () => {
+    // O cabeçalho já não desenha o nome do operador, por isso deixou de haver
+    // por onde injetar. Mas o nome continua a ser guardado e usado noutros
+    // sítios (fichas em PDF, definições), por isso o escape tem de continuar
+    // a funcionar — e é testado directamente.
+    it('never injects the operator name into the header markup', () => {
       const xssName = '<script>alert("xss")</script><img src=x onerror=alert(1)>';
       const header = new HeaderComponent(container, { userName: xssName, isOnline: true });
       header.render();
 
-      const span = container.querySelector('.user-name');
-      expect(span.innerHTML).not.toContain('<script>');
-      expect(span.textContent).toBe(xssName);
+      expect(container.innerHTML).not.toContain('<script>');
+      expect(container.innerHTML).not.toContain('onerror');
+      expect(container.querySelector('script')).toBeNull();
+      expect(container.querySelector('img[src="x"]')).toBeNull();
+    });
+
+    it('still escapes the operator name for whoever renders it', () => {
+      const header = new HeaderComponent(container, { userName: 'x', isOnline: true });
+      const escaped = header.escapeHtml('<script>alert("xss")</script>');
+
+      expect(escaped).not.toContain('<script>');
+      expect(escaped).toContain('&lt;script&gt;');
+      expect(escaped).toContain('&quot;');
     });
 
     it('handles method calls prior to rendering gracefully', () => {
       const header = new HeaderComponent(container, { userName: 'Test' });
-      // updateStatus without prior render
+      // updateStatus sem render prévio tem de desenhar o cabeçalho
       expect(() => header.updateStatus(false)).not.toThrow();
       expect(container.querySelector('#connectivity-badge')).not.toBeNull();
       expect(container.querySelector('.status-badge').classList.contains('offline')).toBe(true);
 
-      // setUserName without prior render
+      // setUserName sem render prévio guarda o nome e não desenha nada
       expect(() => header.setUserName('Updated')).not.toThrow();
-      expect(container.querySelector('.user-name').textContent).toBe('Updated');
+      expect(header.userName).toBe('Updated');
+      expect(container.innerHTML).not.toContain('Updated');
     });
 
     it('handles null container safely without throwing errors', () => {

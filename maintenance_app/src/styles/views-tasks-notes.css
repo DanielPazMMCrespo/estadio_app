@@ -1,0 +1,654 @@
+/* Estilos das vistas Tarefas e Notas. Dono unico: o agente destas duas vistas.
+   Regras: so var(--color-*), tokens --fs-* e --min-touch. Nunca cores literais.
+   Nunca font-size abaixo de 18px em texto de leitura.
+
+   Este ficheiro carrega DEPOIS de components.css, por isso vence todas as regras
+   equivalentes que lá existiam para .tv-* e .nv-*. As regras foram copiadas para
+   aqui (components.css nao foi tocado) e os tamanhos em rem foram trocados por
+   tokens. */
+
+/* ==========================================================================
+   1. TAREFAS  (src/ui/tasksView.js)
+   ========================================================================== */
+
+.tv-view {
+  padding-bottom: 90px;
+}
+
+.tv-primary-action {
+  width: 100%;
+  background: var(--color-brand-primary);
+  color: var(--color-on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 60px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 150ms ease;
+}
+.tv-primary-action:active { transform: scale(0.98); }
+
+/* ---------- blocos Hoje / Amanha ---------- */
+
+.tv-block {
+  margin-bottom: 24px;
+}
+.tv-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.tv-block-title {
+  font-size: var(--fs-title);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+.tv-block-date {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  margin: 0;
+}
+.tv-block-empty {
+  padding: 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--fs-body);
+  margin: 0;
+}
+
+/* ---------- em atraso ---------- */
+
+.tv-overdue {
+  background: var(--tint-red);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  margin-bottom: 20px;
+}
+.tv-overdue-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-danger);
+  margin-bottom: 10px;
+}
+.tv-overdue-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.tv-overdue-title {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+  margin: 0;
+}
+
+/* ---------- cartao de tarefa ---------- */
+
+.tv-task {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: opacity 150ms ease, transform 150ms ease;
+  cursor: pointer;
+}
+.tv-task--crit {
+  border-left: 4px solid var(--color-danger);
+}
+.tv-task--leaving {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.tv-check {
+  width: var(--min-touch);
+  height: var(--min-touch);
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  border-radius: 50%;
+  border: 2px solid var(--color-border-focus);
+  background: var(--color-surface);
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+}
+.tv-check:hover {
+  border-color: var(--color-stadium-green);
+  color: var(--color-stadium-green);
+}
+.tv-task--done .tv-check {
+  background: var(--color-stadium-green);
+  border-color: var(--color-stadium-green);
+  color: var(--color-on-accent);
+}
+
+.tv-task-main {
+  flex: 1;
+  min-width: 0;
+}
+.tv-task-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+.tv-task-title {
+  font-weight: 700;
+  font-size: var(--fs-body-lg);
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+  line-height: var(--lh-tight);
+}
+.tv-task-titlerow .tv-task-title {
+  margin: 0;
+}
+
+/* pastilha de prioridade — classe propria, para nao mexer na .chip-priority
+   que a vista de historico tambem usa */
+.tv-prio-chip {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  line-height: var(--lh-tight);
+}
+.tv-prio-chip--crit {
+  background: var(--color-danger);
+  color: var(--color-on-accent);
+}
+.tv-prio-chip--med {
+  background: var(--tint-amber);
+  color: var(--color-gold);
+}
+.tv-prio-chip--low {
+  background: var(--tint-green);
+  color: var(--color-stadium-green);
+}
+
+.tv-task-loc, .tv-task-late, .tv-task-recur, .tv-task-notes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  margin: 2px 0 0 0;
+  line-height: var(--lh-tight);
+}
+.tv-task-notes {
+  align-items: flex-start;
+}
+.tv-task-late {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.tv-task-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tv-task-chevron {
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: var(--min-touch);
+}
+
+.tv-defer {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--fs-label);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: var(--min-touch);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tv-defer:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.tv-link {
+  color: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+
+/* ---------- feitas hoje ---------- */
+
+.tv-done-toggle {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--min-touch);
+}
+.tv-done-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.tv-task--done {
+  opacity: 0.75;
+}
+.tv-undo {
+  background: transparent;
+  border: none;
+  color: var(--color-brand-primary);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  padding: 8px 10px;
+  min-height: var(--min-touch);
+  flex-shrink: 0;
+}
+
+/* ---------- estado vazio ---------- */
+
+.tv-empty, .nv-empty {
+  text-align: center;
+  padding: 32px 18px;
+  background: var(--color-card);
+  border-radius: var(--radius-card);
+  border: 1px dashed var(--color-border);
+}
+.tv-empty-title, .nv-empty-title {
+  font-size: var(--fs-title);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 10px 0;
+  line-height: var(--lh-tight);
+}
+.tv-empty-text, .nv-empty-text {
+  font-size: var(--fs-body);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-body);
+  margin: 0;
+}
+.tv-empty-text strong, .nv-empty-text strong {
+  font-size: var(--fs-body);
+  color: var(--color-text);
+}
+
+/* ---------- folha (nova tarefa / editar tarefa) ---------- */
+
+#tv-sheet-detail-task {
+  z-index: 9999;
+}
+
+.tv-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.tv-sheet-eyebrow {
+  display: block;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  line-height: var(--lh-tight);
+}
+.tv-sheet-title {
+  font-size: var(--fs-title);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 2px 0 0 0;
+  line-height: var(--lh-tight);
+}
+.tv-sheet-hint {
+  font-size: var(--fs-body);
+  color: var(--color-text-secondary);
+  margin: 10px 0 0 0;
+}
+.tv-new-title {
+  font-size: var(--fs-body-lg);
+}
+
+.tv-sheet-group {
+  margin-bottom: 14px;
+}
+.tv-sheet-days {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0 16px 0;
+}
+.tv-sheet-group .tv-sheet-days {
+  margin: 6px 0 0 0;
+}
+.tv-day-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 60px;
+}
+.tv-day-btn--today {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: var(--color-on-accent);
+}
+.tv-sheet-date {
+  margin-top: 8px;
+}
+
+.tv-priority-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.tv-prio-btn {
+  padding: 10px 4px;
+  font-size: var(--fs-label);
+  min-height: var(--min-touch);
+}
+.tv-prio-btn.active[data-priority="low"] {
+  border-color: var(--color-stadium-green);
+  color: var(--color-stadium-green);
+}
+.tv-prio-btn.active[data-priority="medium"] {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+.tv-prio-btn.active[data-priority="critical"] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.tv-more-toggle {
+  background: transparent;
+  border: none;
+  color: var(--color-brand-primary);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  padding: 8px 0;
+  display: block;
+  min-height: var(--min-touch);
+  margin-bottom: 12px;
+}
+.tv-pick-loc {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  margin: 8px 0 16px 0;
+  display: block;
+  width: 100%;
+  min-height: var(--min-touch);
+}
+
+.tv-sheet-wide {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.tv-sheet-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.tv-sheet-row .btn-secondary {
+  flex: 1;
+}
+.tv-danger-btn {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   2. NOTAS  (src/ui/notesView.js)
+   ========================================================================== */
+
+.nv-view {
+  padding-bottom: 90px;
+}
+
+.nv-composer {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+/* vence a .nv-composer label de components.css, que estava a 1.1rem = 17.6px */
+.nv-composer label,
+.nv-composer .form-label {
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  min-height: var(--min-touch);
+}
+.nv-input {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 12px;
+  font-size: var(--fs-body);
+}
+.nv-composer-actions {
+  display: flex;
+  gap: 10px;
+}
+.nv-mic {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 60px;
+  transition: background 150ms ease;
+}
+.nv-mic:hover {
+  background: var(--color-surface-hover);
+}
+.nv-mic-glyph {
+  display: inline-flex;
+  align-items: center;
+}
+.nv-mic-text {
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+}
+.nv-mic--rec {
+  background: var(--tint-red);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  animation: pulse-mic 1.5s infinite;
+}
+.nv-save {
+  flex: 1;
+  background: var(--color-brand-primary);
+  border: none;
+  color: var(--color-on-accent);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 60px;
+  transition: background 150ms ease;
+}
+.nv-mic-status {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  margin: 10px 0 0 0;
+  line-height: var(--lh-tight);
+}
+
+.nv-search {
+  margin-bottom: 16px;
+}
+.nv-search .form-label {
+  font-size: var(--fs-body);
+}
+.nv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nv-note {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nv-note--pinned {
+  border-color: var(--color-brand-primary);
+  border-left: 4px solid var(--color-brand-primary);
+}
+.nv-note-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.nv-note-date {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.nv-note-flag {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  background: var(--tint-blue);
+  color: var(--color-brand-primary);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.nv-note-body {
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.nv-note-loc {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  margin: 0;
+}
+.nv-note-audio {
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+.nv-note-audio-label {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin: 0 0 6px 0;
+}
+.nv-audio {
+  width: 100%;
+  max-width: 100%;
+  height: 40px;
+}
+.nv-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.nv-act {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  cursor: pointer;
+  min-height: var(--min-touch);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nv-act:hover {
+  background: var(--color-surface-hover);
+}
+.nv-act-glyph {
+  display: inline-flex;
+  align-items: center;
+}
+.nv-act--report {
+  background: var(--tint-blue);
+  color: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+.nv-act--task {
+  background: var(--tint-green);
+  color: var(--color-stadium-green);
+  border-color: var(--color-stadium-green);
+}
+.nv-act--del {
+  color: var(--color-danger);
+  margin-left: auto;
+}

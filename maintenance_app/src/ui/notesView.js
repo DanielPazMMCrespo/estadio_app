@@ -1,6 +1,5 @@
 import { notesRepo } from '../db/notesRepo.js';
-import { AudioService, audioService } from '../services/audioService.js';
-import { SpeechService, speechService } from '../services/speechService.js';
+import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 
 /**
@@ -8,19 +7,15 @@ import { toast } from './toast.js';
  *
  * Contrato (outro agente instancia isto):
  *   new NotesViewComponent(container, {
- *     onConvertToReport,  // (note) => void — "Virar avaria"
+ *     onConvertToReport,  // (note) => void — "Virar intervenção"
  *     onConvertToTask     // (note) => void — "Virar tarefa"
  *   })
  *   await view.render()
  *   await view.refresh()
- *
- * A conversão NÃO é feita aqui: os botões só chamam o callback com o objeto
- * completo da nota (id, body, audioBlob, audioDuration, locationId,
- * locationName, createdAt). Quem liga decide o que fazer com ela.
  */
 
-const SVG_MIC = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
-const SVG_STOP = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>';
+const SVG_MIC = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+const SVG_STOP = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>';
 const SVG_PIN = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 17v5"></path><path d="M9 10.8V4h6v6.8l2 3.2H7z"></path></svg>';
 
 export class NotesViewComponent {
@@ -32,7 +27,7 @@ export class NotesViewComponent {
     this.notes = [];
     this.totalNotes = 0;
     this.searchQuery = '';
-    this.isRecording = false;
+    this.isListening = false;
     this.saving = false;
     this.suppressBlurSave = false;
   }
@@ -62,15 +57,15 @@ export class NotesViewComponent {
         <div class="nv-composer">
           <label class="form-label" for="nv-input">Escreva ou dite uma nota</label>
           <textarea id="nv-input" class="form-textarea nv-input" rows="3"
-                    placeholder="Escreva aqui. Guarda quando sair do campo."></textarea>
+                    placeholder="Escreva aqui ou toque em Ditar. Guarda ao sair do campo."></textarea>
           <div class="nv-composer-actions">
-            <button type="button" class="nv-mic" id="nv-mic" aria-label="Ditar nota de voz">
+            <button type="button" class="nv-mic" id="nv-mic" aria-label="Ditar nota por voz">
               <span class="nv-mic-glyph">${SVG_MIC}</span>
               <span class="nv-mic-text">Ditar</span>
             </button>
             <button type="button" class="nv-save" id="nv-save">Guardar nota</button>
           </div>
-          <p class="nv-mic-status" id="nv-mic-status">Nada por gravar.</p>
+          <p class="nv-mic-status" id="nv-mic-status">Toque em Ditar para transcrever a voz em texto.</p>
         </div>
 
         <div id="nv-list-wrap">${this.renderListWrap()}</div>
@@ -121,10 +116,10 @@ export class NotesViewComponent {
         <div class="nv-empty">
           <h2 class="nv-empty-title">Ainda não há notas</h2>
           <p class="nv-empty-text">
-            O campo lá em cima está pronto: escreva o que viu e sai do campo — fica guardado.
+            O campo lá em cima está pronto: escreva o que viu e saia do campo — fica guardado.
             Se tiver as mãos ocupadas, toque em <strong>Ditar</strong> e fale.
           </p>
-          <p class="nv-empty-text">Depois pode virar qualquer nota em avaria ou em tarefa.</p>
+          <p class="nv-empty-text">Depois pode virar qualquer nota em intervenção ou em tarefa.</p>
         </div>
       `;
     }
@@ -132,7 +127,6 @@ export class NotesViewComponent {
   }
 
   renderNote(note) {
-    const audioUrl = note.audioBlob ? AudioService.getPlayableUrl(note.audioBlob) : '';
     return `
       <article class="nv-note${note.pinned ? ' nv-note--pinned' : ''}" data-note-id="${this.esc(note.id)}">
         <header class="nv-note-head">
@@ -144,15 +138,8 @@ export class NotesViewComponent {
 
         ${note.locationName ? `<p class="nv-note-loc">${this.esc(note.locationName)}</p>` : ''}
 
-        ${audioUrl ? `
-          <div class="nv-note-audio">
-            <p class="nv-note-audio-label">Nota de voz${note.audioDuration ? ` (${note.audioDuration}s)` : ''}</p>
-            <audio controls preload="none" src="${audioUrl}" class="nv-audio"></audio>
-          </div>
-        ` : ''}
-
         <div class="nv-note-actions">
-          <button type="button" class="nv-act nv-act--report" data-action="to-report" data-id="${this.esc(note.id)}">Virar avaria</button>
+          <button type="button" class="nv-act nv-act--report" data-action="to-report" data-id="${this.esc(note.id)}">Virar intervenção</button>
           <button type="button" class="nv-act nv-act--task" data-action="to-task" data-id="${this.esc(note.id)}">Virar tarefa</button>
           <button type="button" class="nv-act" data-action="pin" data-id="${this.esc(note.id)}">
             <span class="nv-act-glyph">${SVG_PIN}</span>
@@ -178,7 +165,7 @@ export class NotesViewComponent {
 
     if (input) {
       input.addEventListener('blur', () => {
-        if (this.suppressBlurSave) { this.suppressBlurSave = false; return; }
+        if (this.suppressBlurSave || this.isListening) { return; }
         const body = (input.value || '').trim();
         if (!body) return;
         this.saveNote(body);
@@ -188,9 +175,12 @@ export class NotesViewComponent {
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
         this.suppressBlurSave = false;
+        if (this.isListening) {
+          this.toggleDictation();
+        }
         const body = (input?.value || '').trim();
         if (!body) {
-          toast.warning('Escreva alguma coisa primeiro.');
+          toast.warning('Escreva ou dite alguma coisa primeiro.');
           if (input) try { input.focus(); } catch (e) {}
           return;
         }
@@ -199,9 +189,10 @@ export class NotesViewComponent {
     }
 
     if (micBtn) {
-      micBtn.addEventListener('click', () => {
+      micBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         this.suppressBlurSave = false;
-        this.toggleRecording();
+        this.toggleDictation();
       });
     }
   }
@@ -227,7 +218,7 @@ export class NotesViewComponent {
 
         if (action === 'to-report') {
           if (this.onConvertToReport) this.onConvertToReport(note);
-          else toast.info('Conversão em avaria ainda não está ligada.');
+          else toast.info('Conversão em intervenção ainda não está ligada.');
           return;
         }
         if (action === 'to-task') {
@@ -254,7 +245,7 @@ export class NotesViewComponent {
             toast.success('Nota apagada.');
             await this.refresh();
           } catch (err) {
-            console.error('[Notas] remove:', err);
+            console.error('[Notas] del:', err);
             toast.error('Não foi possível apagar a nota.');
           }
         }
@@ -264,89 +255,73 @@ export class NotesViewComponent {
 
   async refreshListOnly() {
     await this.load();
-    const list = this.container.querySelector('.nv-list');
-    if (!list) { await this.refresh(); return; }
-    list.innerHTML = this.renderNotes();
+    const list = this.container?.querySelector('.nv-list');
+    if (list) list.innerHTML = this.renderNotes();
     this.bindList();
   }
 
-  /* ===================== gravar / ditar ===================== */
+  /* ===================== ditar (Speech-to-Text) ===================== */
 
-  setMicState(recording, statusText) {
-    this.isRecording = recording;
+  setMicState(listening, statusText) {
+    this.isListening = listening;
     const micBtn = this.container?.querySelector('#nv-mic');
     const glyph = micBtn?.querySelector('.nv-mic-glyph');
     const label = micBtn?.querySelector('.nv-mic-text');
     const status = this.container?.querySelector('#nv-mic-status');
-    if (micBtn) micBtn.classList.toggle('nv-mic--rec', recording);
-    if (glyph) glyph.innerHTML = recording ? SVG_STOP : SVG_MIC;
-    if (label) label.textContent = recording ? 'Parar' : 'Ditar';
+    if (micBtn) micBtn.classList.toggle('nv-mic--rec', listening);
+    if (glyph) glyph.innerHTML = listening ? SVG_STOP : SVG_MIC;
+    if (label) label.textContent = listening ? 'Parar' : 'Ditar';
     if (status && typeof statusText === 'string') status.textContent = statusText;
   }
 
-  async toggleRecording() {
+  toggleDictation() {
     const input = this.container?.querySelector('#nv-input');
 
-    if (!this.isRecording) {
-      try {
-        this.setMicState(true, '🔴 A gravar nota de voz... (0s)');
-        
-        // Start local MediaRecorder (100% offline & reliable)
-        await audioService.startRecording((elapsed) => {
-          const status = this.container?.querySelector('#nv-mic-status');
-          if (status) status.textContent = `🔴 A gravar nota de voz... (${elapsed}s) — toque em Parar quando acabar.`;
-        });
-
-        // Try speech-to-text in parallel if available
-        if (SpeechService.isSupported() && input) {
-          const prevText = (input.value || '').trim();
-          speechService.startListening({
-            lang: 'pt-PT',
-            onResult: (transcript) => {
-              if (input) {
-                input.value = prevText ? `${prevText} ${transcript}` : transcript;
-              }
-            },
-            onError: () => {}
-          }).catch(() => {});
+    if (!this.isListening) {
+      const initialText = (input?.value || '').trim();
+      const started = speechService.startListening({
+        lang: 'pt-PT',
+        onStart: () => {
+          this.setMicState(true, '🔴 A ouvir... Fale agora. Toque em Parar quando terminar.');
+        },
+        onResult: (spokenText) => {
+          if (input) {
+            input.value = initialText ? `${initialText} ${spokenText}` : spokenText;
+          }
+        },
+        onEnd: () => {
+          this.setMicState(false, 'Transcrição concluída. Pode editar ou carregar em Guardar nota.');
+        },
+        onError: (err) => {
+          this.setMicState(false, 'Erro no microfone ou permissão negada.');
+          if (err === 'not-allowed') toast.error('Permissão de microfone negada.');
+          else if (err !== 'no-speech' && err !== 'aborted') toast.warning('Não foi possível transcrever a voz.');
         }
-      } catch (err) {
-        console.error('[Notas] microfone:', err);
-        this.setMicState(false, 'Sem acesso ao microfone. Autorize o microfone nas permissões.');
-        toast.error('Sem acesso ao microfone.');
-      }
-      return;
-    }
-
-    // Stop recording
-    try {
-      speechService.stopListening();
-      const result = await audioService.stopRecording();
-      this.setMicState(false, `✅ Nota de voz gravada (${result.duration}s).`);
-      const typed = (input?.value || '').trim();
-      await this.saveNote(typed || `Nota de voz (${result.duration}s)`, {
-        audioBlob: result.blob,
-        audioDuration: result.duration
       });
-      toast.success('Nota de voz guardada!');
-    } catch (err) {
-      console.error('[Notas] stopRecording:', err);
-      this.setMicState(false, 'Não foi possível terminar a gravação.');
-      toast.error('Erro ao terminar gravação.');
+
+      if (!started) {
+        this.setMicState(false, 'Ditado não suportado neste navegador.');
+        toast.warning('O seu navegador não suporta ditado por voz.');
+      }
+    } else {
+      speechService.stopListening();
+      this.setMicState(false, 'Ditado parado. Pode guardar a nota.');
     }
   }
 
   /* ===================== guardar ===================== */
 
-  async saveNote(body, extra = {}) {
+  async saveNote(body) {
     if (this.saving) return;
     const text = String(body || '').trim();
     if (!text) return;
     this.saving = true;
     try {
-      await notesRepo.create({ body: text, ...extra });
+      await notesRepo.create({ body: text });
       const input = this.container?.querySelector('#nv-input');
       if (input) input.value = '';
+      const status = this.container?.querySelector('#nv-mic-status');
+      if (status) status.textContent = 'Nota guardada com sucesso.';
       toast.success('Nota guardada.');
       await this.refresh();
     } catch (err) {
@@ -357,18 +332,25 @@ export class NotesViewComponent {
     }
   }
 
-  /* ===================== utilitários ===================== */
-
   esc(str) {
     if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }
 
-/** "14 de agosto, 09:12" */
-export function formatStamp(value) {
-  const d = value ? new Date(value) : new Date();
-  const day = d.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' });
-  const time = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-  return `${day}, ${time}`;
+function formatStamp(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+    const timeStr = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+    return `${dateStr} · ${timeStr}`;
+  } catch (e) {
+    return String(iso);
+  }
 }

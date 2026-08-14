@@ -77,7 +77,7 @@ export class StadiumNavigatorComponent {
         <!-- Filter Quick Pills -->
         <div class="filter-chips-row">
           <button type="button" class="filter-chip ${this.filterMode === 'all' ? 'active' : ''}" data-navfilter="all">Todos os Setores</button>
-          <button type="button" class="filter-chip ${this.filterMode === 'with_issues' ? 'active' : ''}" data-navfilter="with_issues">⚠️ Com Avarias (${activeReports.length})</button>
+          <button type="button" class="filter-chip ${this.filterMode === 'with_issues' ? 'active' : ''}" data-navfilter="with_issues">⚠️ Com Intervenções (${activeReports.length})</button>
           <button type="button" class="filter-chip crit ${this.filterMode === 'critical' ? 'active' : ''}" data-navfilter="critical">🔴 Críticas (${criticalReports.length})</button>
         </div>
 
@@ -201,7 +201,7 @@ export class StadiumNavigatorComponent {
       if (isCrit) {
         statusBadgeHtml = `<span class="sec-status-badge crit">🔴 ${sec.secStat.critical} Crítica${sec.secStat.critical > 1 ? 's' : ''}</span>`;
       } else if (hasIssues) {
-        statusBadgeHtml = `<span class="sec-status-badge warn">⚠️ ${sec.secStat.total} Avaria${sec.secStat.total > 1 ? 's' : ''}</span>`;
+        statusBadgeHtml = `<span class="sec-status-badge warn">⚠️ ${sec.secStat.total} Intervenç${sec.secStat.total > 1 ? 'ões' : 'ão'}</span>`;
       }
 
       return `
@@ -257,12 +257,12 @@ export class StadiumNavigatorComponent {
         </div>
         <div class="room-actions">
           ${hasIssues ? `
-            <button type="button" class="btn-room-view" data-action="view-issues" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" title="Ver Avarias">
+            <button type="button" class="btn-room-view" data-action="view-issues" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" title="Ver Intervenções">
               Ver (${roomStat.total})
             </button>
           ` : ''}
-          <button type="button" class="btn-room-add-issue" data-action="add-issue" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" data-sector-code="${sec.code || sec.id}" title="Registar Avaria">
-            + Avaria
+          <button type="button" class="btn-room-add-issue" data-action="add-issue" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" data-sector-code="${sec.code || sec.id}" title="Registar Intervenção">
+            + Intervenção
           </button>
         </div>
       </div>

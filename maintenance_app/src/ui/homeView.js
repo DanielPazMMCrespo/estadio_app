@@ -1,6 +1,5 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { tasksRepo } from '../db/tasksRepo.js';
-import { audioService } from '../services/audioService.js';
 import { speechService } from '../services/speechService.js';
 
 export class HomeViewComponent {
@@ -13,6 +12,7 @@ export class HomeViewComponent {
     this.onOpenTask = options.onOpenTask || null;
     this.onViewAllReports = options.onViewAllReports || null;
     this.onViewAllTasks = options.onViewAllTasks || null;
+    this.dictationCleanup = null;
   }
 
   esc(str) {
@@ -63,13 +63,13 @@ export class HomeViewComponent {
         <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           <div class="form-group" style="margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label class="form-label" style="font-size: 1.15rem; color: var(--color-text); font-weight: 700; margin: 0;">Descreva a avaria *</label>
+              <label class="form-label" style="font-size: 1.15rem; color: var(--color-text); font-weight: 700; margin: 0;">Descreva a intervenção *</label>
               <button type="button" id="btn-qc-mic" class="btn-secondary touch-target" style="padding: 10px 16px; font-size: 1.15rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-radius: 24px; min-height: 48px;" title="Ditar por voz">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 <span style="font-size: 1.15rem;">Ditar</span>
               </button>
             </div>
-            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Projetor da torre norte fundido... (pode escrever ou tocar em Ditar)" style="height: 100px; font-size: 1.2rem; padding: 12px;"></textarea>
+            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do projetor da torre norte... (pode escrever ou tocar em Ditar)" style="height: 100px; font-size: 1.2rem; padding: 12px;"></textarea>
           </div>
 
           <div class="form-group" style="margin-bottom: 16px;">
@@ -81,12 +81,12 @@ export class HomeViewComponent {
           </div>
 
           <button type="button" id="btn-save-capture" class="btn-primary-cta touch-target" style="width: 100%; font-size: 1.2rem; font-weight: 800; padding: 16px; border-radius: var(--radius-md); min-height: 48px;">
-            Gravar Avaria Rápida
+            Gravar Intervenção Rápida
           </button>
 
           <button type="button" id="btn-open-full-form" class="btn-secondary touch-target" style="width: 100%; font-size: 1.15rem; font-weight: 700; padding: 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; min-height: 56px;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-            + Adicionar Fotos, Áudio ou Materiais (Formulário Completo)
+            + Adicionar Fotos ou Materiais (Formulário Completo)
           </button>
         </div>
 
@@ -97,7 +97,7 @@ export class HomeViewComponent {
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             </div>
             <div>
-              <div style="font-weight: 700; color: var(--color-danger); font-size: 1.15rem;">${criticalReports.length} avaria(s) crítica(s)</div>
+              <div style="font-weight: 700; color: var(--color-danger); font-size: 1.15rem;">${criticalReports.length} intervenção(ões) crítica(s)</div>
               <div style="font-size: 1.15rem; color: var(--color-text-secondary);">Requer atenção imediata.</div>
             </div>
           </div>
@@ -146,16 +146,16 @@ export class HomeViewComponent {
           </div>
         </div>
 
-        <!-- Avarias Recentes -->
+        <!-- Intervenções Recentes -->
         <div>
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-            <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0; color: var(--color-text);">Avarias Abertas</h2>
+            <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0; color: var(--color-text);">Intervenções Abertas</h2>
             ${openReports.length > 5 ? `<button type="button" id="btn-view-all-reports" style="background: transparent; border: none; color: var(--color-brand-primary); font-weight: 600; padding: 4px 8px; font-size: 1.15rem;">Ver todas</button>` : ''}
           </div>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             ${recentReports.length === 0 ? `
               <div style="padding: 16px; text-align: center; color: var(--color-text-muted); background: var(--color-surface); border-radius: var(--radius-sm);">
-                Nenhuma avaria aberta.
+                Nenhuma intervenção aberta.
               </div>
             ` : recentReports.map(r => {
               const isCrit = r.priority === 'critical';
@@ -223,87 +223,34 @@ export class HomeViewComponent {
             timeSpent: 0,
             materials: '',
             photos: [],
-            audioBlob: qcAudioData ? qcAudioData.blob : null,
-            audioDuration: qcAudioData ? qcAudioData.duration : 0
+            audioBlob: null,
+            audioDuration: 0
           });
           
-          if (window.toast) window.toast.success('Avaria registada!');
+          if (window.toast) window.toast.success('Intervenção registada!');
           descInput.value = '';
           locInput.value = '';
           locInput.dataset.selectedId = '';
-          qcAudioData = null;
           this.refresh();
         } catch (e) {
           console.error(e);
-          if (window.toast) window.toast.error('Erro ao guardar avaria.');
+          if (window.toast) window.toast.error('Erro ao guardar intervenção.');
         }
       });
     }
 
     const micBtn = this.container.querySelector('#btn-qc-mic');
     const descInput = this.container.querySelector('#qc-description');
-    let isQcRecording = false;
-    let qcAudioData = null;
 
     if (micBtn && descInput) {
-      micBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (!isQcRecording) {
-          try {
-            isQcRecording = true;
-            micBtn.classList.add('recording');
-            micBtn.style.background = 'var(--color-danger)';
-            micBtn.style.color = '#fff';
-            micBtn.style.borderColor = 'var(--color-danger)';
-            micBtn.innerHTML = '🔴 <span>0s (Parar)</span>';
-
-            // Start reliable local MediaRecorder
-            await audioService.startRecording((elapsed) => {
-              if (isQcRecording) micBtn.innerHTML = `🔴 <span>${elapsed}s (Parar)</span>`;
-            });
-
-            // Try speech transcription in parallel
-            const prevText = (descInput.value || '').trim();
-            speechService.startListening({
-              lang: 'pt-PT',
-              onResult: (transcript) => {
-                descInput.value = prevText ? `${prevText} ${transcript}` : transcript;
-                descInput.dispatchEvent(new Event('input', { bubbles: true }));
-              },
-              onError: () => {}
-            });
-          } catch (err) {
-            console.error('[QC Mic] error:', err);
-            isQcRecording = false;
-            micBtn.classList.remove('recording');
-            micBtn.style.background = '';
-            micBtn.style.color = '';
-            micBtn.style.borderColor = '';
-            micBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg><span>Ditar</span>';
-            if (window.toast) toast.error('Permissão de microfone negada.');
-          }
-        } else {
-          // Stop recording
-          try {
-            speechService.stopListening();
-            const result = await audioService.stopRecording();
-            isQcRecording = false;
-            qcAudioData = result;
-            micBtn.classList.remove('recording');
-            micBtn.style.background = '';
-            micBtn.style.color = '';
-            micBtn.style.borderColor = '';
-            micBtn.innerHTML = '✅ <span>Áudio Gravado</span>';
-            if (window.toast) toast.success(`Nota de voz capturada (${result.duration}s)!`);
-          } catch (err) {
-            isQcRecording = false;
-            micBtn.classList.remove('recording');
-            micBtn.style.background = '';
-            micBtn.style.color = '';
-            micBtn.style.borderColor = '';
-            micBtn.innerHTML = '<span>Ditar</span>';
-          }
-        }
+      if (this.dictationCleanup) {
+        this.dictationCleanup();
+      }
+      this.dictationCleanup = speechService.attachDictation(micBtn, descInput, {
+        activeHtml: `
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
+          <span style="color:var(--color-danger);">A ouvir... (Parar)</span>
+        `
       });
     }
 
@@ -329,89 +276,106 @@ export class HomeViewComponent {
       // Lazy load locations if not loaded yet
       import('../db/locationsRepo.js').then(({ locationsRepo }) => {
         locationsRepo.getAll().then(locations => {
-          this.locations = locations;
+          const renderDropdown = (query) => {
+            const q = query.toLowerCase().trim();
+            let matches = locations;
+            if (q) {
+              matches = locations.filter(l => 
+                (l.name && l.name.toLowerCase().includes(q)) || 
+                (l.sectorName && l.sectorName.toLowerCase().includes(q))
+              );
+            }
+
+            if (matches.length === 0) {
+              locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted); font-size: 1.15rem;">Nenhum local encontrado</div>';
+            } else {
+              locDropdown.innerHTML = matches.slice(0, 8).map(l => `
+                <div class="qc-loc-item touch-target" data-id="${l.id}" data-name="${this.esc(l.name)}" style="padding: 14px 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; min-height: 56px; display: flex; flex-direction: column; justify-content: center;">
+                  <div style="font-weight: 700; color: var(--color-text); font-size: 1.15rem;">${this.esc(l.name)}</div>
+                  <div style="font-size: 1.05rem; color: var(--color-text-secondary);">${this.esc(l.sectorName || '')}</div>
+                </div>
+              `).join('');
+
+              locDropdown.querySelectorAll('.qc-loc-item').forEach(item => {
+                item.addEventListener('click', () => {
+                  locInput.value = item.dataset.name;
+                  locInput.dataset.selectedId = item.dataset.id;
+                  locDropdown.style.display = 'none';
+                });
+              });
+            }
+          };
+
+          locInput.addEventListener('focus', () => {
+            locDropdown.style.display = 'block';
+            renderDropdown(locInput.value);
+          });
+
+          locInput.addEventListener('input', (e) => {
+            locDropdown.style.display = 'block';
+            locInput.dataset.selectedId = ''; // Reset ID if typed custom
+            renderDropdown(e.target.value);
+          });
+
+          // Close on outside click
+          document.addEventListener('click', (e) => {
+            if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
+              locDropdown.style.display = 'none';
+            }
+          });
         });
       });
-
-      const renderLocs = (query) => {
-        const q = (query || '').toLowerCase().trim();
-        let matches = this.locations || [];
-        if (q) {
-          matches = matches.filter(l => 
-            (l.name && l.name.toLowerCase().includes(q)) || 
-            (l.sectorName && l.sectorName.toLowerCase().includes(q))
-          );
-        }
-        
-        if (matches.length === 0) {
-          locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted); font-size: 1.15rem;">Nenhum local encontrado</div>';
-        } else {
-          locDropdown.innerHTML = matches.slice(0, 10).map(l => `
-            <div class="loc-option touch-target" data-id="${l.id}" data-name="${l.name}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; min-height: 56px;">
-              <div style="font-weight: 700; color: var(--color-text); font-size: 1.15rem;">${l.name}</div>
-              <div style="font-size: 1.15rem; color: var(--color-text-secondary);">${l.sectorName}</div>
-            </div>
-          `).join('');
-          
-          locDropdown.querySelectorAll('.loc-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-              locInput.dataset.selectedId = opt.dataset.id;
-              locInput.value = opt.dataset.name;
-              locDropdown.style.display = 'none';
-            });
-          });
-        }
-      };
-
-      locInput.addEventListener('focus', () => {
-        locDropdown.style.display = 'block';
-        renderLocs(locInput.value);
-      });
-
-      locInput.addEventListener('input', (e) => {
-        locInput.dataset.selectedId = ''; // Reset ID when typing manually
-        renderLocs(e.target.value);
-      });
-      
-      document.addEventListener('click', (e) => {
-        if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
-          locDropdown.style.display = 'none';
-        }
-      });
-    }
-    
-    const btnViewAllTasks = this.container.querySelector('#btn-view-all-tasks');
-    if (btnViewAllTasks && typeof this.onViewAllTasks === 'function') {
-      btnViewAllTasks.addEventListener('click', () => this.onViewAllTasks());
-    }
-    
-    const btnViewAllReports = this.container.querySelector('#btn-view-all-reports');
-    if (btnViewAllReports && typeof this.onViewAllReports === 'function') {
-      btnViewAllReports.addEventListener('click', () => this.onViewAllReports());
     }
 
-    // Connect KPI cards
-    ['#btn-kpi-abertas', '#btn-kpi-criticas', '#btn-kpi-emcurso'].forEach(selector => {
-      const el = this.container.querySelector(selector);
-      if (el && typeof this.onViewAllReports === 'function') {
-        el.addEventListener('click', () => this.onViewAllReports());
-      }
-    });
+    // Navigation links
+    const btnAllReports = this.container.querySelector('#btn-view-all-reports');
+    if (btnAllReports && this.onViewAllReports) {
+      btnAllReports.addEventListener('click', () => this.onViewAllReports());
+    }
+
+    const btnAllTasks = this.container.querySelector('#btn-view-all-tasks');
+    if (btnAllTasks && this.onViewAllTasks) {
+      btnAllTasks.addEventListener('click', () => this.onViewAllTasks());
+    }
+
+    // KPI card clicks
+    const kpiAbertas = this.container.querySelector('#btn-kpi-abertas');
+    if (kpiAbertas && this.onViewAllReports) {
+      kpiAbertas.addEventListener('click', () => this.onViewAllReports('pending'));
+    }
+
+    const kpiCriticas = this.container.querySelector('#btn-kpi-criticas');
+    if (kpiCriticas && this.onViewAllReports) {
+      kpiCriticas.addEventListener('click', () => this.onViewAllReports('critical'));
+    }
+
+    const kpiEmCurso = this.container.querySelector('#btn-kpi-emcurso');
+    if (kpiEmCurso && this.onViewAllReports) {
+      kpiEmCurso.addEventListener('click', () => this.onViewAllReports('in_progress'));
+    }
 
     const kpiFeitas = this.container.querySelector('#btn-kpi-feitas');
-    if (kpiFeitas && typeof this.onViewAllTasks === 'function') {
+    if (kpiFeitas && this.onViewAllTasks) {
       kpiFeitas.addEventListener('click', () => this.onViewAllTasks());
     }
 
-    this.container.querySelectorAll('.task-card').forEach(card => {
+    // Report cards click
+    this.container.querySelectorAll('.report-card').forEach(card => {
       card.addEventListener('click', () => {
-        if (typeof this.onOpenTask === 'function') this.onOpenTask(card.dataset.id);
+        const id = card.dataset.id;
+        if (id && this.onOpenReport) {
+          this.onOpenReport(id);
+        }
       });
     });
 
-    this.container.querySelectorAll('.report-card').forEach(card => {
+    // Task cards click
+    this.container.querySelectorAll('.task-card').forEach(card => {
       card.addEventListener('click', () => {
-        if (typeof this.onOpenReport === 'function') this.onOpenReport(card.dataset.id);
+        const id = card.dataset.id;
+        if (id && this.onOpenTask) {
+          this.onOpenTask(id);
+        }
       });
     });
   }

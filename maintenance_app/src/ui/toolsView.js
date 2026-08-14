@@ -426,7 +426,7 @@ export class ToolsViewComponent {
       </div>
       <p class="d-sheet-sub">Últimos movimentos</p>
       ${body}
-      ${this.onNewReportForTool ? `<button type="button" class="d-btn-primary-wide" id="d-tool-report">Registar avaria com esta ferramenta</button>` : ''}
+      ${this.onNewReportForTool ? `<button type="button" class="d-btn-primary-wide" id="d-tool-report">Registar intervenção com esta ferramenta</button>` : ''}
       <button type="button" class="d-btn-quiet-wide" data-close="1">Fechar</button>
     `);
 

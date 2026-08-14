@@ -69,7 +69,7 @@ export class EquipmentViewComponent {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
           <input type="text" id="input-search-equip" class="form-input search-input"
-                 placeholder="Pesquisar equipamento, marca ou local..." value="${this.esc(this.searchQuery)}" />
+                 placeholder="Pesquisar equipamento..." value="${this.esc(this.searchQuery)}" />
         </div>
 
         <div class="d-cat-row">
@@ -187,7 +187,6 @@ export class EquipmentViewComponent {
     return keys.map(key => `
       <div class="d-loc-group">
         <div class="d-loc-head">
-          <p class="d-loc-crumbs">Estádio Municipal de Leiria</p>
           <h3 class="d-loc-name">${this.esc(key)}</h3>
           <span class="d-loc-count">${groups.get(key).length}</span>
         </div>
@@ -215,8 +214,8 @@ export class EquipmentViewComponent {
         <p class="d-equip-status ${info.cls}" data-status-for="${this.esc(eq.id)}">${this.esc(info.label)}</p>
 
         <div class="d-equip-actions">
-          <button type="button" class="d-equip-btn-fault" data-act="fault" data-id="${this.esc(eq.id)}">Registar avaria</button>
-          ${nReports > 0 ? `<button type="button" class="d-equip-btn-reports" data-act="reports" data-id="${this.esc(eq.id)}">Ver avarias (${nReports})</button>` : ''}
+          <button type="button" class="d-equip-btn-fault" data-act="fault" data-id="${this.esc(eq.id)}">Registar intervenção</button>
+          ${nReports > 0 ? `<button type="button" class="d-equip-btn-reports" data-act="reports" data-id="${this.esc(eq.id)}">Ver intervenções (${nReports})</button>` : ''}
         </div>
       </article>
     `;
@@ -266,10 +265,10 @@ export class EquipmentViewComponent {
         if (!eq) return;
         if (btn.dataset.act === 'fault') {
           if (this.onNewReportForEquipment) this.onNewReportForEquipment(eq);
-          else toast.info('Registo de avaria ainda não ligado neste ecrã');
+          else toast.info('Registo de intervenção ainda não ligado neste ecrã');
         } else if (btn.dataset.act === 'reports') {
           if (this.onViewEquipmentReports) this.onViewEquipmentReports(eq);
-          else toast.info('Lista de avarias ainda não ligada neste ecrã');
+          else toast.info('Lista de intervenções ainda não ligada neste ecrã');
         }
       });
     });
@@ -338,8 +337,8 @@ export class EquipmentViewComponent {
           `).join('')}
         </div>
 
-        <button type="button" class="d-btn-primary-wide" id="d-sheet-fault">Registar avaria</button>
-        ${nReports > 0 ? `<button type="button" class="d-btn-quiet-wide" id="d-sheet-reports">Ver avarias (${nReports})</button>` : ''}
+        <button type="button" class="d-btn-primary-wide" id="d-sheet-fault">Registar intervenção</button>
+        ${nReports > 0 ? `<button type="button" class="d-btn-quiet-wide" id="d-sheet-reports">Ver intervenções (${nReports})</button>` : ''}
         <button type="button" class="d-btn-quiet-wide" data-close="1">Fechar</button>
       </div>
     `;
@@ -399,14 +398,14 @@ export class EquipmentViewComponent {
     if (fault) fault.addEventListener('click', () => {
       this.closeSheet();
       if (this.onNewReportForEquipment) this.onNewReportForEquipment(eq);
-      else toast.info('Registo de avaria ainda não ligado neste ecrã');
+      else toast.info('Registo de intervenção ainda não ligado neste ecrã');
     });
 
     const reps = overlay.querySelector('#d-sheet-reports');
     if (reps) reps.addEventListener('click', () => {
       this.closeSheet();
       if (this.onViewEquipmentReports) this.onViewEquipmentReports(eq);
-      else toast.info('Lista de avarias ainda não ligada neste ecrã');
+      else toast.info('Lista de intervenções ainda não ligada neste ecrã');
     });
   }
 

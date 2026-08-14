@@ -1,0 +1,194 @@
+/* ==========================================================================
+   Vistas Ferramentas e Equipamento — correção da barra de legibilidade.
+
+   Carrega DEPOIS do components.css, por isso vence em empate de especificidade.
+   O components.css continua a definir o layout destas vistas; aqui só se
+   corrige tamanho de letra e tamanho de alvo.
+
+   Porque existe: as regras originais foram escritas em rem (0.75rem a 1.15rem),
+   o que dá 12px a 18,4px. O contrato do projeto são 18px mínimos de corpo e
+   48px mínimos de alvo, porque quem usa isto tem 60 anos, luvas, e está ao sol.
+   Medição antes: 9 alvos abaixo de 48px, 39 textos abaixo de 18px.
+
+   Regras: só var(--color-*) e os tokens --fs-* / --min-touch. Nunca cores
+   literais, nunca rem, nunca um valor abaixo de 18px em texto de leitura.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. ALVOS DE TOQUE
+   As 9 pastilhas de categoria mediam 46px (44 de min-height + borda).
+   Faltavam 2px, mas falhar por 2px é falhar. Com luvas, precisam também de
+   espaço entre elas para não se acertar na errada.
+   -------------------------------------------------------------------------- */
+.d-cat-pill {
+  min-height: var(--min-touch);
+  padding: 12px 20px;
+}
+
+.d-cat-pills,
+.d-cat-row,
+.d-cat-scroll {
+  gap: var(--touch-gap, 8px);
+}
+
+/* A fila de categorias rola na horizontal — isso é correto e desejável.
+   O que não pode acontecer é a PÁGINA rolar na horizontal. */
+.d-cat-pills,
+.d-cat-row,
+.d-cat-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* --------------------------------------------------------------------------
+   2. EQUIPAMENTO — texto
+   -------------------------------------------------------------------------- */
+
+/* O aviso de equipamento avariado é a primeira coisa que ele tem de ver. */
+.d-alert-title {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+}
+
+/* As linhas do aviso eram uma fila com o nome à esquerda e o local à direita
+   (justify-content: space-between). A 19px, em 390px de largura, os dois textos
+   partem em duas linhas cada e ficam entrelaçados — lê-se "Anel de Aspersores
+   Sistema de Rega & do Relvado Aspersores". Passam a empilhar: nome em cima,
+   local por baixo, como qualquer linha de lista. */
+.d-alert-line {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.d-alert-line:last-child {
+  border-bottom: none;
+}
+
+.d-alert-name {
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.d-alert-where {
+  font-size: var(--fs-body);
+  color: var(--color-text-secondary);
+}
+
+/* Cabeçalho de grupo de localização.
+   Estava a 12px em CAIXA ALTA. A caixa alta a 19px fica larga e não cabe,
+   por isso passa a caixa de frase, que é também o que o Limble faz. */
+.d-loc-crumbs {
+  font-size: var(--fs-body);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.d-loc-name {
+  font-size: var(--fs-body-lg);
+}
+
+/* A categoria é uma etiqueta, mas é texto de leitura. Fora da caixa alta. */
+.d-equip-cat {
+  font-size: var(--fs-body);
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 4px 12px;
+}
+
+/* O nome do equipamento é a informação mais importante da linha. */
+.d-equip-name {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+}
+
+.d-equip-brand,
+.d-sheet-crumbs,
+.d-warranty {
+  font-size: var(--fs-body);
+}
+
+/* O estado é informação crítica: saber se está avariado decide se ele
+   sobe à torre ou não. Não pode estar a 13,6px. */
+.d-equip-status {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+  padding: 6px 14px;
+}
+
+/* --------------------------------------------------------------------------
+   3. FERRAMENTAS — texto
+   -------------------------------------------------------------------------- */
+
+.d-tool-name {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+}
+
+.d-tool-loc,
+.d-tool-link,
+.d-tool-lowtag,
+.d-tool-ident {
+  font-size: var(--fs-body);
+}
+
+/* A quantidade é o número que ele quer ler de longe, sem se aproximar. */
+.d-tool-qty {
+  font-size: var(--fs-kpi);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A unidade faz parte da leitura da quantidade. Estava a 13,6px ao lado
+   de um número grande, o que a tornava invisível. */
+.d-tool-unit {
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+}
+
+/* "− Tirar 1" e "+ Repor 1" são a ação principal deste ecrã.
+   O texto tem de ser dos maiores do cartão, não dos menores. */
+.d-tool-btn {
+  font-size: var(--fs-title);
+  font-weight: 800;
+}
+
+/* --------------------------------------------------------------------------
+   4. BOTÕES DE LARGURA TOTAL E TECLADO NUMÉRICO
+   -------------------------------------------------------------------------- */
+
+.d-btn-primary-wide,
+.d-pad-unit,
+.d-move-delta {
+  font-size: var(--fs-body-lg);
+}
+
+.d-btn-quiet-wide {
+  font-size: var(--fs-body);
+}
+
+/* --------------------------------------------------------------------------
+   5. HISTÓRICO DE MOVIMENTOS
+   -------------------------------------------------------------------------- */
+
+.d-move-when,
+.d-move-reason,
+.d-move-after {
+  font-size: var(--fs-body);
+}
+
+/* --------------------------------------------------------------------------
+   6. REDE DE SEGURANÇA
+   As regras acima cobrem as classes que a medição apanhou. Se ficar alguma
+   por baixo da barra, este piso apanha-a. Fica deliberadamente por último e
+   com especificidade baixa, para qualquer regra explícita acima o vencer.
+   -------------------------------------------------------------------------- */
+:where(.d-tool-card, .d-equip-card, .d-equip-sheet, .d-move-row) :where(span, p, small, div, li, label) {
+  font-size: var(--fs-body);
+}

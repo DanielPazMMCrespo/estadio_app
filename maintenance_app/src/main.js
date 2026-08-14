@@ -16,8 +16,7 @@ import { NotesViewComponent } from './ui/notesView.js';
 import { ToolsViewComponent } from './ui/toolsView.js';
 import { EquipmentViewComponent } from './ui/equipmentView.js';
 import { QuickCaptureComponent } from './ui/quickCapture.js';
-import { AudioService, audioService } from './services/audioService.js';
-import { SpeechService, speechService } from './services/speechService.js';
+import { speechService } from './services/speechService.js';
 import { photoEditor } from './services/photoEditor.js';
 import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
@@ -43,8 +42,7 @@ export class App {
 
     // Temporary storage during new report creation
     this.tempPhotos = []; // array of { id, blobData, dataUrl, type, mimeType }
-    this.tempAudio = null; // { blob, duration, dataUrl }
-    this.isRecordingAudio = false;
+    this.dictationCleanup = null;
   }
 
   async init() {
@@ -563,7 +561,7 @@ export class App {
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--color-border); padding-bottom:10px;">
           <div>
             <span style="font-size:0.7rem; font-weight:700; color:var(--color-stadium-glow); text-transform:uppercase;">Registo Técnico de Campo</span>
-            <h3 id="report-form-title" style="margin:0; font-size:1.15rem; font-weight:800; color:var(--color-text);">Nova Ocorrência</h3>
+            <h3 id="report-form-title" style="margin:0; font-size:1.15rem; font-weight:800; color:var(--color-text);">Nova Intervenção</h3>
           </div>
           <button type="button" id="btn-cancel-report" class="btn-close-detail">&times;</button>
         </div>
@@ -616,27 +614,19 @@ export class App {
             <input type="hidden" id="input-status" value="pending" />
           </div>
 
-          <!-- 4. Description -->
+          <!-- 4. Description with Dictation Button -->
           <div class="form-group">
-            <label class="form-label" for="input-description">Descrição do Trabalho / Avaria *</label>
-            <textarea id="input-description" class="form-textarea" placeholder="Descreva detalhadamente o problema ou trabalho..." required></textarea>
-          </div>
-
-          <!-- 5. Voice Note Recorder -->
-          <div class="form-group">
-            <label class="form-label">Nota de Voz Rápida (Áudio)</label>
-            <div class="audio-record-box" id="audio-record-box">
-              <button type="button" class="btn-mic-record" id="btn-toggle-mic" title="Gravar Nota de Voz">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" for="input-description" style="margin:0; font-weight:700;">Descrição da Intervenção *</label>
+              <button type="button" id="btn-toggle-mic" class="btn-secondary touch-target" style="padding:6px 14px; font-size:0.95rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:20px; min-height:40px;" title="Ditar por voz">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <span>Ditar</span>
               </button>
-              <div class="audio-record-status" id="audio-record-status">
-                Toque no microfone para ditar ou gravar uma nota de áudio.
-              </div>
-              <button type="button" id="btn-delete-audio" style="display:none; background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.1rem;" title="Eliminar áudio">&times;</button>
             </div>
+            <textarea id="input-description" class="form-textarea" placeholder="Descreva detalhadamente o trabalho ou intervenção a realizar..." style="min-height:100px; font-size:1.05rem;" required></textarea>
           </div>
 
-          <!-- 6. Date & Time & Time Spent -->
+          <!-- 5. Date & Time & Time Spent -->
           <div class="detail-grid-two">
             <div class="form-group">
               <label class="form-label" for="input-date">Data e Hora *</label>
@@ -648,13 +638,13 @@ export class App {
             </div>
           </div>
 
-          <!-- 7. Materials & Tools -->
+          <!-- 6. Materials & Tools -->
           <div class="form-group">
             <label class="form-label">Materiais e Ferramentas</label>
             <div id="materials-select-container"></div>
           </div>
 
-          <!-- 8. Photos with Annotation Markup Tool -->
+          <!-- 7. Photos with Annotation Markup Tool -->
           <div class="form-group">
             <label class="form-label">Fotografias & Evidências</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
@@ -749,77 +739,18 @@ export class App {
       });
     }
 
-    // Voice Dictation & Audio Note Recording (100% Offline & Reliable)
+    // Voice Dictation (Speech-to-Text directly into description)
     const micBtn = document.getElementById('btn-toggle-mic');
-    const audioStatus = document.getElementById('audio-record-status');
-    const deleteAudioBtn = document.getElementById('btn-delete-audio');
     const descInput = document.getElementById('input-description');
-
-    if (micBtn && audioStatus) {
-      micBtn.addEventListener('click', async () => {
-        if (!this.isRecordingAudio) {
-          try {
-            this.isRecordingAudio = true;
-            micBtn.classList.add('recording');
-            audioStatus.textContent = '🔴 A gravar nota de voz... (0s)';
-
-            // Start reliable local MediaRecorder
-            await audioService.startRecording((elapsed) => {
-              if (audioStatus) audioStatus.textContent = `🔴 A gravar nota de voz... (${elapsed}s) — toque para parar.`;
-            });
-
-            // Try speech-to-text in parallel if supported
-            if (SpeechService.isSupported() && descInput) {
-              const prevText = (descInput.value || '').trim();
-              speechService.startListening({
-                lang: 'pt-PT',
-                onResult: (transcript) => {
-                  if (descInput) {
-                    descInput.value = prevText ? `${prevText} ${transcript}` : transcript;
-                    descInput.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                },
-                onError: () => {
-                  // Silently ignore speech cloud error, local audio recorder is still active!
-                }
-              }).catch(() => {});
-            }
-          } catch (err) {
-            console.error('[Audio] error:', err);
-            this.isRecordingAudio = false;
-            micBtn.classList.remove('recording');
-            audioStatus.textContent = 'Erro ao aceder ao microfone. Verifique as permissões.';
-            toast.error('Não foi possível aceder ao microfone');
-          }
-        } else {
-          // Stop recording
-          try {
-            speechService.stopListening();
-            const result = await audioService.stopRecording();
-            this.isRecordingAudio = false;
-            micBtn.classList.remove('recording');
-            this.tempAudio = result;
-            audioStatus.innerHTML = `
-              <div style="color:var(--color-stadium-glow); font-weight:700; margin-bottom: 4px;">✅ Áudio Gravado (${result.duration}s)</div>
-              <audio controls src="${result.dataUrl}" style="width:100%; height:36px;"></audio>
-            `;
-            if (deleteAudioBtn) deleteAudioBtn.style.display = 'block';
-            toast.success('Nota de voz guardada!');
-          } catch (err) {
-            console.error('[Audio] stop error:', err);
-            this.isRecordingAudio = false;
-            micBtn.classList.remove('recording');
-            audioStatus.textContent = 'Erro ao terminar gravação.';
-          }
-        }
-      });
-    }
-
-    if (deleteAudioBtn && audioStatus) {
-      deleteAudioBtn.addEventListener('click', () => {
-        this.tempAudio = null;
-        audioStatus.textContent = 'Toque no microfone para gravar uma nota de voz ou ditar.';
-        deleteAudioBtn.style.display = 'none';
+    if (micBtn && descInput) {
+      if (this.dictationCleanup) {
+        this.dictationCleanup();
+      }
+      this.dictationCleanup = speechService.attachDictation(micBtn, descInput, {
+        activeHtml: `
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
+          <span style="color:var(--color-danger);">A ouvir... (Parar)</span>
+        `
       });
     }
 
@@ -861,11 +792,9 @@ export class App {
         blobData: file,
         dataUrl,
         type,
-        mimeType: file.type || 'image/jpeg',
-        createdAt: new Date().toISOString()
+        mimeType: file.type || 'image/jpeg'
       };
 
-      // Add to temp photos list
       this.tempPhotos.push(photoItem);
       this.renderPhotoPreviews();
 
@@ -914,12 +843,15 @@ export class App {
 
   cleanupFormTempData() {
     this.tempPhotos = [];
-    this.tempAudio = null;
-    this.isRecordingAudio = false;
-    const audioStatus = document.getElementById('audio-record-status');
-    if (audioStatus) audioStatus.textContent = 'Toque no microfone para ditar ou gravar uma nota de áudio.';
-    const deleteAudioBtn = document.getElementById('btn-delete-audio');
-    if (deleteAudioBtn) deleteAudioBtn.style.display = 'none';
+    speechService.stopListening();
+    const micBtn = document.getElementById('btn-toggle-mic');
+    if (micBtn) {
+      micBtn.classList.remove('dictation-active', 'recording');
+      micBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+        <span>Ditar</span>
+      `;
+    }
     const previewContainer = document.getElementById('photo-preview-container');
     if (previewContainer) previewContainer.innerHTML = '';
   }
@@ -935,7 +867,7 @@ export class App {
 
     const modal = document.getElementById('modal-report-form');
     const titleEl = document.getElementById('report-form-title');
-    if (titleEl) titleEl.textContent = 'Nova Ocorrência Completa';
+    if (titleEl) titleEl.textContent = 'Nova Intervenção Completa';
 
     const form = document.getElementById('form-report');
     if (form) form.reset();
@@ -990,7 +922,7 @@ export class App {
       
       const modal = document.getElementById('modal-report-form');
       const titleEl = document.getElementById('report-form-title');
-      if (titleEl) titleEl.textContent = 'Editar Ocorrência';
+      if (titleEl) titleEl.textContent = 'Editar Intervenção';
       
       const form = document.getElementById('form-report');
       if (form) form.reset();
@@ -1043,30 +975,12 @@ export class App {
         this.renderPhotoPreviews();
       }
       
-      // Load audio
-      if (report.audioBlob) {
-        this.tempAudio = {
-          blob: report.audioBlob,
-          dataUrl: URL.createObjectURL(report.audioBlob),
-          duration: report.audioDuration || 0
-        };
-        const audioStatus = document.getElementById('audio-record-status');
-        const deleteAudioBtn = document.getElementById('btn-delete-audio');
-        if (audioStatus) {
-          audioStatus.innerHTML = `
-            <div style="color:var(--color-stadium-glow); font-weight:700;">Áudio Gravado (${this.tempAudio.duration}s)</div>
-            <audio controls src="${this.tempAudio.dataUrl}" style="width:100%; height:32px; margin-top:4px;"></audio>
-          `;
-        }
-        if (deleteAudioBtn) deleteAudioBtn.style.display = 'block';
-      }
-      
       if (modal) {
         modal.style.display = 'flex';
       }
     } catch (e) {
       console.error(e);
-      if (window.toast) toast.error('Erro ao abrir ocorrência.');
+      if (window.toast) toast.error('Erro ao abrir intervenção.');
     }
   }
 
@@ -1129,17 +1043,17 @@ export class App {
       timeSpent: timeSpentInput?.value ? (Number(timeSpentInput.value) || 0) : 0,
       materials: materialsList,
       photos: photosToSave,
-      audioBlob: this.tempAudio ? this.tempAudio.blob : null,
-      audioDuration: this.tempAudio ? (Number(this.tempAudio.duration) || 0) : 0
+      audioBlob: null,
+      audioDuration: 0
     };
     
     try {
       if (this.editingReportId) {
         await reportsRepo.update(this.editingReportId, reportData);
-        if (window.toast) toast.success('Ocorrência atualizada com sucesso!');
+        if (window.toast) toast.success('Intervenção atualizada com sucesso!');
       } else {
         await reportsRepo.create(reportData);
-        if (window.toast) toast.success('Nova ocorrência registada!');
+        if (window.toast) toast.success('Nova intervenção registada!');
       }
       
       const modal = document.getElementById('modal-report-form');
@@ -1150,7 +1064,7 @@ export class App {
       await this.refreshCurrentView();
     } catch (e) {
       console.error('[saveReport] Error:', e);
-      if (window.toast) toast.error('Erro ao guardar ocorrência.');
+      if (window.toast) toast.error('Erro ao guardar intervenção.');
     }
   }
 

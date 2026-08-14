@@ -229,7 +229,7 @@ export class PdfService {
         </div>
 
         <div class="section-box">
-          <div class="section-title">Descrição dos Trabalhos / Avaria</div>
+          <div class="section-title">Descrição da Intervenção / Trabalhos</div>
           <div style="white-space:pre-line; color:#1F2937; font-size:13px;">${report.description || 'Sem descrição detalhada.'}</div>
         </div>
 

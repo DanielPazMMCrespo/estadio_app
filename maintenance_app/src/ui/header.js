@@ -33,20 +33,25 @@ export class HeaderComponent {
       badgeText = 'Sincronizado';
     }
 
+    // Uma só linha compacta: logótipo e estado. Nada mais.
+    //
+    // A saudação ("Olá, Técnico") e o nome do estádio saíram daqui de propósito.
+    // Estavam em duas linhas no topo de TODOS os ecrãs e comiam cerca de 120px
+    // dos 844px do telemóvel — e não dizem nada que ele não saiba: é o telemóvel
+    // dele e é o estádio onde trabalha. Esse espaço passou para o trabalho.
+    // O estado de ligação fica, porque é informação a sério: diz-lhe se o que
+    // ele gravou já saiu do telemóvel.
+    //
+    // Sem estilos inline: tudo vive em .app-header no CSS, para se poder
+    // corrigir tamanhos a partir da folha de estilos.
     this.container.innerHTML = `
-      <div class="header-content" style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <img src="/icons/logo-mmcrespo.png" alt="mmcrespo" style="height: 48px; width: auto; max-width: 140px; object-fit: contain; display: block;" />
-          <div class="header-brand" style="border-left: 1px solid var(--color-border); padding-left: 12px;">
-            <h1 class="greeting" style="font-size: 0.95rem; margin: 0; font-weight: 600;">Olá, <span class="user-name" style="color: var(--color-brand-primary);">${this.escapeHtml(this.userName)}</span></h1>
-            <p class="subtitle" style="font-size: 0.65rem; margin-top: 2px;">Estádio Municipal de Leiria</p>
-          </div>
-        </div>
+      <div class="header-content">
+        <img class="header-logo" src="/icons/logo-mmcrespo.png" alt="mmcrespo" />
         <div class="header-status">
-          <div id="connectivity-badge" class="status-badge ${badgeClass}" style="cursor: pointer;" title="Toque para sincronizar">
+          <button type="button" id="connectivity-badge" class="status-badge ${badgeClass}" title="Toque para sincronizar">
             <span class="status-dot"></span>
             <span class="status-text">${badgeText}</span>
-          </div>
+          </button>
         </div>
       </div>
     `;
@@ -93,14 +98,13 @@ export class HeaderComponent {
     }
   }
 
+  /**
+   * Guarda o nome do operador. O cabeçalho já não o desenha — quem o usa são
+   * as fichas em PDF e as definições — por isso aqui só se guarda o valor.
+   * Não há nada para voltar a desenhar.
+   */
   setUserName(name) {
     this.userName = name;
-    const nameEl = this.container ? this.container.querySelector('.user-name') : null;
-    if (nameEl) {
-      nameEl.textContent = name;
-    } else {
-      this.render();
-    }
   }
 
   escapeHtml(str) {

@@ -1,11 +1,10 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { getPhotoDataUrl } from '../db/db.js';
-import { AudioService } from '../services/audioService.js';
 import { toast } from './toast.js';
 
 /**
  * Feed / History Component — Rich Issue Cards with Status & Priority badges,
- * instant search, voice memo player, fast status toggle, and filter chips.
+ * instant search, fast status toggle, and filter chips.
  */
 export class HistoryComponent {
   constructor(container, options = {}) {
@@ -41,7 +40,7 @@ export class HistoryComponent {
       <section class="history-view animate-fade-in">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Ocorrências & Avarias</h2>
+            <h2 class="section-title">Intervenções & Ocorrências</h2>
             <p class="section-subtitle">Registo e Acompanhamento de Trabalhos</p>
           </div>
           <span class="section-badge">${this.filteredReports.length} filtradas</span>
@@ -52,7 +51,7 @@ export class HistoryComponent {
           <span class="search-icon-svg">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
-          <input type="text" id="input-search-reports" class="form-input search-input" placeholder="Pesquisar setor, avaria, material..." value="${this.esc(this.searchQuery)}" />
+          <input type="text" id="input-search-reports" class="form-input search-input" placeholder="Pesquisar setor, intervenção, material..." value="${this.esc(this.searchQuery)}" />
           ${this.searchQuery ? '<button type="button" id="btn-clear-search" class="btn-clear-search">&times;</button>' : ''}
         </div>
 
@@ -146,10 +145,6 @@ export class HistoryComponent {
 
     // Has photo indicator
     const hasPhotos = Array.isArray(report.photos) && report.photos.length > 0;
-    const firstPhotoUrl = hasPhotos ? getPhotoDataUrl(report.photos[0]) : null;
-
-    // Has audio indicator
-    const hasAudio = !!report.audioBlob;
 
     return `
       <div class="issue-card animate-fade-in priority-${priority} status-${status}" 
@@ -178,12 +173,6 @@ export class HistoryComponent {
                 ${report.photos.length} Foto${report.photos.length > 1 ? 's' : ''}
               </span>
             ` : ''}
-            ${hasAudio ? `
-              <span class="media-tag audio">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                Nota de Voz ${report.audioDuration ? `(${report.audioDuration}s)` : ''}
-              </span>
-            ` : ''}
             ${report.timeSpent ? `
               <span class="media-tag time">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -200,8 +189,8 @@ export class HistoryComponent {
           </div>
 
           <div class="issue-card-actions" style="display:flex; align-items:center; gap:8px;">
-            <button type="button" class="btn-card-edit" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:0.9rem; padding:4px 6px;" title="Editar Ocorrência">✎</button>
-            <button type="button" class="btn-card-del" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.1rem; padding:4px 6px;" title="Eliminar Ocorrência">&times;</button>
+            <button type="button" class="btn-card-edit" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:0.9rem; padding:4px 6px;" title="Editar Intervenção">✎</button>
+            <button type="button" class="btn-card-del" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.1rem; padding:4px 6px;" title="Eliminar Intervenção">&times;</button>
             ${sInfo.next ? `
               <button type="button" class="btn-fast-advance" data-action="advance" data-next="${sInfo.next}" data-id="${report.id}">
                 ${sInfo.nextLabel} ➔
@@ -284,10 +273,10 @@ export class HistoryComponent {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.dataset.id;
-        if (!confirm('Tem a certeza que pretende eliminar esta ocorrência?')) return;
+        if (!confirm('Tem a certeza que pretende eliminar esta intervenção?')) return;
         try {
           await reportsRepo.remove(id);
-          toast.success('Ocorrência eliminada');
+          toast.success('Intervenção eliminada');
           await this.render();
           if (this.onDelete) this.onDelete(id);
         } catch (err) {
@@ -304,7 +293,7 @@ export class HistoryComponent {
         const nextStatus = btn.dataset.next;
         try {
           await reportsRepo.setStatus(id, nextStatus);
-          toast.success(nextStatus === 'resolved' ? 'Ocorrência concluída!' : 'Trabalho em curso!');
+          toast.success(nextStatus === 'resolved' ? 'Intervenção concluída!' : 'Trabalho em curso!');
           await this.render();
         } catch (err) {
           toast.error('Erro ao atualizar estado');

@@ -1,4 +1,5 @@
 import { tasksRepo, todayISO, tomorrowISO } from '../db/tasksRepo.js';
+import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 
 /**
@@ -132,12 +133,8 @@ export class TasksViewComponent {
   renderEmpty() {
     return `
       <div class="tv-empty">
-        <h2 class="tv-empty-title">Ainda não há tarefas</h2>
-        <p class="tv-empty-text">
-          Toque em <strong>+ Nova tarefa</strong>, escreva o que há a fazer e escolha
-          <strong>Hoje</strong> ou <strong>Amanhã</strong>. O título basta — o resto é opcional.
-        </p>
-        <p class="tv-empty-text">Exemplos: "Trocar projetor fundido na bancada norte", "Verificar bomba do relvado".</p>
+        <h2 class="tv-empty-title">Sem tarefas</h2>
+        <p class="tv-empty-text">Toque no botão azul aqui em cima para marcar a primeira.</p>
       </div>
     `;
   }
@@ -185,31 +182,31 @@ export class TasksViewComponent {
     const overdueDate = group === 'overdue' ? formatDayShort(task.dueDate) : '';
 
     return `
-      <article class="tv-task${task.priority === 'critical' ? ' tv-task--crit' : ''}" data-task-id="${this.esc(task.id)}" style="cursor: pointer;">
+      <article class="tv-task${task.priority === 'critical' ? ' tv-task--crit' : ''}" data-task-id="${this.esc(task.id)}">
         <button type="button" class="tv-check" data-action="done" data-id="${this.esc(task.id)}"
                 aria-label="Marcar como feito: ${this.esc(task.title)}">
           <span class="tv-check-glyph">${SVG_CHECK}</span>
         </button>
 
         <div class="tv-task-main" data-action="open-detail" data-id="${this.esc(task.id)}">
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 2px;">
-            <p class="tv-task-title" style="margin: 0;">${this.esc(task.title)}</p>
-            ${task.priority === 'critical' ? `<span class="chip-priority crit" style="font-size:0.75rem; padding: 2px 6px; border-radius: 4px; background: var(--color-danger); color: #fff; font-weight:700;">🚨 Crítica</span>` : ''}
-            ${task.priority === 'medium' ? `<span class="chip-priority med" style="font-size:0.75rem; padding: 2px 6px; border-radius: 4px; background: rgba(217, 119, 6, 0.15); color: var(--color-gold); font-weight:700;">⏳ Média</span>` : ''}
-            ${task.priority === 'low' ? `<span class="chip-priority low" style="font-size:0.75rem; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--color-stadium-green); font-weight:700;">🟢 Baixa</span>` : ''}
+          <div class="tv-task-titlerow">
+            <p class="tv-task-title">${this.esc(task.title)}</p>
+            ${task.priority === 'critical' ? '<span class="tv-prio-chip tv-prio-chip--crit">Crítica</span>' : ''}
+            ${task.priority === 'medium' ? '<span class="tv-prio-chip tv-prio-chip--med">Média</span>' : ''}
+            ${task.priority === 'low' ? '<span class="tv-prio-chip tv-prio-chip--low">Baixa</span>' : ''}
           </div>
           ${task.locationName ? `<p class="tv-task-loc">${SVG_PIN_LOC}<span>${this.esc(task.locationName)}</span></p>` : ''}
-          ${task.notes ? `<p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.3;">📝 ${this.esc(task.notes)}</p>` : ''}
+          ${task.notes ? `<p class="tv-task-notes"><span>${this.esc(task.notes)}</span></p>` : ''}
           ${overdueDate ? `<p class="tv-task-late">Era para ${this.esc(overdueDate)}</p>` : ''}
           ${recur ? `<p class="tv-task-recur">${SVG_REPEAT}<span>${recur}</span></p>` : ''}
         </div>
 
-        <div style="display: flex; align-items: center; gap: 6px;">
+        <div class="tv-task-side">
           ${showDefer ? `<button type="button" class="tv-defer" data-action="defer" data-id="${this.esc(task.id)}">Amanhã</button>` : ''}
           ${showPull ? `<button type="button" class="tv-defer" data-action="pull" data-id="${this.esc(task.id)}">Hoje</button>` : ''}
-          ${task.reportId && this.onOpenReport ? `<button type="button" class="tv-defer tv-link" data-action="report" data-id="${this.esc(task.reportId)}">Avaria</button>` : ''}
-          <div data-action="open-detail" data-id="${this.esc(task.id)}" style="color: var(--color-text-muted); padding: 4px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          ${task.reportId && this.onOpenReport ? `<button type="button" class="tv-defer tv-link" data-action="report" data-id="${this.esc(task.reportId)}">Intervenção</button>` : ''}
+          <div class="tv-task-chevron" data-action="open-detail" data-id="${this.esc(task.id)}">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
       </article>
@@ -336,9 +333,17 @@ export class TasksViewComponent {
           <button type="button" class="btn-close-detail" id="tv-sheet-close" aria-label="Fechar">&times;</button>
         </div>
 
-        <label class="form-label" for="tv-new-title">O que há a fazer?</label>
-        <textarea id="tv-new-title" class="form-textarea tv-new-title" rows="2"
-                  placeholder="Ex: Trocar projetor fundido na bancada norte"></textarea>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" for="tv-new-title" style="margin:0; font-weight:700;">O que há a fazer? *</label>
+            <button type="button" id="tv-mic-new" class="btn-secondary touch-target" style="padding:4px 12px; font-size:0.9rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:18px; min-height:36px;" title="Ditar por voz">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              <span>Ditar</span>
+            </button>
+          </div>
+          <textarea id="tv-new-title" class="form-textarea tv-new-title" rows="2"
+                    placeholder="Ex: Trocar lâmpada na bancada norte... (pode ditar)"></textarea>
+        </div>
 
         <p class="tv-sheet-hint">Escolha o dia. Fica gravado logo.</p>
         <div class="tv-sheet-days">
@@ -372,6 +377,17 @@ export class TasksViewComponent {
 
     document.body.appendChild(overlay);
 
+    const micBtn = overlay.querySelector('#tv-mic-new');
+    const titleField = overlay.querySelector('#tv-new-title');
+    if (micBtn && titleField) {
+      speechService.attachDictation(micBtn, titleField, {
+        activeHtml: `
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
+          <span style="color:var(--color-danger);">A ouvir...</span>
+        `
+      });
+    }
+
     let selectedPriority = 'medium';
     const prioGroup = overlay.querySelector('#tv-new-priority-group');
     if (prioGroup) {
@@ -398,7 +414,10 @@ export class TasksViewComponent {
       });
     }
 
-    const close = () => this.closeNewTaskSheet();
+    const close = () => {
+      speechService.stopListening();
+      this.closeNewTaskSheet();
+    };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     overlay.querySelector('#tv-sheet-close').addEventListener('click', close);
 
@@ -427,7 +446,6 @@ export class TasksViewComponent {
     overlay.querySelector('#tv-save-today').addEventListener('click', () => this.saveNewTask(todayISO(), selectedPriority));
     overlay.querySelector('#tv-save-tomorrow').addEventListener('click', () => this.saveNewTask(tomorrowISO(), selectedPriority));
 
-    const titleField = overlay.querySelector('#tv-new-title');
     if (titleField) setTimeout(() => { try { titleField.focus(); } catch (e) {} }, 60);
   }
 
@@ -471,7 +489,13 @@ export class TasksViewComponent {
         </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="tv-edit-title">Título da tarefa *</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" for="tv-edit-title" style="margin:0; font-weight:700;">Título da tarefa *</label>
+            <button type="button" id="tv-mic-edit" class="btn-secondary touch-target" style="padding:4px 12px; font-size:0.9rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:18px; min-height:36px;" title="Ditar por voz">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              <span>Ditar</span>
+            </button>
+          </div>
           <input type="text" id="tv-edit-title" class="form-input" value="${this.esc(task.title)}" placeholder="Ex: Trocar lâmpada" />
         </div>
 
@@ -505,7 +529,7 @@ export class TasksViewComponent {
 
         ${task.reportId && this.onOpenReport ? `
           <button type="button" class="btn-secondary" id="tv-detail-open-report" style="width: 100%; margin-bottom: 12px;">
-            🔍 Ver Avaria Associada
+            🔍 Ver Intervenção Associada
           </button>
         ` : ''}
 
@@ -523,6 +547,17 @@ export class TasksViewComponent {
     `;
 
     document.body.appendChild(overlay);
+
+    const editMicBtn = overlay.querySelector('#tv-mic-edit');
+    const editTitleField = overlay.querySelector('#tv-edit-title');
+    if (editMicBtn && editTitleField) {
+      speechService.attachDictation(editMicBtn, editTitleField, {
+        activeHtml: `
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
+          <span style="color:var(--color-danger);">A ouvir...</span>
+        `
+      });
+    }
 
     const prioGroup = overlay.querySelector('#tv-edit-priority-group');
     if (prioGroup) {
@@ -549,7 +584,10 @@ export class TasksViewComponent {
       });
     }
 
-    const close = () => this.closeTaskDetailSheet();
+    const close = () => {
+      speechService.stopListening();
+      this.closeTaskDetailSheet();
+    };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     overlay.querySelector('#tv-detail-close').addEventListener('click', close);
 

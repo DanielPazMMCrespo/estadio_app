@@ -36,11 +36,11 @@ export class BottomNavComponent {
           <span class="nav-label">Hoje</span>
         </button>
 
-        <!-- 2. AVARIAS / OCORRÊNCIAS -->
+        <!-- 2. INTERVENÇÕES / OCORRÊNCIAS -->
         <button type="button" 
                 class="nav-tab ${this.activeTab === 'history' ? 'active' : ''}" 
                 data-tab="history"
-                aria-label="Avarias e Ocorrências"
+                aria-label="Intervenções e Ocorrências"
                 aria-current="${this.activeTab === 'history' ? 'page' : 'false'}">
           <span class="nav-icon-svg">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -51,7 +51,7 @@ export class BottomNavComponent {
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
           </span>
-          <span class="nav-label">Avarias</span>
+          <span class="nav-label">Intervenções</span>
         </button>
 
         <!-- 3. TAREFAS -->
