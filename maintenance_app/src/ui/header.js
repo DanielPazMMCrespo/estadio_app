@@ -1,16 +1,37 @@
 /**
  * Header UI Component
- * Top navy blue header with greeting ("Olá, [Nome]") and dynamic online/offline status badge.
+ * Top navy blue header with greeting ("Olá, [Nome]") and dynamic online/offline/sync status badge.
  */
 export class HeaderComponent {
   constructor(container, options = {}) {
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
     this.userName = options.userName || 'Operador';
-    this.isOnline = options.isOnline !== undefined ? options.isOnline : (typeof navigator !== 'undefined' ? navigator.onLine : true);
+    if (options.status) {
+      this.status = options.status;
+    } else if (options.isOnline !== undefined) {
+      this.status = options.isOnline ? 'online' : 'offline';
+    } else {
+      this.status = typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline';
+    }
+    this.isOnline = this.status !== 'offline';
   }
 
   render() {
     if (!this.container) return;
+
+    let badgeClass = 'online';
+    let badgeText = 'Online';
+
+    if (this.status === 'offline') {
+      badgeClass = 'offline';
+      badgeText = 'Offline';
+    } else if (this.status === 'syncing') {
+      badgeClass = 'syncing';
+      badgeText = 'A sincronizar...';
+    } else if (this.status === 'synced') {
+      badgeClass = 'online';
+      badgeText = 'Sincronizado';
+    }
 
     this.container.innerHTML = `
       <div class="header-content" style="display: flex; align-items: center; justify-content: space-between;">
@@ -22,22 +43,51 @@ export class HeaderComponent {
           </div>
         </div>
         <div class="header-status">
-          <div id="connectivity-badge" class="status-badge ${this.isOnline ? 'online' : 'offline'}">
+          <div id="connectivity-badge" class="status-badge ${badgeClass}" style="cursor: pointer;" title="Toque para sincronizar">
             <span class="status-dot"></span>
-            <span class="status-text">${this.isOnline ? 'Online' : 'Offline'}</span>
+            <span class="status-text">${badgeText}</span>
           </div>
         </div>
       </div>
     `;
+
+    // Adicionar clique no badge para disparar sync manual
+    const badge = this.container.querySelector('#connectivity-badge');
+    if (badge) {
+      badge.addEventListener('click', () => {
+        if (window.syncEngine) {
+          window.syncEngine.sync({ showToast: true });
+        }
+      });
+    }
   }
 
   updateStatus(isOnline) {
-    this.isOnline = isOnline;
+    this.updateSyncState(isOnline ? 'online' : 'offline');
+  }
+
+  updateSyncState(state) {
+    this.status = state;
+    this.isOnline = state !== 'offline';
     const badge = this.container ? this.container.querySelector('#connectivity-badge') : null;
     if (badge) {
-      badge.className = `status-badge ${isOnline ? 'online' : 'offline'}`;
+      let badgeClass = 'online';
+      let badgeText = 'Online';
+
+      if (state === 'offline') {
+        badgeClass = 'offline';
+        badgeText = 'Offline';
+      } else if (state === 'syncing') {
+        badgeClass = 'syncing';
+        badgeText = 'A sincronizar...';
+      } else if (state === 'synced') {
+        badgeClass = 'online';
+        badgeText = 'Sincronizado';
+      }
+
+      badge.className = `status-badge ${badgeClass}`;
       const text = badge.querySelector('.status-text');
-      if (text) text.textContent = isOnline ? 'Online' : 'Offline';
+      if (text) text.textContent = badgeText;
     } else {
       this.render();
     }

@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { initDatabase, processSyncPush, getSyncPull, getPool } from './server/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,12 +29,107 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
-const server = http.createServer((req, res) => {
-  // Ignorar queries e extrair pathname limpo
+/**
+ * Lê o corpo JSON da requisição HTTP de forma segura
+ */
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+      // Limite de 50MB para suportar lotes com fotos comprimidas
+      if (body.length > 50 * 1024 * 1024) {
+        req.destroy();
+        reject(new Error('Corpo da requisição excede o limite'));
+      }
+    });
+    req.on('end', () => {
+      if (!body) return resolve({});
+      try {
+        resolve(JSON.parse(body));
+      } catch (err) {
+        reject(new Error('JSON inválido'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function sendJson(res, statusCode, data) {
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  });
+  res.end(JSON.stringify(data));
+}
+
+const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   let safePath = decodeURIComponent(parsedUrl.pathname);
 
-  // Prevenir Directory Traversal
+  // Tratar CORS pre-flight
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    });
+    res.end();
+    return;
+  }
+
+  // ==========================================
+  // API Endpoints
+  // ==========================================
+  if (safePath.startsWith('/api/')) {
+    try {
+      // 1. Healthcheck
+      if (safePath === '/api/health' && req.method === 'GET') {
+        const pool = getPool();
+        return sendJson(res, 200, {
+          status: 'ok',
+          database: pool ? 'connected' : 'offline_mode',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // 2. Sync Push (Envia mutações locais para a Cloud)
+      if (safePath === '/api/sync/push' && req.method === 'POST') {
+        const pool = getPool();
+        if (!pool) {
+          return sendJson(res, 503, { error: 'Base de dados não configurada no servidor' });
+        }
+        const { mutations } = await readJsonBody(req);
+        if (!Array.isArray(mutations)) {
+          return sendJson(res, 400, { error: 'O campo "mutations" deve ser uma lista' });
+        }
+        const result = await processSyncPush(mutations);
+        return sendJson(res, 200, result);
+      }
+
+      // 3. Sync Pull (Recebe atualizações de outros técnicos)
+      if (safePath === '/api/sync/pull' && req.method === 'GET') {
+        const pool = getPool();
+        if (!pool) {
+          return sendJson(res, 503, { error: 'Base de dados não configurada no servidor' });
+        }
+        const since = parsedUrl.searchParams.get('since');
+        const data = await getSyncPull(since);
+        return sendJson(res, 200, data);
+      }
+
+      return sendJson(res, 404, { error: 'Endpoint não encontrado' });
+    } catch (err) {
+      console.error('[API] Erro ao processar rota:', safePath, err);
+      return sendJson(res, 500, { error: err.message || 'Erro interno do servidor' });
+    }
+  }
+
+  // ==========================================
+  // Static Files & PWA Handling
+  // ==========================================
   let filePath = path.join(DIST_DIR, safePath);
   if (!filePath.startsWith(DIST_DIR)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
@@ -90,7 +186,10 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`[Railway] Servidor PWA a correr em http://${HOST}:${PORT}`);
   console.log(`[Railway] Diretório estático: ${DIST_DIR}`);
+  
+  // Tentar inicializar o PostgreSQL se a variável estiver disponível
+  await initDatabase();
 });

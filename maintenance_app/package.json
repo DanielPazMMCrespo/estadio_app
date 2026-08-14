@@ -14,7 +14,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "dexie": "^4.0.8"
+    "dexie": "^4.0.8",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",

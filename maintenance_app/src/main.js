@@ -19,6 +19,7 @@ import { QuickCaptureComponent } from './ui/quickCapture.js';
 import { AudioService, audioService } from './services/audioService.js';
 import { SpeechService, speechService } from './services/speechService.js';
 import { photoEditor } from './services/photoEditor.js';
+import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
 
 export class App {
@@ -61,6 +62,7 @@ export class App {
     this.initShell();
     this.registerServiceWorker();
     this.setupConnectivity();
+    syncEngine.init();
   }
 
   initShell() {
@@ -1187,13 +1189,22 @@ export class App {
   }
 
   setupConnectivity() {
+    syncEngine.onStatusChange((status, details) => {
+      if (this.header) {
+        this.header.updateSyncState(status);
+      }
+      if (status === 'synced' && details.pulledCount > 0) {
+        this.refreshCurrentView();
+      }
+    });
+
     window.addEventListener('online', () => {
-      if (window.toast) toast.success('Ligação restabelecida. Sincronização em curso...');
-      if (this.header) this.header.updateStatus(true);
+      if (window.toast) toast.success('Ligação restabelecida.');
+      if (this.header) this.header.updateSyncState('online');
     });
     window.addEventListener('offline', () => {
       if (window.toast) toast.error('Modo Offline. A gravar dados localmente.');
-      if (this.header) this.header.updateStatus(false);
+      if (this.header) this.header.updateSyncState('offline');
     });
   }
 
@@ -1217,6 +1228,7 @@ export class App {
 
 const app = new App();
 window.app = app; // Expose globally for dev/debugging
+window.syncEngine = syncEngine;
 document.addEventListener('DOMContentLoaded', () => {
   app.init();
 });
