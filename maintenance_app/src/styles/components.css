@@ -3008,3 +3008,42 @@ html, body { max-width: 100%; overflow-x: hidden; }
 }
 
 
+
+/* ===== BOTÃO DE DITAR E LINHA DE RÓTULO =====
+   Substitui os estilos inline que estavam no src/main.js. Lá tinha
+   min-height:40px e font-size:0.95rem (15,2px), os dois abaixo da barra do
+   projeto — e estando inline venciam qualquer regra do CSS. Foram os dois
+   únicos incumprimentos que o crítico cego encontrou.
+
+   Ditar é a forma mais fácil de ele registar uma avaria: tem luvas e está ao
+   lado de uma máquina a fazer barulho, escrever é o caminho difícil. Por isso
+   este botão é grande, não pequeno. */
+.form-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--touch-gap, 8px);
+  margin-bottom: 8px;
+}
+
+.form-label-row .form-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.btn-dictate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  min-width: var(--min-touch);
+  padding: 8px 18px;
+  border-radius: 28px;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.btn-dictate span {
+  font-size: var(--fs-label);
+}
