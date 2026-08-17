@@ -13,6 +13,9 @@ export class HomeViewComponent {
     this.onViewAllReports = options.onViewAllReports || null;
     this.onViewAllTasks = options.onViewAllTasks || null;
     this.dictationCleanup = null;
+    // Referência ao ouvinte de cliques na página, para o poder remover.
+    // Sem isto, cada redesenho do ecrã deixava um ouvinte para trás.
+    this.outsideClickHandler = null;
   }
 
   esc(str) {
@@ -317,12 +320,17 @@ export class HomeViewComponent {
             renderDropdown(e.target.value);
           });
 
-          // Close on outside click
-          document.addEventListener('click', (e) => {
+          // Fechar ao tocar fora. O ouvinte anterior é removido primeiro:
+          // este ecrã redesenha a cada gravação e os ouvintes acumulavam-se.
+          if (this.outsideClickHandler) {
+            document.removeEventListener('click', this.outsideClickHandler);
+          }
+          this.outsideClickHandler = (e) => {
             if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
               locDropdown.style.display = 'none';
             }
-          });
+          };
+          document.addEventListener('click', this.outsideClickHandler);
         });
       });
     }

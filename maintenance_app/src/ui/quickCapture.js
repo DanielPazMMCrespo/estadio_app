@@ -13,6 +13,8 @@ export class QuickCaptureComponent {
     this.selectedLocName = null;
     this.priority = 'medium';
     this.dictationCleanup = null;
+    // Referência ao ouvinte de cliques na página, removido no close().
+    this.outsideClickHandler = null;
   }
 
   async open(prefill = {}) {
@@ -188,12 +190,17 @@ export class QuickCaptureComponent {
         renderLocs(e.target.value);
       });
       
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
+      // Fechar ao tocar fora. Guardado numa referência para o close() o poder
+      // remover — esta folha abre e fecha muitas vezes por turno.
+      if (this.outsideClickHandler) {
+        document.removeEventListener('click', this.outsideClickHandler);
+      }
+      this.outsideClickHandler = (e) => {
         if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
           locDropdown.style.display = 'none';
         }
-      });
+      };
+      document.addEventListener('click', this.outsideClickHandler);
     }
 
     // Save
@@ -264,6 +271,10 @@ export class QuickCaptureComponent {
 
   close() {
     speechService.stopListening();
+    if (this.outsideClickHandler) {
+      document.removeEventListener('click', this.outsideClickHandler);
+      this.outsideClickHandler = null;
+    }
     if (this.modal) {
       this.modal.remove();
       this.modal = null;
