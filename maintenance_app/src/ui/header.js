@@ -46,7 +46,11 @@ export class HeaderComponent {
     // corrigir tamanhos a partir da folha de estilos.
     this.container.innerHTML = `
       <div class="header-content">
-        <img class="header-logo" src="/icons/logo-mmcrespo.png" alt="mmcrespo" />
+        <!-- Duas versões do logótipo, uma por tema. O CSS mostra a certa: o
+             logótipo normal é escuro e desaparecia no tema escuro. Sem
+             JavaScript pelo meio — só o CSS decide. -->
+        <img class="header-logo header-logo--light" src="/icons/logo-mmcrespo.png" alt="mmcrespo" />
+        <img class="header-logo header-logo--dark" src="/icons/mmcrespo_white.png" alt="" aria-hidden="true" />
         <div class="header-status">
           <button type="button" id="connectivity-badge" class="status-badge ${badgeClass}" title="Toque para sincronizar">
             <span class="status-dot"></span>

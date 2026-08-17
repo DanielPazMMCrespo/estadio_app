@@ -646,7 +646,10 @@ export class App {
           <!-- 4. Description with Dictation Button -->
           <div class="form-group">
             <div class="form-label-row">
-              <label class="form-label" for="input-description">Descrição da Intervenção *</label>
+              <!-- Rótulo curto: ao lado do botão de voz, "Descrição da
+                   Intervenção *" partia-se em duas linhas com o asterisco a
+                   cair sozinho. -->
+              <label class="form-label" for="input-description">Descrição *</label>
               <button type="button" id="btn-toggle-mic" class="btn-secondary btn-dictate" title="Escrita por voz">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 <span>Escrita por voz</span>

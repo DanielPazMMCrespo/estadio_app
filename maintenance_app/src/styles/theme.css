@@ -360,6 +360,21 @@ body {
   display: block;
 }
 
+/* Um logótipo por tema. Por defeito (claro) vê-se o normal.
+   Segue a mesma ordem dos tokens de cor: :root, depois @media, depois
+   [data-theme] — para a escolha explícita do utilizador ganhar sempre. */
+.header-logo--dark { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .header-logo--light { display: none; }
+  :root:not([data-theme="light"]) .header-logo--dark { display: block; }
+}
+
+:root[data-theme="dark"] .header-logo--light { display: none; }
+:root[data-theme="dark"] .header-logo--dark { display: block; }
+:root[data-theme="light"] .header-logo--light { display: block; }
+:root[data-theme="light"] .header-logo--dark { display: none; }
+
 /* Os !important que existiam aqui foram removidos: o header.js já não escreve
    font-size inline. Se voltarem estilos inline ao JS, o problema é o JS. */
 
