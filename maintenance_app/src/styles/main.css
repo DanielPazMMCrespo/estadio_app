@@ -79,7 +79,9 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   flex-direction: column;
   z-index: 10000;
-  animation: splashFadeOut 400ms ease-out 1.6s forwards;
+  /* 600ms em vez de 1,6s: a app abre 30 vezes por dia e o logótipo já foi
+     visto. O tempo é do trabalho, não da marca. */
+  animation: splashFadeOut 300ms ease-out 600ms forwards;
 }
 
 .splash-screen.hidden {

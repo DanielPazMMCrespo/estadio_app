@@ -43,8 +43,9 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <!-- Failsafe: remove splash even if module fails -->
-  <script>setTimeout(function(){var s=document.getElementById('splash-screen');if(s)s.remove();},3000);</script>
+  <!-- Rede de segurança: tira o ecrã de arranque mesmo que o módulo falhe.
+       1,5s é folga suficiente — a animação normal já saiu aos 900ms. -->
+  <script>setTimeout(function(){var s=document.getElementById('splash-screen');if(s)s.remove();},1500);</script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

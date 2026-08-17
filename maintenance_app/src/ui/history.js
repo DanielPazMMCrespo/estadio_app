@@ -17,6 +17,8 @@ export class HistoryComponent {
     this.searchQuery = '';
     this.activeFilter = options.initialFilter || 'all'; // 'all' | 'critical' | 'pending' | 'in_progress' | 'resolved'
     this.sectorFilter = options.initialSector || null;
+    // Temporizador da pesquisa: sem isto, cada tecla redesenhava a lista toda.
+    this.searchTimer = null;
   }
 
   async render() {
@@ -212,7 +214,13 @@ export class HistoryComponent {
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value.trim();
-        this.refreshFeed();
+        // Espera 250 ms sem escrever antes de redesenhar. Escrever "relvado"
+        // passa de 7 redesenhos completos da lista para 1.
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.searchTimer = null;
+          this.refreshFeed();
+        }, 250);
       });
     }
 
