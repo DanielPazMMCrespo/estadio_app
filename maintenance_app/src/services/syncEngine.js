@@ -2,6 +2,25 @@ import { db } from '../db/db.js';
 import { toast } from '../ui/toast.js';
 
 /**
+ * As tabelas que guardam um campo `synced`. Depois de o servidor confirmar
+ * uma mutação, o registo correspondente é marcado como sincronizado — sem
+ * isto, o indicador do cartão dizia "Local" para sempre.
+ */
+const SYNCED_TABLES = {
+  report: 'reports',
+  reports: 'reports',
+  task: 'tasks',
+  tasks: 'tasks',
+  note: 'notes',
+  notes: 'notes',
+  tool: 'tools',
+  tools: 'tools',
+  equipment: 'equipment',
+  location: 'locations',
+  locations: 'locations'
+};
+
+/**
  * Motor de sincronização de uma app OFFLINE-FIRST.
  *
  * Regra de ouro: não haver rede, não haver servidor ou não haver backend
@@ -231,6 +250,21 @@ class SyncEngine {
           .map(q => q.id);
 
         if (toDelete.length > 0) {
+          // Marcar como sincronizado ANTES de apagar da fila: se algo falhar
+          // pelo caminho, é melhor um registo marcado a mais do que uma
+          // mutação perdida.
+          const confirmedItems = queueItems.filter(q => confirmedSet.has(String(q.id)));
+          for (const item of confirmedItems) {
+            const tableName = SYNCED_TABLES[item.entityType];
+            if (!tableName || !db[tableName] || !item.entityId) continue;
+            try {
+              await db[tableName].update(item.entityId, { synced: 1 });
+            } catch (err) {
+              // Um registo já apagado localmente não é um erro: segue.
+              console.info('[SyncEngine] Não foi possível marcar como sincronizado:', item.entityId);
+            }
+          }
+
           await db.sync_queue.bulkDelete(toDelete);
           pushedCount = toDelete.length;
         }
