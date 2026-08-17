@@ -4,6 +4,7 @@ import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
 
+import { esc } from '../utils/html.js';
 export class QuickCaptureComponent {
   constructor(options = {}) {
     this.onSave = options.onSave || null;
@@ -164,9 +165,9 @@ export class QuickCaptureComponent {
           locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted);">Nenhum local encontrado</div>';
         } else {
           locDropdown.innerHTML = matches.map(l => `
-            <div class="loc-option touch-target" data-id="${l.id}" data-name="${this.esc(l.name)}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
-              <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${this.esc(l.name)}</div>
-              <div style="font-size: 0.8rem; color: var(--color-text-secondary);">${this.esc(l.sectorName)}</div>
+            <div class="loc-option touch-target" data-id="${l.id}" data-name="${esc(l.name)}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
+              <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${esc(l.name)}</div>
+              <div style="font-size: 0.8rem; color: var(--color-text-secondary);">${esc(l.sectorName)}</div>
             </div>
           `).join('');
           
@@ -256,18 +257,6 @@ export class QuickCaptureComponent {
     }
   }
 
-  esc(str) {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
-      tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[tag] || tag)
-    );
-  }
 
   close() {
     speechService.stopListening();

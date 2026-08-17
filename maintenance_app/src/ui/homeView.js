@@ -2,6 +2,7 @@ import { reportsRepo } from '../db/reportsRepo.js';
 import { tasksRepo } from '../db/tasksRepo.js';
 import { speechService } from '../services/speechService.js';
 
+import { esc } from '../utils/html.js';
 export class HomeViewComponent {
   constructor(container, options = {}) {
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
@@ -18,18 +19,6 @@ export class HomeViewComponent {
     this.outsideClickHandler = null;
   }
 
-  esc(str) {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
-      tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[tag] || tag)
-    );
-  }
 
   async render() {
     if (!this.container) return;
@@ -141,8 +130,8 @@ export class HomeViewComponent {
               <div class="task-card touch-target" data-id="${t.id}" style="background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; min-height: 64px;">
                 <div style="width: 24px; height: 24px; border: 2px solid var(--color-border); border-radius: 50%; flex-shrink: 0;"></div>
                 <div style="flex: 1;">
-                  <div style="font-weight: 700; font-size: 1.15rem; color: var(--color-text); margin-bottom: 2px;">${this.esc(t.title)}</div>
-                  <div style="font-size: 1.15rem; color: var(--color-text-secondary);">${this.esc(t.locationName || 'Sem local')}</div>
+                  <div style="font-weight: 700; font-size: 1.15rem; color: var(--color-text); margin-bottom: 2px;">${esc(t.title)}</div>
+                  <div style="font-size: 1.15rem; color: var(--color-text-secondary);">${esc(t.locationName || 'Sem local')}</div>
                 </div>
               </div>
             `).join('')}
@@ -179,12 +168,12 @@ export class HomeViewComponent {
                 </div>
                 <div class="report-card-body">
                   <p style="font-size: 1.15rem; font-weight: 700; color: var(--color-text); margin: 0; line-height: 1.3;">
-                    ${this.esc(r.description)}
+                    ${esc(r.description)}
                   </p>
                 </div>
                 <div style="font-size: 1.15rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 6px;">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                  <span style="font-size: 1.15rem;">${this.esc(r.locationName || 'Estádio — local não indicado')}</span>
+                  <span style="font-size: 1.15rem;">${esc(r.locationName || 'Estádio — local não indicado')}</span>
                 </div>
               </article>
             `}).join('')}
@@ -293,9 +282,9 @@ export class HomeViewComponent {
               locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted); font-size: 1.15rem;">Nenhum local encontrado</div>';
             } else {
               locDropdown.innerHTML = matches.slice(0, 8).map(l => `
-                <div class="qc-loc-item touch-target" data-id="${l.id}" data-name="${this.esc(l.name)}" style="padding: 14px 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; min-height: 56px; display: flex; flex-direction: column; justify-content: center;">
-                  <div style="font-weight: 700; color: var(--color-text); font-size: 1.15rem;">${this.esc(l.name)}</div>
-                  <div style="font-size: 1.05rem; color: var(--color-text-secondary);">${this.esc(l.sectorName || '')}</div>
+                <div class="qc-loc-item touch-target" data-id="${l.id}" data-name="${esc(l.name)}" style="padding: 14px 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; min-height: 56px; display: flex; flex-direction: column; justify-content: center;">
+                  <div style="font-weight: 700; color: var(--color-text); font-size: 1.15rem;">${esc(l.name)}</div>
+                  <div style="font-size: 1.05rem; color: var(--color-text-secondary);">${esc(l.sectorName || '')}</div>
                 </div>
               `).join('');
 

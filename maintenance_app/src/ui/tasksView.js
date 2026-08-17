@@ -3,6 +3,7 @@ import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Ecrã TAREFAS — hoje e amanhã, para um técnico de luvas com uma mão livre.
  *
@@ -111,7 +112,7 @@ export class TasksViewComponent {
       <section class="tv-block">
         <header class="tv-block-head">
           <h2 class="tv-block-title">Hoje</h2>
-          <p class="tv-block-date">${this.esc(formatDayLong(todayISO()))}</p>
+          <p class="tv-block-date">${esc(formatDayLong(todayISO()))}</p>
         </header>
         ${this.today.length
           ? this.today.map(t => this.renderTask(t, 'today')).join('')
@@ -121,7 +122,7 @@ export class TasksViewComponent {
       <section class="tv-block">
         <header class="tv-block-head">
           <h2 class="tv-block-title">Amanhã</h2>
-          <p class="tv-block-date">${this.esc(formatDayLong(tomorrowISO()))}</p>
+          <p class="tv-block-date">${esc(formatDayLong(tomorrowISO()))}</p>
         </header>
         ${this.tomorrow.length
           ? this.tomorrow.map(t => this.renderTask(t, 'tomorrow')).join('')
@@ -164,12 +165,12 @@ export class TasksViewComponent {
         </button>
         <div class="tv-done-list" ${this.doneOpen ? '' : 'hidden'}>
           ${this.doneToday.map(t => `
-            <div class="tv-task tv-task--done" data-task-id="${this.esc(t.id)}">
+            <div class="tv-task tv-task--done" data-task-id="${esc(t.id)}">
               <div class="tv-task-main">
-                <p class="tv-task-title">${this.esc(t.title)}</p>
-                ${t.locationName ? `<p class="tv-task-loc">${SVG_PIN_LOC}<span>${this.esc(t.locationName)}</span></p>` : ''}
+                <p class="tv-task-title">${esc(t.title)}</p>
+                ${t.locationName ? `<p class="tv-task-loc">${SVG_PIN_LOC}<span>${esc(t.locationName)}</span></p>` : ''}
               </div>
-              <button type="button" class="tv-undo" data-action="undo" data-id="${this.esc(t.id)}">Desfazer</button>
+              <button type="button" class="tv-undo" data-action="undo" data-id="${esc(t.id)}">Desfazer</button>
             </div>
           `).join('')}
         </div>
@@ -184,30 +185,30 @@ export class TasksViewComponent {
     const overdueDate = group === 'overdue' ? formatDayShort(task.dueDate) : '';
 
     return `
-      <article class="tv-task${task.priority === 'critical' ? ' tv-task--crit' : ''}" data-task-id="${this.esc(task.id)}">
-        <button type="button" class="tv-check" data-action="done" data-id="${this.esc(task.id)}"
-                aria-label="Marcar como feito: ${this.esc(task.title)}">
+      <article class="tv-task${task.priority === 'critical' ? ' tv-task--crit' : ''}" data-task-id="${esc(task.id)}">
+        <button type="button" class="tv-check" data-action="done" data-id="${esc(task.id)}"
+                aria-label="Marcar como feito: ${esc(task.title)}">
           <span class="tv-check-glyph">${SVG_CHECK}</span>
         </button>
 
-        <div class="tv-task-main" data-action="open-detail" data-id="${this.esc(task.id)}">
+        <div class="tv-task-main" data-action="open-detail" data-id="${esc(task.id)}">
           <div class="tv-task-titlerow">
-            <p class="tv-task-title">${this.esc(task.title)}</p>
+            <p class="tv-task-title">${esc(task.title)}</p>
             ${task.priority === 'critical' ? '<span class="tv-prio-chip tv-prio-chip--crit">Crítica</span>' : ''}
             ${task.priority === 'medium' ? '<span class="tv-prio-chip tv-prio-chip--med">Média</span>' : ''}
             ${task.priority === 'low' ? '<span class="tv-prio-chip tv-prio-chip--low">Baixa</span>' : ''}
           </div>
-          ${task.locationName ? `<p class="tv-task-loc">${SVG_PIN_LOC}<span>${this.esc(task.locationName)}</span></p>` : ''}
-          ${task.notes ? `<p class="tv-task-notes"><span>${this.esc(task.notes)}</span></p>` : ''}
-          ${overdueDate ? `<p class="tv-task-late">Era para ${this.esc(overdueDate)}</p>` : ''}
+          ${task.locationName ? `<p class="tv-task-loc">${SVG_PIN_LOC}<span>${esc(task.locationName)}</span></p>` : ''}
+          ${task.notes ? `<p class="tv-task-notes"><span>${esc(task.notes)}</span></p>` : ''}
+          ${overdueDate ? `<p class="tv-task-late">Era para ${esc(overdueDate)}</p>` : ''}
           ${recur ? `<p class="tv-task-recur">${SVG_REPEAT}<span>${recur}</span></p>` : ''}
         </div>
 
         <div class="tv-task-side">
-          ${showDefer ? `<button type="button" class="tv-defer" data-action="defer" data-id="${this.esc(task.id)}">Amanhã</button>` : ''}
-          ${showPull ? `<button type="button" class="tv-defer" data-action="pull" data-id="${this.esc(task.id)}">Hoje</button>` : ''}
-          ${task.reportId && this.onOpenReport ? `<button type="button" class="tv-defer tv-link" data-action="report" data-id="${this.esc(task.reportId)}">Intervenção</button>` : ''}
-          <div class="tv-task-chevron" data-action="open-detail" data-id="${this.esc(task.id)}">
+          ${showDefer ? `<button type="button" class="tv-defer" data-action="defer" data-id="${esc(task.id)}">Amanhã</button>` : ''}
+          ${showPull ? `<button type="button" class="tv-defer" data-action="pull" data-id="${esc(task.id)}">Hoje</button>` : ''}
+          ${task.reportId && this.onOpenReport ? `<button type="button" class="tv-defer tv-link" data-action="report" data-id="${esc(task.reportId)}">Intervenção</button>` : ''}
+          <div class="tv-task-chevron" data-action="open-detail" data-id="${esc(task.id)}">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
@@ -502,7 +503,7 @@ export class TasksViewComponent {
               <span>Escrita por voz</span>
             </button>
           </div>
-          <input type="text" id="tv-edit-title" class="form-input" value="${this.esc(task.title)}" placeholder="Ex: Trocar lâmpada" />
+          <input type="text" id="tv-edit-title" class="form-input" value="${esc(task.title)}" placeholder="Ex: Trocar lâmpada" />
         </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
@@ -525,12 +526,12 @@ export class TasksViewComponent {
 
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="tv-edit-loc">Local do Estádio</label>
-          <input type="text" id="tv-edit-loc" class="form-input" value="${this.esc(task.locationName || '')}" placeholder="Ex: Bancada Nascente, Piso 0" />
+          <input type="text" id="tv-edit-loc" class="form-input" value="${esc(task.locationName || '')}" placeholder="Ex: Bancada Nascente, Piso 0" />
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label" for="tv-edit-notes">Notas e Instruções</label>
-          <textarea id="tv-edit-notes" class="form-textarea" rows="3" placeholder="Detalhes adicionais, material necessário...">${this.esc(task.notes || '')}</textarea>
+          <textarea id="tv-edit-notes" class="form-textarea" rows="3" placeholder="Detalhes adicionais, material necessário...">${esc(task.notes || '')}</textarea>
         </div>
 
         ${task.reportId && this.onOpenReport ? `
@@ -721,10 +722,6 @@ export class TasksViewComponent {
 
   /* ===================== utilitários ===================== */
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }
 
 /** 'YYYY-MM-DD' -> Date local (sem apanhar UTC pelo caminho). */

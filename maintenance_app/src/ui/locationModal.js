@@ -1,5 +1,6 @@
 import { locationsRepo as defaultLocationsRepo } from '../db/locationsRepo.js';
 import { toast } from './toast.js';
+import { esc } from '../utils/html.js';
 
 /**
  * Location Selector & Custom Location Modal Component
@@ -217,10 +218,10 @@ export class LocationModalComponent {
         ">
           <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
             <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem; line-height: 1.35; word-break: break-word;">
-              ${this.escapeHtml(loc.name)}
+              ${esc(loc.name)}
               ${loc.isCustom ? '<span style="font-size: 0.8rem; background: var(--color-surface-hover); color: var(--color-text-secondary); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: 600; vertical-align: middle;">Personalizado</span>' : ''}
             </div>
-            ${loc.description ? `<div style="font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.35; margin-top: 4px; word-break: break-word;">${this.escapeHtml(loc.description)}</div>` : ''}
+            ${loc.description ? `<div style="font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.35; margin-top: 4px; word-break: break-word;">${esc(loc.description)}</div>` : ''}
           </div>
           <div style="
             width: 24px;
@@ -363,13 +364,4 @@ export class LocationModalComponent {
     }
   }
 
-  escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
 }
