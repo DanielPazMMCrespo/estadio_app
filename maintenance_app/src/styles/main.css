@@ -118,6 +118,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-brand-primary, #0284c7);
+  outline: 3px solid var(--color-brand-primary, #0F6E5C);
   outline-offset: 2px;
 }

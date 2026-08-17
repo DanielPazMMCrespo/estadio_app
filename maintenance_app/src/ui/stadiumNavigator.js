@@ -77,8 +77,8 @@ export class StadiumNavigatorComponent {
         <!-- Filter Quick Pills -->
         <div class="filter-chips-row">
           <button type="button" class="filter-chip ${this.filterMode === 'all' ? 'active' : ''}" data-navfilter="all">Todos os Setores</button>
-          <button type="button" class="filter-chip ${this.filterMode === 'with_issues' ? 'active' : ''}" data-navfilter="with_issues">⚠️ Com Intervenções (${activeReports.length})</button>
-          <button type="button" class="filter-chip crit ${this.filterMode === 'critical' ? 'active' : ''}" data-navfilter="critical">🔴 Críticas (${criticalReports.length})</button>
+          <button type="button" class="filter-chip ${this.filterMode === 'with_issues' ? 'active' : ''}" data-navfilter="with_issues">Com Intervenções (${activeReports.length})</button>
+          <button type="button" class="filter-chip crit ${this.filterMode === 'critical' ? 'active' : ''}" data-navfilter="critical">Críticas (${criticalReports.length})</button>
         </div>
 
         <!-- Hierarchical Sectors Accordion -->
@@ -197,11 +197,11 @@ export class StadiumNavigatorComponent {
       const isCrit = sec.secStat.critical > 0;
       const hasIssues = sec.secStat.total > 0;
 
-      let statusBadgeHtml = '<span class="sec-status-badge ok">✓ Operacional</span>';
+      let statusBadgeHtml = '<span class="sec-status-badge ok">Operacional</span>';
       if (isCrit) {
-        statusBadgeHtml = `<span class="sec-status-badge crit">🔴 ${sec.secStat.critical} Crítica${sec.secStat.critical > 1 ? 's' : ''}</span>`;
+        statusBadgeHtml = `<span class="sec-status-badge crit">${sec.secStat.critical} Crítica${sec.secStat.critical > 1 ? 's' : ''}</span>`;
       } else if (hasIssues) {
-        statusBadgeHtml = `<span class="sec-status-badge warn">⚠️ ${sec.secStat.total} Intervenç${sec.secStat.total > 1 ? 'ões' : 'ão'}</span>`;
+        statusBadgeHtml = `<span class="sec-status-badge warn">${sec.secStat.total} Intervenç${sec.secStat.total > 1 ? 'ões' : 'ão'}</span>`;
       }
 
       return `
@@ -241,9 +241,9 @@ export class StadiumNavigatorComponent {
 
     let roomBadge = '';
     if (isCrit) {
-      roomBadge = `<span class="room-issue-badge crit">🔴 ${roomStat.critical}</span>`;
+      roomBadge = `<span class="room-issue-badge crit">${roomStat.critical}</span>`;
     } else if (hasIssues) {
-      roomBadge = `<span class="room-issue-badge warn">⚠️ ${roomStat.total}</span>`;
+      roomBadge = `<span class="room-issue-badge warn">${roomStat.total}</span>`;
     }
 
     return `

@@ -62,14 +62,14 @@ export class HomeViewComponent {
         <!-- Quick Capture (Directly on Home) -->
         <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           <div class="form-group" style="margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label class="form-label" style="font-size: 1.15rem; color: var(--color-text); font-weight: 700; margin: 0;">Descreva a intervenção *</label>
-              <button type="button" id="btn-qc-mic" class="btn-secondary touch-target" style="padding: 10px 16px; font-size: 1.15rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-radius: 24px; min-height: 48px;" title="Ditar por voz">
+            <div class="form-label-row">
+              <label class="form-label" for="qc-description">Descreva a intervenção *</label>
+              <button type="button" id="btn-qc-mic" class="btn-secondary btn-dictate" title="Escrita por voz">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                <span style="font-size: 1.15rem;">Ditar</span>
+                <span>Escrita por voz</span>
               </button>
             </div>
-            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do projetor da torre norte... (pode escrever ou tocar em Ditar)" style="height: 100px; font-size: 1.2rem; padding: 12px;"></textarea>
+            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do projetor da torre norte... (pode escrever ou usar escrita por voz)" style="height: 100px; font-size: 1.2rem; padding: 12px;"></textarea>
           </div>
 
           <div class="form-group" style="margin-bottom: 16px;">

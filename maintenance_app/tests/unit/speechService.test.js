@@ -71,7 +71,16 @@ describe('SpeechService (Speech-to-Text)', () => {
     mockRecognitionInstance.onresult(mockEvent);
     expect(onResult).toHaveBeenCalledWith('Substituição da lâmpada', false);
 
-    // Simulate recognition onend
+    // O motor de voz do Chrome desliga-se sozinho ao fim de uma pausa na fala,
+    // mesmo com continuous:true. Sem um "Parar" explícito, o serviço deve voltar
+    // a ligar o microfone sozinho, sem chamar onEnd.
+    mockRecognitionInstance.onend();
+    expect(mockRecognitionInstance.start).toHaveBeenCalledTimes(2);
+    expect(onEnd).not.toHaveBeenCalled();
+    expect(service.isListening).toBe(true);
+
+    // Só depois de um "Parar" explícito é que um onend deve contar como fim real.
+    service.stopListening();
     mockRecognitionInstance.onend();
     expect(onEnd).toHaveBeenCalled();
     expect(service.isListening).toBe(false);

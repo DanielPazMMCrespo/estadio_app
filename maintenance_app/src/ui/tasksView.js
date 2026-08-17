@@ -46,6 +46,7 @@ export class TasksViewComponent {
     this.doneToday = [];
     this.doneOpen = false;
     this.sheetLocation = { locationId: '', locationName: '' };
+    this.dictationCleanup = null;
   }
 
   /* ===================== dados ===================== */
@@ -334,15 +335,15 @@ export class TasksViewComponent {
         </div>
 
         <div class="form-group" style="margin-bottom: 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label class="form-label" for="tv-new-title" style="margin:0; font-weight:700;">O que há a fazer? *</label>
-            <button type="button" id="tv-mic-new" class="btn-secondary touch-target" style="padding:4px 12px; font-size:0.9rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:18px; min-height:36px;" title="Ditar por voz">
+          <div class="form-label-row">
+            <label class="form-label" for="tv-new-title">O que há a fazer? *</label>
+            <button type="button" id="tv-mic-new" class="btn-secondary btn-dictate" title="Escrita por voz">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              <span>Ditar</span>
+              <span>Escrita por voz</span>
             </button>
           </div>
           <textarea id="tv-new-title" class="form-textarea tv-new-title" rows="2"
-                    placeholder="Ex: Trocar lâmpada na bancada norte... (pode ditar)"></textarea>
+                    placeholder="Ex: Trocar lâmpada na bancada norte... (pode usar escrita por voz)"></textarea>
         </div>
 
         <p class="tv-sheet-hint">Escolha o dia. Fica gravado logo.</p>
@@ -354,9 +355,9 @@ export class TasksViewComponent {
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label">Prioridade</label>
           <div class="tv-priority-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;" id="tv-new-priority-group">
-            <button type="button" class="btn-secondary tv-prio-btn" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;">🟢 Baixa</button>
-            <button type="button" class="btn-secondary tv-prio-btn active" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem; border-color: var(--color-gold); color: var(--color-gold);">⏳ Média</button>
-            <button type="button" class="btn-secondary tv-prio-btn" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;">🚨 Crítica</button>
+            <button type="button" class="btn-secondary tv-prio-btn" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;">Baixa</button>
+            <button type="button" class="btn-secondary tv-prio-btn active" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem; border-color: var(--color-gold); color: var(--color-gold);">Média</button>
+            <button type="button" class="btn-secondary tv-prio-btn" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;">Crítica</button>
           </div>
         </div>
 
@@ -380,7 +381,7 @@ export class TasksViewComponent {
     const micBtn = overlay.querySelector('#tv-mic-new');
     const titleField = overlay.querySelector('#tv-new-title');
     if (micBtn && titleField) {
-      speechService.attachDictation(micBtn, titleField, {
+      this.dictationCleanup = speechService.attachDictation(micBtn, titleField, {
         activeHtml: `
           <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
           <span style="color:var(--color-danger);">A ouvir...</span>
@@ -415,7 +416,10 @@ export class TasksViewComponent {
     }
 
     const close = () => {
-      speechService.stopListening();
+      if (this.dictationCleanup) {
+        this.dictationCleanup();
+        this.dictationCleanup = null;
+      }
       this.closeNewTaskSheet();
     };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
@@ -481,7 +485,7 @@ export class TasksViewComponent {
         <div class="tv-sheet-head">
           <div>
             <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-brand-primary); text-transform: uppercase;">
-              ${isDone ? '✅ Tarefa Concluída' : '⏳ Tarefa Pendente'}
+              ${isDone ? 'Tarefa Concluída' : 'Tarefa Pendente'}
             </span>
             <h2 class="tv-sheet-title" style="margin-top: 2px;">Editar Tarefa</h2>
           </div>
@@ -489,11 +493,11 @@ export class TasksViewComponent {
         </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label class="form-label" for="tv-edit-title" style="margin:0; font-weight:700;">Título da tarefa *</label>
-            <button type="button" id="tv-mic-edit" class="btn-secondary touch-target" style="padding:4px 12px; font-size:0.9rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:18px; min-height:36px;" title="Ditar por voz">
+          <div class="form-label-row">
+            <label class="form-label" for="tv-edit-title">Título da tarefa *</label>
+            <button type="button" id="tv-mic-edit" class="btn-secondary btn-dictate" title="Escrita por voz">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              <span>Ditar</span>
+              <span>Escrita por voz</span>
             </button>
           </div>
           <input type="text" id="tv-edit-title" class="form-input" value="${this.esc(task.title)}" placeholder="Ex: Trocar lâmpada" />
@@ -511,9 +515,9 @@ export class TasksViewComponent {
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label">Nível de Prioridade</label>
           <div class="tv-priority-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;" id="tv-edit-priority-group">
-            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'low' ? ' active' : ''}" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'low' ? ' border-color: var(--color-stadium-green); color: var(--color-stadium-green);' : ''}">🟢 Baixa</button>
-            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'medium' ? ' active' : ''}" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'medium' ? ' border-color: var(--color-gold); color: var(--color-gold);' : ''}">⏳ Média</button>
-            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'critical' ? ' active' : ''}" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'critical' ? ' border-color: var(--color-danger); color: var(--color-danger);' : ''}">🚨 Crítica</button>
+            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'low' ? ' active' : ''}" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'low' ? ' border-color: var(--color-stadium-green); color: var(--color-stadium-green);' : ''}">Baixa</button>
+            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'medium' ? ' active' : ''}" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'medium' ? ' border-color: var(--color-gold); color: var(--color-gold);' : ''}">Média</button>
+            <button type="button" class="btn-secondary tv-prio-btn${selectedPriority === 'critical' ? ' active' : ''}" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;${selectedPriority === 'critical' ? ' border-color: var(--color-danger); color: var(--color-danger);' : ''}">Crítica</button>
           </div>
         </div>
 
@@ -529,7 +533,7 @@ export class TasksViewComponent {
 
         ${task.reportId && this.onOpenReport ? `
           <button type="button" class="btn-secondary" id="tv-detail-open-report" style="width: 100%; margin-bottom: 12px;">
-            🔍 Ver Intervenção Associada
+            Ver Intervenção Associada
           </button>
         ` : ''}
 
@@ -540,7 +544,7 @@ export class TasksViewComponent {
             ${isDone ? '↩ Reabrir Tarefa' : '✓ Marcar como Feita'}
           </button>
           <button type="button" class="btn-secondary" id="tv-edit-delete" style="color: var(--color-danger); border-color: var(--color-danger); flex: 1;">
-            🗑 Apagar
+            Apagar
           </button>
         </div>
       </div>
@@ -551,7 +555,7 @@ export class TasksViewComponent {
     const editMicBtn = overlay.querySelector('#tv-mic-edit');
     const editTitleField = overlay.querySelector('#tv-edit-title');
     if (editMicBtn && editTitleField) {
-      speechService.attachDictation(editMicBtn, editTitleField, {
+      this.dictationCleanup = speechService.attachDictation(editMicBtn, editTitleField, {
         activeHtml: `
           <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--color-danger); animation:pulse 1s infinite;"></span>
           <span style="color:var(--color-danger);">A ouvir...</span>
@@ -585,7 +589,10 @@ export class TasksViewComponent {
     }
 
     const close = () => {
-      speechService.stopListening();
+      if (this.dictationCleanup) {
+        this.dictationCleanup();
+        this.dictationCleanup = null;
+      }
       this.closeTaskDetailSheet();
     };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });

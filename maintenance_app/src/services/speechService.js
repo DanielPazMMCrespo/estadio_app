@@ -68,14 +68,30 @@ export class SpeechService {
 
       this.recognition.onerror = (event) => {
         console.warn('[SpeechService] Recognition error:', event.error);
+        // Erros fatais: não vale a pena voltar a ligar o microfone sozinho.
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed' || event.error === 'audio-capture') {
+          this._shouldRestart = false;
+        }
         if (typeof onError === 'function') onError(event.error);
       };
 
       this.recognition.onend = () => {
+        // O motor de voz do Chrome desliga-se sozinho ao fim de uma pausa na fala,
+        // mesmo com continuous:true. Volta a ligar automaticamente, a não ser que
+        // o próprio técnico tenha carregado em "Parar".
+        if (this._shouldRestart) {
+          try {
+            this.recognition.start();
+            return;
+          } catch (e) {
+            // Não foi possível reiniciar; cai para o estado parado abaixo.
+          }
+        }
         this.isListening = false;
         if (typeof onEnd === 'function') onEnd();
       };
 
+      this._shouldRestart = true;
       this.recognition.start();
       this.isListening = true;
       return true;
@@ -88,6 +104,7 @@ export class SpeechService {
   }
 
   stopListening() {
+    this._shouldRestart = false;
     this.isListening = false;
     if (this.recognition) {
       try {

@@ -32,12 +32,11 @@ export class PhotoEditor {
         <div class="photo-editor-modal">
           <div class="photo-editor-header">
             <div class="editor-title-group">
-              <span class="editor-icon">✏️</span>
               <h3 class="photo-editor-title">Anotar Fotografia</h3>
             </div>
             <div class="photo-editor-actions">
-              <button type="button" class="btn-editor-action" id="btn-editor-undo" title="Desfazer">↩ Desfazer</button>
-              <button type="button" class="btn-editor-action" id="btn-editor-clear" title="Limpar">🗑 Limpar</button>
+              <button type="button" class="btn-editor-action" id="btn-editor-undo" title="Desfazer">Desfazer</button>
+              <button type="button" class="btn-editor-action" id="btn-editor-clear" title="Limpar">Limpar</button>
               <button type="button" class="btn-close-editor" id="btn-editor-cancel">&times;</button>
             </div>
           </div>

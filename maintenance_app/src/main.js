@@ -15,6 +15,7 @@ import { TasksViewComponent } from './ui/tasksView.js';
 import { NotesViewComponent } from './ui/notesView.js';
 import { ToolsViewComponent } from './ui/toolsView.js';
 import { EquipmentViewComponent } from './ui/equipmentView.js';
+import { ReportsViewComponent } from './ui/reportsView.js';
 import { QuickCaptureComponent } from './ui/quickCapture.js';
 import { speechService } from './services/speechService.js';
 import { photoEditor } from './services/photoEditor.js';
@@ -31,13 +32,14 @@ export class App {
     this.notes = null;
     this.tools = null;
     this.equipment = null;
+    this.reports = null;
     this.quickCapture = null;
     this.stadiumNavigator = null;
     this.history = null;
     this.dashboard = null;
     this.reportDetail = null;
     this.locationModal = null;
-    this.currentView = 'home'; // 'home' | 'history' | 'tasks' | 'more' | 'tools' | 'equipment' | 'sectors' | 'notes' | 'settings'
+    this.currentView = 'home'; // 'home' | 'history' | 'tasks' | 'more' | 'tools' | 'equipment' | 'sectors' | 'notes' | 'settings' | 'reports'
     this.editingReportId = null;
 
     // Temporary storage during new report creation
@@ -145,6 +147,9 @@ export class App {
       case 'equipment':
         this.renderEquipment();
         break;
+      case 'reports':
+        this.renderReports();
+        break;
       case 'notes':
         this.renderNotes();
         break;
@@ -226,6 +231,13 @@ export class App {
       onViewEquipmentReports: () => this.navigateTo('history')
     });
     await this.equipment.render();
+  }
+
+  async renderReports() {
+    const feed = document.getElementById('dashboard-feed');
+    if (!feed) return;
+    this.reports = new ReportsViewComponent(feed);
+    await this.reports.render();
   }
 
   async renderMap() {
@@ -585,13 +597,13 @@ export class App {
             <label class="form-label">Nível de Prioridade *</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;" id="priority-options-group">
               <button type="button" class="btn-secondary priority-select-btn" data-priority="low">
-                🟢 Baixa
+                Baixa
               </button>
               <button type="button" class="btn-secondary priority-select-btn active" data-priority="medium" style="border-color:var(--color-gold); color:var(--color-gold);">
-                🟡 Média
+                Média
               </button>
               <button type="button" class="btn-secondary priority-select-btn" data-priority="critical">
-                🔴 Crítica
+                Crítica
               </button>
             </div>
             <input type="hidden" id="input-priority" value="medium" />
@@ -602,13 +614,13 @@ export class App {
             <label class="form-label">Estado Inicial</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;" id="status-options-group">
               <button type="button" class="btn-secondary status-select-btn active" data-status="pending" style="border-color:var(--color-gold); color:var(--color-gold);">
-                ⏳ Pendente
+                Pendente
               </button>
               <button type="button" class="btn-secondary status-select-btn" data-status="in_progress">
-                ⚙️ Em Curso
+                Em Curso
               </button>
               <button type="button" class="btn-secondary status-select-btn" data-status="resolved">
-                ✅ Resolvido
+                Resolvido
               </button>
             </div>
             <input type="hidden" id="input-status" value="pending" />
@@ -618,9 +630,9 @@ export class App {
           <div class="form-group">
             <div class="form-label-row">
               <label class="form-label" for="input-description">Descrição da Intervenção *</label>
-              <button type="button" id="btn-toggle-mic" class="btn-secondary btn-dictate" title="Ditar por voz">
+              <button type="button" id="btn-toggle-mic" class="btn-secondary btn-dictate" title="Escrita por voz">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                <span>Ditar</span>
+                <span>Escrita por voz</span>
               </button>
             </div>
             <textarea id="input-description" class="form-textarea" placeholder="Descreva detalhadamente o trabalho ou intervenção a realizar..." style="min-height:100px; font-size:1.05rem;" required></textarea>
@@ -849,7 +861,7 @@ export class App {
       micBtn.classList.remove('dictation-active', 'recording');
       micBtn.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-        <span>Ditar</span>
+        <span>Escrita por voz</span>
       `;
     }
     const previewContainer = document.getElementById('photo-preview-container');

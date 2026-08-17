@@ -1,5 +1,21 @@
 import { db as defaultDb } from './db.js';
-import { normalizePhotosAsync } from './db.js';
+import { normalizePhotosAsync, getPhotoDataUrl } from './db.js';
+
+/**
+ * Converte fotos (Blob/Uint8Array locais) para um formato simples que sobrevive
+ * a JSON.stringify, para poderem ser enviadas ao servidor e ficarem visíveis
+ * a todos os técnicos, não só no telemóvel que tirou a foto.
+ */
+function photosForTransport(photos) {
+  if (!Array.isArray(photos)) return [];
+  return photos.map(p => ({
+    id: p.id,
+    type: p.type || 'work',
+    mimeType: p.mimeType || 'image/jpeg',
+    createdAt: p.createdAt || new Date().toISOString(),
+    url: getPhotoDataUrl(p)
+  }));
+}
 
 /**
  * Cross-environment UUID v4 generator.
@@ -65,6 +81,24 @@ export class ReportsRepository {
   }
 
   /**
+   * Returns reports whose date falls within [startISO, endISO), sorted by date descending.
+   * Used to build daily/weekly/monthly reports.
+   * @param {string} startISO
+   * @param {string} endISO
+   * @returns {Promise<Array>}
+   */
+  async getBetween(startISO, endISO) {
+    const items = await this.db.reports
+      .where('date')
+      .between(startISO, endISO, true, false)
+      .toArray();
+
+    return items
+      .filter(r => !r.deleted || r.deleted === 0)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+
+  /**
    * Creates a new maintenance report and enqueues sync action.
    * @param {Object} reportData
    * @returns {Promise<Object>} The created report object
@@ -110,7 +144,7 @@ export class ReportsRepository {
       entityType: 'report',
       entityId: id,
       action: 'CREATE',
-      payload: { ...reportObj, photos: [], audioBlob: null }, // Don't duplicate heavy blobs in queue
+      payload: { ...reportObj, photos: photosForTransport(photos), audioBlob: null }, // audioBlob fica só local, não se guardam áudios
       timestamp: Date.now(),
       retryCount: 0
     };
@@ -155,7 +189,12 @@ export class ReportsRepository {
       entityType: 'report',
       entityId: id,
       action: 'UPDATE',
-      payload: { id, ...mergedUpdates, photos: undefined, audioBlob: undefined },
+      payload: {
+        id,
+        ...mergedUpdates,
+        photos: photosForTransport(updatedReport.photos),
+        audioBlob: undefined
+      },
       timestamp: Date.now(),
       retryCount: 0
     };

@@ -55,17 +55,17 @@ export class NotesViewComponent {
     this.container.innerHTML = `
       <section class="nv-view animate-fade-in">
         <div class="nv-composer">
-          <label class="form-label" for="nv-input">Escreva ou dite uma nota</label>
+          <label class="form-label" for="nv-input">Escreva ou use a escrita por voz para uma nota</label>
           <textarea id="nv-input" class="form-textarea nv-input" rows="3"
-                    placeholder="Escreva aqui ou toque em Ditar. Guarda ao sair do campo."></textarea>
+                    placeholder="Escreva aqui ou toque em Escrita por voz. Guarda ao sair do campo."></textarea>
           <div class="nv-composer-actions">
-            <button type="button" class="nv-mic" id="nv-mic" aria-label="Ditar nota por voz">
+            <button type="button" class="nv-mic" id="nv-mic" aria-label="Escrita por voz">
               <span class="nv-mic-glyph">${SVG_MIC}</span>
-              <span class="nv-mic-text">Ditar</span>
+              <span class="nv-mic-text">Escrita por voz</span>
             </button>
             <button type="button" class="nv-save" id="nv-save">Guardar nota</button>
           </div>
-          <p class="nv-mic-status" id="nv-mic-status">Toque em Ditar para transcrever a voz em texto.</p>
+          <p class="nv-mic-status" id="nv-mic-status">Toque em Escrita por voz para transcrever a voz em texto.</p>
         </div>
 
         <div id="nv-list-wrap">${this.renderListWrap()}</div>
@@ -117,7 +117,7 @@ export class NotesViewComponent {
           <h2 class="nv-empty-title">Ainda não há notas</h2>
           <p class="nv-empty-text">
             O campo lá em cima está pronto: escreva o que viu e saia do campo — fica guardado.
-            Se tiver as mãos ocupadas, toque em <strong>Ditar</strong> e fale.
+            Se tiver as mãos ocupadas, toque em <strong>Escrita por voz</strong> e fale.
           </p>
           <p class="nv-empty-text">Depois pode virar qualquer nota em intervenção ou em tarefa.</p>
         </div>
@@ -270,7 +270,7 @@ export class NotesViewComponent {
     const status = this.container?.querySelector('#nv-mic-status');
     if (micBtn) micBtn.classList.toggle('nv-mic--rec', listening);
     if (glyph) glyph.innerHTML = listening ? SVG_STOP : SVG_MIC;
-    if (label) label.textContent = listening ? 'Parar' : 'Ditar';
+    if (label) label.textContent = listening ? 'Parar' : 'Escrita por voz';
     if (status && typeof statusText === 'string') status.textContent = statusText;
   }
 
@@ -282,7 +282,7 @@ export class NotesViewComponent {
       const started = speechService.startListening({
         lang: 'pt-PT',
         onStart: () => {
-          this.setMicState(true, '🔴 A ouvir... Fale agora. Toque em Parar quando terminar.');
+          this.setMicState(true, 'A ouvir... Fale agora. Toque em Parar quando terminar.');
         },
         onResult: (spokenText) => {
           if (input) {
@@ -300,8 +300,8 @@ export class NotesViewComponent {
       });
 
       if (!started) {
-        this.setMicState(false, 'Ditado não suportado neste navegador.');
-        toast.warning('O seu navegador não suporta ditado por voz.');
+        this.setMicState(false, 'Escrita por voz não suportada neste navegador.');
+        toast.warning('O seu navegador não suporta escrita por voz.');
       }
     } else {
       speechService.stopListening();

@@ -106,9 +106,9 @@ export class ReportDetailComponent {
           <div class="status-segment-group">
             <label class="status-seg-label">Estado:</label>
             <div class="status-segmented-control">
-              <button type="button" class="status-seg-btn ${status === 'pending' ? 'active pending' : ''}" data-status="pending">⏳ Pendente</button>
-              <button type="button" class="status-seg-btn ${status === 'in_progress' ? 'active in_progress' : ''}" data-status="in_progress">⚙️ Em Curso</button>
-              <button type="button" class="status-seg-btn ${status === 'resolved' ? 'active resolved' : ''}" data-status="resolved">✅ Resolvido</button>
+              <button type="button" class="status-seg-btn ${status === 'pending' ? 'active pending' : ''}" data-status="pending">Pendente</button>
+              <button type="button" class="status-seg-btn ${status === 'in_progress' ? 'active in_progress' : ''}" data-status="in_progress">Em Curso</button>
+              <button type="button" class="status-seg-btn ${status === 'resolved' ? 'active resolved' : ''}" data-status="resolved">Resolvido</button>
             </div>
           </div>
           <span class="detail-priority-chip ${pInfo.cls}">${pInfo.label}</span>
@@ -124,11 +124,11 @@ export class ReportDetailComponent {
         <div class="detail-grid-two">
           <div class="detail-section">
             <h4 class="detail-section-title">Tempo de Intervenção</h4>
-            <div class="detail-stat-pill">⏱️ ${r.timeSpent || 0} minutos</div>
+            <div class="detail-stat-pill">${r.timeSpent || 0} minutos</div>
           </div>
           <div class="detail-section">
             <h4 class="detail-section-title">Sincronização</h4>
-            <div class="detail-stat-pill">${r.synced ? '☁️ Sincronizado' : '📱 Gravado Local'}</div>
+            <div class="detail-stat-pill">${r.synced ? 'Sincronizado' : 'Gravado Local'}</div>
           </div>
         </div>
 

@@ -22,21 +22,21 @@ describe('Toast Module Unit Tests', () => {
     expect(toastEl).not.toBeNull();
     expect(toastEl.classList.contains('toast-success')).toBe(true);
     expect(toastEl.textContent).toContain('Operação concluída com sucesso');
-    expect(toastEl.textContent).toContain('✅');
+    expect(toastEl.querySelector('.toast-icon svg')).not.toBeNull();
   });
 
   it('should display warning toast notification', () => {
     const toastEl = toastManager.warning('Modo offline ativo', 0);
     expect(toastEl.classList.contains('toast-warning')).toBe(true);
     expect(toastEl.textContent).toContain('Modo offline ativo');
-    expect(toastEl.textContent).toContain('⚠️');
+    expect(toastEl.querySelector('.toast-icon svg')).not.toBeNull();
   });
 
   it('should display error toast notification', () => {
     const toastEl = toastManager.error('Erro ao guardar relatório', 0);
     expect(toastEl.classList.contains('toast-error')).toBe(true);
     expect(toastEl.textContent).toContain('Erro ao guardar relatório');
-    expect(toastEl.textContent).toContain('❌');
+    expect(toastEl.querySelector('.toast-icon svg')).not.toBeNull();
   });
 
   it('should work with showToast helper function', () => {

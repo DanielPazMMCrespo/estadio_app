@@ -63,12 +63,12 @@
      Dois valores por cor: o CHEIO (fundos sólidos com texto branco) e o
      de TEXTO (escurecido, para ler sobre branco com contraste >= 4.5:1).
      --------------------------------------------------------------------- */
-  --color-brand-primary: #0284c7;      /* azul MMCrespo — ação primária, ligações */
-  --color-brand-primary-hover: #0369A1;
-  --color-brand-text: #0369A1;         /* azul como texto sobre branco */
+  --color-brand-primary: #0F6E5C;      /* verde-petróleo — ação primária, ligações */
+  --color-brand-primary-hover: #0B5245;
+  --color-brand-text: #0B5245;         /* verde-petróleo como texto sobre branco */
 
-  --color-stadium-green: #059669;      /* verde MMCrespo — concluído, ok */
-  --color-stadium-glow: #0284c7;       /* legado: cor de destaque = azul */
+  --color-stadium-green: #059669;      /* verde — concluído, ok */
+  --color-stadium-glow: #0F6E5C;       /* legado: cor de destaque = verde-petróleo */
   --color-success: #059669;
   --color-success-text: #047857;
 
@@ -80,11 +80,11 @@
   --color-danger-text: #B01717;
   --color-danger-glow: rgba(200, 30, 30, 0.12);
 
-  --color-info: #0284c7;
-  --color-info-text: #0369A1;
+  --color-info: #0F6E5C;
+  --color-info-text: #0B5245;
 
   /* Tintas de 1 passo — fundos de estado, calmos, nunca saturados */
-  --tint-blue:  #EAF4FB;
+  --tint-blue:  #E4F0EC;
   --tint-green: #E8F6F0;
   --tint-amber: #FCF3E7;
   --tint-red:   #FCECEC;
@@ -120,7 +120,7 @@
   --shadow-up: 0 -2px 10px rgba(20, 24, 30, 0.07);
   --shadow-glow-green: none;
   --shadow-glow-gold: none;
-  --shadow-focus-ring: 0 0 0 3px rgba(2, 132, 199, 0.22);
+  --shadow-focus-ring: 0 0 0 3px rgba(15, 110, 92, 0.22);
 
   /* Véu por trás de modais e folhas */
   --color-overlay: rgba(20, 24, 30, 0.45);
@@ -177,12 +177,12 @@
     --color-text-muted: #C3CDD8;
     --color-on-accent: #FFFFFF;
 
-    --color-brand-primary: #38A9E4;
-    --color-brand-primary-hover: #5CBCF0;
-    --color-brand-text: #7CCBF3;
+    --color-brand-primary: #2DD4BF;
+    --color-brand-primary-hover: #5EEAD4;
+    --color-brand-text: #5EEAD4;
 
     --color-stadium-green: #10B981;
-    --color-stadium-glow: #38A9E4;
+    --color-stadium-glow: #2DD4BF;
     --color-success: #10B981;
     --color-success-text: #5BD9AC;
 
@@ -194,10 +194,10 @@
     --color-danger-text: #FF8A8A;
     --color-danger-glow: rgba(225, 67, 67, 0.18);
 
-    --color-info: #38A9E4;
-    --color-info-text: #7CCBF3;
+    --color-info: #2DD4BF;
+    --color-info-text: #5EEAD4;
 
-    --tint-blue:  #16303F;
+    --tint-blue:  #143330;
     --tint-green: #12332A;
     --tint-amber: #33260F;
     --tint-red:   #351A1A;
@@ -215,7 +215,7 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
     --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
     --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
-    --shadow-focus-ring: 0 0 0 3px rgba(56, 169, 228, 0.35);
+    --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
 
     --color-overlay: rgba(0, 0, 0, 0.65);
     --color-header-bg: rgba(16, 20, 24, 0.92);
@@ -251,12 +251,12 @@
   --color-text-muted: #C3CDD8;
   --color-on-accent: #FFFFFF;
 
-  --color-brand-primary: #38A9E4;
-  --color-brand-primary-hover: #5CBCF0;
-  --color-brand-text: #7CCBF3;
+  --color-brand-primary: #2DD4BF;
+  --color-brand-primary-hover: #5EEAD4;
+  --color-brand-text: #5EEAD4;
 
   --color-stadium-green: #10B981;
-  --color-stadium-glow: #38A9E4;
+  --color-stadium-glow: #2DD4BF;
   --color-success: #10B981;
   --color-success-text: #5BD9AC;
 
@@ -268,10 +268,10 @@
   --color-danger-text: #FF8A8A;
   --color-danger-glow: rgba(225, 67, 67, 0.18);
 
-  --color-info: #38A9E4;
-  --color-info-text: #7CCBF3;
+  --color-info: #2DD4BF;
+  --color-info-text: #5EEAD4;
 
-  --tint-blue:  #16303F;
+  --tint-blue:  #143330;
   --tint-green: #12332A;
   --tint-amber: #33260F;
   --tint-red:   #351A1A;
@@ -289,7 +289,7 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
   --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
-  --shadow-focus-ring: 0 0 0 3px rgba(56, 169, 228, 0.35);
+  --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
 
   --color-overlay: rgba(0, 0, 0, 0.65);
   --color-header-bg: rgba(16, 20, 24, 0.92);

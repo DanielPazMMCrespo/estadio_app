@@ -15,8 +15,20 @@
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px;
+  /* O fundo tem de ter espaço para a barra inferior fixa (84px) não tapar o
+     último cartão de cada lista — por isso o valor exato repete-se aqui em
+     vez de confiar noutra folha de estilos que este shorthand substituiria. */
+  padding: 16px 16px calc(var(--bottom-nav-height) + 48px);
   box-sizing: border-box;
+}
+
+/* ===== Responsive: usar o ecrã do computador/tablet, sem perder o foco mobile ===== */
+@media (min-width: 768px) {
+  .app-container { max-width: 720px; }
+}
+
+@media (min-width: 1024px) {
+  .app-container { max-width: 960px; }
 }
 
 .section-header {
@@ -460,7 +472,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.55);
+  box-shadow: 0 4px 14px rgba(15, 110, 92, 0.55);
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
@@ -1032,7 +1044,7 @@
 .form-input:focus, .form-textarea:focus {
   outline: none;
   border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+  box-shadow: 0 0 0 2px rgba(15, 110, 92, 0.2);
 }
 
 .form-textarea {
@@ -1060,7 +1072,7 @@
 }
 
 .btn-secondary.active {
-  background: rgba(2, 132, 199, 0.1);
+  background: rgba(15, 110, 92, 0.1);
   border-color: var(--color-brand-primary);
   color: var(--color-brand-primary);
 }
@@ -1077,7 +1089,7 @@
   min-height: 56px;
   min-width: 56px;
   transition: transform 150ms ease, box-shadow 150ms ease;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  box-shadow: 0 4px 14px rgba(15, 110, 92, 0.3);
 }
 
 .btn-primary-cta:active {
@@ -1517,7 +1529,7 @@ select {
 }
 
 .toast-icon {
-  font-size: 26px;
+  display: flex;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -1533,6 +1545,11 @@ select {
 .toast-error   { border-left-color: var(--color-danger); }
 .toast-warning { border-left-color: var(--color-gold); }
 .toast-info    { border-left-color: var(--color-brand-primary); }
+
+.toast-success .toast-icon { color: var(--color-stadium-green); }
+.toast-error   .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-gold); }
+.toast-info    .toast-icon { color: var(--color-brand-primary); }
 
 .toast.slide-in {
   animation: toastSlideIn 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -2128,7 +2145,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
 .nv-note-flag {
   font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(2, 132, 199, 0.15);
+  background: rgba(15, 110, 92, 0.15);
   color: var(--color-brand-primary);
   padding: 2px 8px;
   border-radius: 4px;
@@ -2187,7 +2204,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   background: var(--color-surface-hover);
 }
 .nv-act--report {
-  background: rgba(2, 132, 199, 0.1);
+  background: rgba(15, 110, 92, 0.1);
   color: var(--color-brand-primary);
   border-color: var(--color-brand-primary);
 }
@@ -2467,7 +2484,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   cursor: pointer;
   min-height: 56px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 4px 12px rgba(15, 110, 92, 0.25);
   transition: transform 150ms ease;
 }
 .tv-primary-action:active { transform: scale(0.98); }
@@ -2794,7 +2811,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
 }
 
 .status-seg-btn.active.in_progress {
-  background: rgba(2, 132, 199, 0.2);
+  background: rgba(15, 110, 92, 0.2);
   color: var(--color-brand-primary);
   border: 1px solid var(--color-brand-primary);
 }
@@ -3046,4 +3063,8 @@ html, body { max-width: 100%; overflow-x: hidden; }
 
 .btn-dictate span {
   font-size: var(--fs-label);
+}
+
+.btn-dictate * {
+  pointer-events: none;
 }
