@@ -19,6 +19,7 @@ import { ReportsViewComponent } from './ui/reportsView.js';
 import { QuickCaptureComponent } from './ui/quickCapture.js';
 import { speechService } from './services/speechService.js';
 import { photoEditor } from './services/photoEditor.js';
+import { compressPhoto } from './services/photoCompressor.js';
 import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
 
@@ -811,25 +812,34 @@ export class App {
     }
   }
 
+  /**
+   * Recebe uma foto do input de câmara, comprime-a e guarda-a na lista temporária.
+   *
+   * A compressão acontece AQUI e não ao gravar: uma foto de 8 MB da câmara nunca
+   * chega a entrar na memória da app em tamanho original mais do que o instante
+   * necessário. Se a compressão falhar, o photoCompressor devolve o ficheiro
+   * original — perder qualidade é aceitável, perder a foto do técnico não é.
+   */
   async handlePhotoAdded(file, type) {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target.result;
+    try {
+      const result = await compressPhoto(file);
+
       const photoItem = {
         id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + type,
-        blobData: file,
-        dataUrl,
+        blobData: result.blob,
+        dataUrl: result.dataUrl,
         type,
-        mimeType: file.type || 'image/jpeg'
+        mimeType: result.mimeType
       };
 
       this.tempPhotos.push(photoItem);
       this.renderPhotoPreviews();
 
-      // Offer immediate markup annotation
-      toast.success('Foto carregada! Toque na foto para desenhar setas ou anotações.');
-    };
-    reader.readAsDataURL(file);
+      toast.success('Foto guardada. Toque na foto para desenhar setas ou anotações.');
+    } catch (err) {
+      console.error('[handlePhotoAdded] Erro ao processar a foto:', err);
+      toast.error('Não foi possível processar a foto.');
+    }
   }
 
   renderPhotoPreviews() {
