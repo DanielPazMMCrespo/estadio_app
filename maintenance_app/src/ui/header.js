@@ -46,11 +46,13 @@ export class HeaderComponent {
     // corrigir tamanhos a partir da folha de estilos.
     this.container.innerHTML = `
       <div class="header-content">
-        <!-- Duas versões do logótipo, uma por tema. O CSS mostra a certa: o
-             logótipo normal é escuro e desaparecia no tema escuro. Sem
-             JavaScript pelo meio — só o CSS decide. -->
-        <img class="header-logo header-logo--light" src="/icons/logo-mmcrespo.png" alt="mmcrespo" />
-        <img class="header-logo header-logo--dark" src="/icons/mmcrespo_white.png" alt="" aria-hidden="true" />
+        <!-- Logótipo HORIZONTAL (símbolo à esquerda, texto à direita).
+             Antes usava-se a versão quadrada (símbolo em cima, texto em baixo)
+             esmagada para 34px de altura: o subtítulo ficava ilegível e o
+             conjunto parecia uma captura de ecrã colada no canto.
+             Duas versões, uma por tema — só o CSS decide qual se vê. -->
+        <img class="header-logo header-logo--light" src="/icons/mmcrespo-header.png" alt="mmcrespo" />
+        <img class="header-logo header-logo--dark" src="/icons/mmcrespo-header-white.png" alt="" aria-hidden="true" />
         <div class="header-status">
           <button type="button" id="connectivity-badge" class="status-badge ${badgeClass}" title="Toque para sincronizar">
             <span class="status-dot"></span>

@@ -352,10 +352,13 @@ body {
 
 /* O logótipo mmcrespo é a única marca de que ele precisa aqui. Fica pequeno:
    o cabeçalho é moldura, não é conteúdo. */
+/* Logótipo horizontal: 451x128 (ratio 3,52). A 30px de altura dá ~106px de
+   largura — cabe à vontade nos 390px de um telemóvel, ao lado do estado de
+   ligação, e o subtítulo continua a ler-se. O max-width é folga, não corte. */
 .header-logo {
-  height: 34px;
+  height: 30px;
   width: auto;
-  max-width: 130px;
+  max-width: 150px;
   object-fit: contain;
   display: block;
 }
