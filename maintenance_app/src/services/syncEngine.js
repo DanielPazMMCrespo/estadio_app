@@ -46,19 +46,25 @@ class SyncEngine {
   }
 
   /**
-   * O backend só é contactado se alguém o tiver configurado.
-   * Sem configuração a app é puramente local: zero pedidos, zero ruído.
-   * Ativar: localStorage.setItem('sync.backend.enabled', '1')  ou  VITE_SYNC_ENABLED=true
+   * Ligado por defeito: vários técnicos usam esta app e têm de ver o
+   * trabalho uns dos outros, por isso a sincronização não pode depender de
+   * um passo manual que ninguém vai fazer. Se o servidor não tiver base de
+   * dados configurada, o pedido falha em segurança (ver server.js) e os
+   * dados ficam guardados no telemóvel na mesma — nada se perde.
+   * Desativar só para testes: localStorage.setItem('sync.backend.enabled', '0')
+   * ou VITE_SYNC_ENABLED=false no build.
    */
   isBackendConfigured() {
     try {
-      if (localStorage.getItem('sync.backend.enabled') === '1') return true;
-    } catch { /* localStorage bloqueado — trata como não configurado */ }
+      const stored = localStorage.getItem('sync.backend.enabled');
+      if (stored === '0') return false;
+      if (stored === '1') return true;
+    } catch { /* localStorage bloqueado — segue para o valor por defeito */ }
     try {
       const env = import.meta.env || {};
-      if (String(env.VITE_SYNC_ENABLED) === 'true') return true;
+      if (String(env.VITE_SYNC_ENABLED) === 'false') return false;
     } catch { /* sem import.meta.env */ }
-    return false;
+    return true;
   }
 
   /** Quantas mutações estão à espera de subir. Informação honesta, não erro. */
