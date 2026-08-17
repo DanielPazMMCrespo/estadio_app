@@ -8,7 +8,7 @@ Tu és um executor. Não és um arquiteto. As decisões já estão todas tomadas
 2. **Não decidas nada.** Se a ficha não diz, não inventes — escreve `BLOQUEADO` e para.
 3. **Não mexas em ficheiros que a ficha não nomeia.** Nem para "melhorar".
 4. **Copia o `DEPOIS` exatamente.** Não reformates, não renomeies, não traduzas comentários.
-5. **Corre sempre `npm test` no fim.** Tem de dar `120 passed`. Se der menos, desfaz tudo com `git checkout .` e escreve `BLOQUEADO`.
+5. **Corre sempre `npm test` no fim.** Tem de dar `133 passed`. Se der menos, desfaz tudo com `git checkout .` e escreve `BLOQUEADO`.
 6. **Não crias ficheiros novos** a não ser que a ficha diga o caminho exato.
 7. **Não instalas pacotes.** Nenhum. A app não tem dependências novas.
 8. **Se o `ANTES` não existir no ficheiro**, para. Não procures parecido. Escreve `BLOQUEADO`.
@@ -24,7 +24,7 @@ cd C:\dev\estadio\maintenance_app
 3. Procura o bloco `ANTES` — texto exato
 4. Substitui pelo bloco `DEPOIS` — texto exato
 5. Corre `npm test`
-6. Se der `120 passed` → `git add -A && git commit -m "<a mensagem que está na ficha>"`
+6. Se der `133 passed` → `git add -A && git commit -m "<a mensagem que está na ficha>"`
 7. Se der menos → `git checkout .` e escreve `BLOQUEADO: <o que aconteceu>`
 
 ## Formato da resposta
@@ -34,7 +34,7 @@ No fim de cada ficha, responde só isto:
 ```
 FICHA: 01
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: fix: <mensagem>
 ```
 
