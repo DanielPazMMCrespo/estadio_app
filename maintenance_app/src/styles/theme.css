@@ -320,15 +320,22 @@ body {
   line-height: var(--lh-body);
 }
 
-/* ===== APP HEADER ===== */
+/* ===== APP HEADER =====
+   Fixed ao viewport (não sticky): sticky depende do contentor de scroll
+   correto ser encontrado pelo browser, e isso já causou o cabeçalho a
+   desaparecer. Fixed não tem essa ambiguidade — cola sempre ao ecrã.
+   src/main.js mede a altura real e escreve --header-height-actual, que
+   o .main-content usa para nunca ficar tapado por baixo dele. */
 .app-header {
   background: var(--color-header-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
   padding: 8px 16px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   box-shadow: none;
 }

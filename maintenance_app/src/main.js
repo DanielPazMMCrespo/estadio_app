@@ -74,6 +74,8 @@ export class App {
         isOnline: navigator.onLine
       });
       this.header.render();
+      this.syncHeaderHeight();
+      window.addEventListener('resize', () => this.syncHeaderHeight());
     }
 
     this.locationModal = new LocationModalComponent(document.body, {
@@ -113,6 +115,20 @@ export class App {
 
     // Render initial view
     this.navigateTo('home');
+  }
+
+  /**
+   * O cabeçalho é fixed (fora do fluxo normal), por isso o resto da página
+   * precisa de saber a altura real dele para não ficar escondida por baixo.
+   * Escreve essa altura numa variável CSS lida por .main-content.
+   */
+  syncHeaderHeight() {
+    const headerContainer = document.getElementById('header-container');
+    if (!headerContainer) return;
+    const height = headerContainer.offsetHeight;
+    if (height > 0) {
+      document.documentElement.style.setProperty('--header-height-actual', `${height}px`);
+    }
   }
 
   navigateTo(viewId) {

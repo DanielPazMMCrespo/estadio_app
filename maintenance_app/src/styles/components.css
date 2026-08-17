@@ -19,6 +19,10 @@
      último cartão de cada lista — por isso o valor exato repete-se aqui em
      vez de confiar noutra folha de estilos que este shorthand substituiria. */
   padding: 16px 16px calc(var(--bottom-nav-height) + 48px);
+  /* O cabeçalho é fixed (fora do fluxo normal): sem isto o topo de cada
+     ecrã ficava escondido atrás dele. --header-height-actual é escrito
+     por src/main.js com a altura real medida do cabeçalho. */
+  padding-top: calc(var(--header-height-actual, 56px) + 16px);
   box-sizing: border-box;
 }
 

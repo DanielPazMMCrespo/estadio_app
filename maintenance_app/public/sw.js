@@ -45,11 +45,35 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Stale-While-Revalidate with dynamic caching & navigation fallback
+// Fetch Event.
+// A casca (navegação / index.html) usa Network-First: sem isto, uma app
+// instalada (PWA) nunca via as atualizações a sério — ficava sempre a
+// mostrar o HTML antigo em cache, que aponta para JS/CSS antigos, e só
+// se via a versão nova ao fim de reabrir a app duas vezes. Os ficheiros
+// com hash no nome (JS/CSS gerados pelo build) continuam com
+// Stale-While-Revalidate: são imutáveis (nome novo a cada build), por
+// isso servir do cache primeiro é seguro e mais rápido.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (!url.protocol.startsWith('http')) return;
+
+  const isAppShell = event.request.mode === 'navigate' || url.pathname === '/index.html';
+
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
@@ -65,9 +89,6 @@ self.addEventListener('fetch', (event) => {
         })
         .catch((err) => {
           console.warn('[SW Fetch] Network fetch failed, falling back to cache:', event.request.url, err);
-          if (event.request.mode === 'navigate' && !cachedResponse) {
-            return caches.match('/index.html') || caches.match('/');
-          }
         });
 
       return cachedResponse || fetchPromise;
