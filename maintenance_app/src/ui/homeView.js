@@ -3,6 +3,17 @@ import { tasksRepo } from '../db/tasksRepo.js';
 import { speechService } from '../services/speechService.js';
 
 import { esc } from '../utils/html.js';
+
+/**
+ * Ouvinte de cliques na página, guardado A NÍVEL DO MÓDULO e não da instância.
+ *
+ * Porquê: o main.js cria um HomeViewComponent NOVO a cada navegação para o ecrã
+ * Hoje (renderHome()). Uma referência guardada em `this` nascia sempre vazia, e
+ * por isso o ouvinte antigo nunca era removido — acumulavam-se ao longo do
+ * turno. Medido: 4 navegações deixavam 4 ouvintes. Aqui só existe um, sempre.
+ */
+let activeOutsideClickHandler = null;
+
 export class HomeViewComponent {
   constructor(container, options = {}) {
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
@@ -19,6 +30,17 @@ export class HomeViewComponent {
     this.outsideClickHandler = null;
   }
 
+
+  /**
+   * "Bom dia" / "Boa tarde" / "Boa noite" conforme a hora local.
+   * @returns {string}
+   */
+  saudacao() {
+    const h = new Date().getHours();
+    if (h < 13) return 'Bom dia!';
+    if (h < 20) return 'Boa tarde!';
+    return 'Boa noite!';
+  }
 
   async render() {
     if (!this.container) return;
@@ -45,9 +67,15 @@ export class HomeViewComponent {
     const tasksDoneToday = tasks.filter(t => t.done).length;
 
     this.container.innerHTML = `
-      <section class="home-view animate-fade-in" style="padding: 16px; padding-bottom: 90px; height: 100%; overflow-y: auto;">
+      <!-- Sem height:100% nem overflow-y próprios: o .main-content já rola e já
+           reserva espaço para a barra inferior. Ter os dois criava um scroll
+           dentro de outro, e os 90px de folga contra uma barra de 84px deixavam
+           o último botão a tocar-lhe. -->
+      <section class="home-view animate-fade-in" style="padding: 4px 0 8px;">
+        <!-- A saudação segue a hora do telemóvel. Estava fixa em "Bom dia!" e
+             às 18h dizia a coisa errada a quem está a fechar o turno. -->
         <div style="margin-bottom: 24px;">
-          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-text); margin: 0 0 8px 0;">Bom dia!</h2>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-text); margin: 0 0 8px 0;">${this.saudacao()}</h2>
           <p style="color: var(--color-text-secondary); font-size: 1.15rem; margin: 0;">O que precisa de registar?</p>
         </div>
         
@@ -55,7 +83,10 @@ export class HomeViewComponent {
         <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           <div class="form-group" style="margin-bottom: 16px;">
             <div class="form-label-row">
-              <label class="form-label" for="qc-description">Descreva a intervenção *</label>
+              <!-- "Descrição" e não "Descreva a intervenção": ao lado do botão de
+                   voz, o rótulo longo partia-se em três linhas e o asterisco caía
+                   sozinho numa linha só para ele. -->
+              <label class="form-label" for="qc-description">Descrição *</label>
               <button type="button" id="btn-qc-mic" class="btn-secondary btn-dictate" title="Escrita por voz">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 <span>Escrita por voz</span>
@@ -64,11 +95,14 @@ export class HomeViewComponent {
             <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do projetor da torre norte... (pode escrever ou usar escrita por voz)" style="height: 100px; font-size: 1.2rem; padding: 12px;"></textarea>
           </div>
 
-          <div class="form-group" style="margin-bottom: 16px;">
+          <!-- z-index nesta caixa (não só no dropdown): sem ele, a lista de locais
+               ficava a tapar o botão "Gravar" e o técnico não conseguia gravar
+               depois de escrever um local que não está na lista. -->
+          <div class="form-group" style="margin-bottom: 16px; position: relative; z-index: 20;">
             <label class="form-label" style="font-size: 1.15rem;">Local (opcional)</label>
             <div style="position: relative;">
               <input type="text" id="qc-loc-search" class="form-input touch-target" autocomplete="off" placeholder="Pesquisar local..." style="padding-right: 40px; font-size: 1.15rem; min-height: 48px;" />
-              <div id="qc-loc-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface); border: 1px solid var(--color-border); max-height: 250px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+              <div id="qc-loc-dropdown" style="display: none; position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-sm); max-height: 250px; overflow-y: auto; box-shadow: var(--shadow-lg);"></div>
             </div>
           </div>
 
@@ -76,9 +110,13 @@ export class HomeViewComponent {
             Gravar Intervenção Rápida
           </button>
 
-          <button type="button" id="btn-open-full-form" class="btn-secondary touch-target" style="width: 100%; font-size: 1.15rem; font-weight: 700; padding: 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; min-height: 56px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-            + Adicionar Fotos ou Materiais (Formulário Completo)
+          <!-- Ação secundária discreta, não um segundo botão grande a competir com
+               o primeiro. Rótulo curto: "+ Adicionar Fotos ou Materiais
+               (Formulário Completo)" tinha 46 caracteres e partia-se em duas
+               linhas, e ninguém lê isso ao sol. -->
+          <button type="button" id="btn-open-full-form" class="touch-target" style="width: 100%; font-size: 1.15rem; font-weight: 700; padding: 12px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; min-height: 48px; background: transparent; border: none; color: var(--color-brand-text); cursor: pointer;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            Fotos e materiais
           </button>
         </div>
 
@@ -279,8 +317,14 @@ export class HomeViewComponent {
             }
 
             if (matches.length === 0) {
-              locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted); font-size: 1.15rem;">Nenhum local encontrado</div>';
+              // Sem resultados a lista FECHA. Uma caixa que só diz "não encontrei"
+              // não ajuda em nada e estava a tapar o botão "Gravar" — o técnico
+              // escrevia um local que não existe e ficava sem conseguir gravar.
+              // Escrever texto livre é um caminho válido: o local vai como escrito.
+              locDropdown.innerHTML = '';
+              locDropdown.style.display = 'none';
             } else {
+              locDropdown.style.display = 'block';
               locDropdown.innerHTML = matches.slice(0, 8).map(l => `
                 <div class="qc-loc-item touch-target" data-id="${l.id}" data-name="${esc(l.name)}" style="padding: 14px 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; min-height: 56px; display: flex; flex-direction: column; justify-content: center;">
                   <div style="font-weight: 700; color: var(--color-text); font-size: 1.15rem;">${esc(l.name)}</div>
@@ -298,28 +342,30 @@ export class HomeViewComponent {
             }
           };
 
+          // Quem decide se a lista aparece é o renderDropdown, em função de haver
+          // ou não resultados. Antes abria-se aqui às cegas e ficava aberta vazia.
           locInput.addEventListener('focus', () => {
-            locDropdown.style.display = 'block';
             renderDropdown(locInput.value);
           });
 
           locInput.addEventListener('input', (e) => {
-            locDropdown.style.display = 'block';
             locInput.dataset.selectedId = ''; // Reset ID if typed custom
             renderDropdown(e.target.value);
           });
 
-          // Fechar ao tocar fora. O ouvinte anterior é removido primeiro:
-          // este ecrã redesenha a cada gravação e os ouvintes acumulavam-se.
-          if (this.outsideClickHandler) {
-            document.removeEventListener('click', this.outsideClickHandler);
+          // Fechar ao tocar fora. O ouvinte anterior é removido primeiro, usando a
+          // referência de módulo — a de instância não servia, porque cada
+          // navegação para o ecrã Hoje cria um componente novo.
+          if (activeOutsideClickHandler) {
+            document.removeEventListener('click', activeOutsideClickHandler);
           }
-          this.outsideClickHandler = (e) => {
+          activeOutsideClickHandler = (e) => {
             if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
               locDropdown.style.display = 'none';
             }
           };
-          document.addEventListener('click', this.outsideClickHandler);
+          this.outsideClickHandler = activeOutsideClickHandler;
+          document.addEventListener('click', activeOutsideClickHandler);
         });
       });
     }

@@ -162,8 +162,12 @@ export class QuickCaptureComponent {
         }
         
         if (matches.length === 0) {
-          locDropdown.innerHTML = '<div style="padding: 16px; color: var(--color-text-muted);">Nenhum local encontrado</div>';
+          // Sem resultados a lista FECHA — uma caixa vazia só tapava o botão de
+          // gravar. Escrever texto livre é um caminho válido nesta app.
+          locDropdown.innerHTML = '';
+          locDropdown.style.display = 'none';
         } else {
+          locDropdown.style.display = 'block';
           locDropdown.innerHTML = matches.map(l => `
             <div class="loc-option touch-target" data-id="${l.id}" data-name="${esc(l.name)}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
               <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${esc(l.name)}</div>
@@ -182,8 +186,8 @@ export class QuickCaptureComponent {
         }
       };
 
+      // Quem decide se a lista aparece é o renderLocs, em função dos resultados.
       locInput.addEventListener('focus', () => {
-        locDropdown.style.display = 'block';
         renderLocs(locInput.value);
       });
 
