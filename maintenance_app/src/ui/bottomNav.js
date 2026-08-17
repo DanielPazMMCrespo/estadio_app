@@ -108,7 +108,7 @@ export class BottomNavComponent {
 
   setActive(tabId) {
     // If we're inside a view that belongs to 'more', keep 'more' active
-    const effectiveTab = ['tools', 'equipment', 'notes', 'settings', 'sectors'].includes(tabId) ? 'more' : tabId;
+    const effectiveTab = ['tools', 'equipment', 'notes', 'settings', 'sectors', 'reports', 'metrics'].includes(tabId) ? 'more' : tabId;
     this.activeTab = effectiveTab;
     
     if (!this.navEl) return;

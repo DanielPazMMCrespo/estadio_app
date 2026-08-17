@@ -40,6 +40,26 @@ const MENU_ITEMS = [
   },
 ```
 
+## Alteração 2 de 2 — manter a aba "Mais" acesa
+
+**Ficheiro:** `maintenance_app/src/ui/bottomNav.js`
+
+Sem isto, ao abrir as Métricas nenhuma aba fica acesa na barra de baixo — o
+técnico perde a noção de onde está. O `reports` tinha o mesmo problema já antes
+desta ficha.
+
+**Procura este texto exato** (está por volta da linha 111):
+
+### ANTES
+```javascript
+    const effectiveTab = ['tools', 'equipment', 'notes', 'settings', 'sectors'].includes(tabId) ? 'more' : tabId;
+```
+
+### DEPOIS
+```javascript
+    const effectiveTab = ['tools', 'equipment', 'notes', 'settings', 'sectors', 'reports', 'metrics'].includes(tabId) ? 'more' : tabId;
+```
+
 ## Verificar
 
 ```

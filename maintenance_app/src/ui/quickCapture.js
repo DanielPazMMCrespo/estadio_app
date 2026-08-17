@@ -2,6 +2,7 @@ import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo } from '../db/locationsRepo.js';
 import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
+import { haptics } from '../services/haptics.js';
 
 export class QuickCaptureComponent {
   constructor(options = {}) {
@@ -234,6 +235,7 @@ export class QuickCaptureComponent {
 
         try {
           await reportsRepo.create(newReport);
+          haptics.success();
           this.close();
           toast.success('Intervenção registada no telemóvel');
           if (typeof this.onSave === 'function') {

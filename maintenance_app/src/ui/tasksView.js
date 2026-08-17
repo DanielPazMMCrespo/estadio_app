@@ -1,6 +1,7 @@
 import { tasksRepo, todayISO, tomorrowISO } from '../db/tasksRepo.js';
 import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
+import { haptics } from '../services/haptics.js';
 
 /**
  * Ecrã TAREFAS — hoje e amanhã, para um técnico de luvas com uma mão livre.
@@ -266,6 +267,7 @@ export class TasksViewComponent {
     if (row) row.classList.add('tv-task--leaving');
     try {
       const { nextTask } = await tasksRepo.toggleDone(id);
+      haptics.success();
       if (nextTask) {
         toast.success(`Feito. A próxima fica para ${formatDayLong(nextTask.dueDate)}.`);
       } else {
