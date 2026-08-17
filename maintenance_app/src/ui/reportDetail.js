@@ -3,6 +3,7 @@ import { getPhotoDataUrl } from '../db/db.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Report Detail Component — Bottom Sheet / Full Screen Modal with
  * Priority & Status Manager, Photo Lightbox, and PDF Work Order Export.
@@ -95,7 +96,7 @@ export class ReportDetailComponent {
         <div class="detail-header">
           <div class="detail-header-info">
             <span class="detail-ref">REF: EML-${(r.id || '').substring(0, 6).toUpperCase()}</span>
-            <h3 class="detail-location-title">${this.esc(r.locationName || 'Estádio')}</h3>
+            <h3 class="detail-location-title">${esc(r.locationName || 'Estádio')}</h3>
             <p class="detail-timestamp">${dateStr} · ${timeStr}</p>
           </div>
           <button type="button" class="btn-close-detail" id="btn-close-detail">&times;</button>
@@ -117,7 +118,7 @@ export class ReportDetailComponent {
         <!-- Work Description -->
         <div class="detail-section">
           <h4 class="detail-section-title">Descrição da Intervenção</h4>
-          <div class="detail-text-box">${this.esc(r.description || '')}</div>
+          <div class="detail-text-box">${esc(r.description || '')}</div>
         </div>
 
         <!-- Materials & Time -->
@@ -135,7 +136,7 @@ export class ReportDetailComponent {
         ${r.materials ? `
           <div class="detail-section">
             <h4 class="detail-section-title">Materiais & Ferramentas</h4>
-            <div class="detail-text-box">${this.esc(r.materials)}</div>
+            <div class="detail-text-box">${esc(r.materials)}</div>
           </div>
         ` : ''}
 
@@ -144,7 +145,7 @@ export class ReportDetailComponent {
         <!-- Resolution Notes if Resolved -->
         <div class="detail-section" id="section-resolution-notes" style="${status === 'resolved' ? '' : 'display:none;'}">
           <h4 class="detail-section-title">Notas de Resolução</h4>
-          <div class="detail-text-box success" id="display-resolution-notes">${this.esc(r.resolutionNotes || 'Trabalho concluído com sucesso.')}</div>
+          <div class="detail-text-box success" id="display-resolution-notes">${esc(r.resolutionNotes || 'Trabalho concluído com sucesso.')}</div>
         </div>
 
         <!-- Action Buttons -->
@@ -243,8 +244,4 @@ export class ReportDetailComponent {
     if (this.onClose) this.onClose();
   }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }

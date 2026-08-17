@@ -2,6 +2,7 @@ import { reportsRepo } from '../db/reportsRepo.js';
 import { getPhotoDataUrl } from '../db/db.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Feed / History Component — Rich Issue Cards with Status & Priority badges,
  * instant search, fast status toggle, and filter chips.
@@ -33,7 +34,7 @@ export class HistoryComponent {
 
     const sectorFilterNotice = this.sectorFilter ? `
       <div class="active-sector-filter-badge">
-        <span>Filtro Setor: <strong>${this.esc(this.sectorFilter)}</strong></span>
+        <span>Filtro Setor: <strong>${esc(this.sectorFilter)}</strong></span>
         <button type="button" class="btn-clear-sector" id="btn-clear-sector-filter">&times;</button>
       </div>
     ` : '';
@@ -53,7 +54,7 @@ export class HistoryComponent {
           <span class="search-icon-svg">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
-          <input type="text" id="input-search-reports" class="form-input search-input" placeholder="Pesquisar setor, intervenção, material..." value="${this.esc(this.searchQuery)}" />
+          <input type="text" id="input-search-reports" class="form-input search-input" placeholder="Pesquisar setor, intervenção, material..." value="${esc(this.searchQuery)}" />
           ${this.searchQuery ? '<button type="button" id="btn-clear-search" class="btn-clear-search">&times;</button>' : ''}
         </div>
 
@@ -155,7 +156,7 @@ export class HistoryComponent {
         
         <div class="issue-card-header">
           <div class="issue-location-wrap">
-            <span class="issue-sector-badge">${this.esc(report.locationName || 'Estádio')}</span>
+            <span class="issue-sector-badge">${esc(report.locationName || 'Estádio')}</span>
             <span class="issue-time-meta">${dateStr} · ${timeStr}</span>
           </div>
           <div class="issue-badges-row">
@@ -165,7 +166,7 @@ export class HistoryComponent {
         </div>
 
         <div class="issue-card-body">
-          <p class="issue-description">${this.esc(report.description || '')}</p>
+          <p class="issue-description">${esc(report.description || '')}</p>
 
           <!-- Multimedia badges -->
           <div class="issue-media-tags">
@@ -328,8 +329,4 @@ export class HistoryComponent {
 
   async refresh() { await this.render(); }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }

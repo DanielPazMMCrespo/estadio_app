@@ -1,6 +1,7 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo } from '../db/locationsRepo.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Field Metrics & Performance Dashboard Component
  * Clean, modern SVG analytics charts, KPI cards and field technician productivity indicators.
@@ -130,7 +131,7 @@ export class DashboardComponent {
               return `
                 <div class="sector-bar-row">
                   <div class="sector-bar-info">
-                    <span class="sector-bar-name">${this.esc(name)}</span>
+                    <span class="sector-bar-name">${esc(name)}</span>
                     <span class="sector-bar-count">${count} (${pct}%)</span>
                   </div>
                   <div class="sector-bar-track">
@@ -168,8 +169,4 @@ export class DashboardComponent {
 
   async refresh() { await this.render(); }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }

@@ -1,6 +1,7 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo } from '../db/locationsRepo.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Stadium Navigator Component — Hierarchical Sectors & Technical Rooms Explorer
  * Powered dynamically by Dexie IndexedDB (locationsRepo).
@@ -70,7 +71,7 @@ export class StadiumNavigatorComponent {
           <span class="search-icon-svg">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
-          <input type="text" id="input-search-sectors" class="form-input search-input" placeholder="Pesquisar sala, bancada, caldeira, bomba..." value="${this.esc(this.searchQuery)}" />
+          <input type="text" id="input-search-sectors" class="form-input search-input" placeholder="Pesquisar sala, bancada, caldeira, bomba..." value="${esc(this.searchQuery)}" />
           ${this.searchQuery ? '<button type="button" id="btn-clear-sec-search" class="btn-clear-search">&times;</button>' : ''}
         </div>
 
@@ -212,7 +213,7 @@ export class StadiumNavigatorComponent {
                 ${this.getSectorSvg(sec.icon || 'exterior')}
               </div>
               <div class="sector-title-wrap">
-                <h3 class="sector-name">${this.esc(sec.name)}</h3>
+                <h3 class="sector-name">${esc(sec.name)}</h3>
                 <div class="sector-meta">
                   <span>${(sec.rooms || []).length} Salas / Divisões</span>
                 </div>
@@ -247,21 +248,21 @@ export class StadiumNavigatorComponent {
     }
 
     return `
-      <div class="room-row" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" data-sector-code="${sec.code || sec.id}">
+      <div class="room-row" data-room-id="${room.id}" data-room-name="${esc(room.name)}" data-sector-code="${sec.code || sec.id}">
         <div class="room-info">
           <div class="room-name-row">
-            <strong class="room-name">${this.esc(room.name)}</strong>
+            <strong class="room-name">${esc(room.name)}</strong>
             ${roomBadge}
           </div>
-          ${room.description ? `<span class="room-desc">${this.esc(room.description)}</span>` : ''}
+          ${room.description ? `<span class="room-desc">${esc(room.description)}</span>` : ''}
         </div>
         <div class="room-actions">
           ${hasIssues ? `
-            <button type="button" class="btn-room-view" data-action="view-issues" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" title="Ver Intervenções">
+            <button type="button" class="btn-room-view" data-action="view-issues" data-room-id="${room.id}" data-room-name="${esc(room.name)}" title="Ver Intervenções">
               Ver (${roomStat.total})
             </button>
           ` : ''}
-          <button type="button" class="btn-room-add-issue" data-action="add-issue" data-room-id="${room.id}" data-room-name="${this.esc(room.name)}" data-sector-code="${sec.code || sec.id}" title="Registar Intervenção">
+          <button type="button" class="btn-room-add-issue" data-action="add-issue" data-room-id="${room.id}" data-room-name="${esc(room.name)}" data-sector-code="${sec.code || sec.id}" title="Registar Intervenção">
             + Intervenção
           </button>
         </div>
@@ -382,8 +383,4 @@ export class StadiumNavigatorComponent {
     }
   }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }
