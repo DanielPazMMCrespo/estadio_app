@@ -2,6 +2,7 @@ import { reportsRepo } from '../db/reportsRepo.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 const WEEKDAY_MS = 24 * 60 * 60 * 1000;
 
 function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
@@ -118,7 +119,7 @@ export class ReportsViewComponent {
             <label class="form-label" for="rv-sector">Área do estádio</label>
             <select id="rv-sector" class="form-input">
               <option value="">Todas as áreas</option>
-              ${sectorOptions.map(name => `<option value="${this.esc(name)}" ${this.sectorFilter === name ? 'selected' : ''}>${this.esc(name)}</option>`).join('')}
+              ${sectorOptions.map(name => `<option value="${esc(name)}" ${this.sectorFilter === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}
             </select>
           </div>
         ` : ''}
@@ -160,12 +161,12 @@ export class ReportsViewComponent {
         <div class="issue-card priority-${r.priority || 'medium'} status-${r.status || 'pending'}">
           <div class="issue-card-header">
             <div class="issue-location-wrap">
-              <span class="issue-sector-badge">${this.esc(r.locationName || 'Estádio')}</span>
+              <span class="issue-sector-badge">${esc(r.locationName || 'Estádio')}</span>
               <span class="issue-time-meta">${dateStr}</span>
             </div>
           </div>
           <div class="issue-card-body">
-            <p class="issue-description">${this.esc(r.description || '')}</p>
+            <p class="issue-description">${esc(r.description || '')}</p>
             ${hasPhotos ? `<div class="issue-media-tags"><span class="media-tag photo">${r.photos.length} Foto${r.photos.length > 1 ? 's' : ''}</span></div>` : ''}
           </div>
         </div>
@@ -211,8 +212,4 @@ export class ReportsViewComponent {
 
   async refresh() { await this.render(); }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 }

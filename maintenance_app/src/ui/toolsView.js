@@ -1,6 +1,7 @@
 import { toolsRepo, TOOL_UNITS } from '../db/toolsRepo.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Ecrã de FERRAMENTAS / STOCK.
  *
@@ -51,7 +52,7 @@ export class ToolsViewComponent {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
           <input type="text" id="input-search-tools" class="form-input search-input"
-                 placeholder="Pesquisar ferramenta ou material..." value="${this.esc(this.searchQuery)}" />
+                 placeholder="Pesquisar ferramenta ou material..." value="${esc(this.searchQuery)}" />
         </div>
 
         <div class="d-card-list" id="tools-list">
@@ -108,8 +109,8 @@ export class ToolsViewComponent {
         <ul class="d-alert-list">
           ${low.map(t => `
             <li class="d-alert-line">
-              <span class="d-alert-name">${this.esc(t.name)}</span>
-              <span class="d-alert-qty">${this.fmtQty(t.qty)} ${this.esc(t.unit || 'un')}</span>
+              <span class="d-alert-name">${esc(t.name)}</span>
+              <span class="d-alert-qty">${this.fmtQty(t.qty)} ${esc(t.unit || 'un')}</span>
             </li>
           `).join('')}
         </ul>
@@ -140,36 +141,36 @@ export class ToolsViewComponent {
   renderToolCard(tool) {
     const low = this.isLow(tool);
     return `
-      <article class="d-tool-card${low ? ' is-low' : ''}" data-tool-id="${this.esc(tool.id)}">
+      <article class="d-tool-card${low ? ' is-low' : ''}" data-tool-id="${esc(tool.id)}">
         <div class="d-tool-top">
           <div class="d-tool-ident">
-            <h3 class="d-tool-name">${this.esc(tool.name)}</h3>
+            <h3 class="d-tool-name">${esc(tool.name)}</h3>
             ${tool.locationName ? `
               <p class="d-tool-loc">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                ${this.esc(tool.locationName)}
+                ${esc(tool.locationName)}
               </p>
             ` : ''}
             ${low ? '<p class="d-tool-lowtag">Pouco stock</p>' : ''}
           </div>
           <div class="d-tool-qtybox">
-            <span class="d-tool-qty" data-qty-for="${this.esc(tool.id)}">${this.fmtQty(tool.qty)}</span>
-            <span class="d-tool-unit">${this.esc(tool.unit || 'un')}</span>
+            <span class="d-tool-qty" data-qty-for="${esc(tool.id)}">${this.fmtQty(tool.qty)}</span>
+            <span class="d-tool-unit">${esc(tool.unit || 'un')}</span>
           </div>
         </div>
 
         <div class="d-tool-actions">
-          <button type="button" class="d-tool-btn d-tool-take" data-act="take" data-id="${this.esc(tool.id)}">
+          <button type="button" class="d-tool-btn d-tool-take" data-act="take" data-id="${esc(tool.id)}">
             &minus; Tirar 1
           </button>
-          <button type="button" class="d-tool-btn d-tool-restock" data-act="restock" data-id="${this.esc(tool.id)}">
+          <button type="button" class="d-tool-btn d-tool-restock" data-act="restock" data-id="${esc(tool.id)}">
             + Repor 1
           </button>
         </div>
 
         <div class="d-tool-links">
-          <button type="button" class="d-tool-link" data-act="custom" data-id="${this.esc(tool.id)}">Outra quantidade</button>
-          <button type="button" class="d-tool-link" data-act="moves" data-id="${this.esc(tool.id)}">Ver movimentos</button>
+          <button type="button" class="d-tool-link" data-act="custom" data-id="${esc(tool.id)}">Outra quantidade</button>
+          <button type="button" class="d-tool-link" data-act="moves" data-id="${esc(tool.id)}">Ver movimentos</button>
         </div>
       </article>
     `;
@@ -328,11 +329,11 @@ export class ToolsViewComponent {
     if (!tool) return;
 
     let buffer = '';
-    const unit = this.esc(tool.unit || 'un');
+    const unit = esc(tool.unit || 'un');
 
     const overlay = this.openSheet(`
       <div class="d-sheet-head">
-        <h3 class="d-sheet-title">${this.esc(tool.name)}</h3>
+        <h3 class="d-sheet-title">${esc(tool.name)}</h3>
         <button type="button" class="btn-close-detail" data-close="1" aria-label="Fechar">&times;</button>
       </div>
       <p class="d-sheet-sub">Em stock: <strong>${this.fmtQty(tool.qty)} ${unit}</strong></p>
@@ -410,7 +411,7 @@ export class ToolsViewComponent {
                 <span class="d-move-delta ${positive ? 'is-in' : 'is-out'}">${positive ? '+' : '&minus;'}${this.fmtQty(Math.abs(this.num(m.delta)))}</span>
                 <span class="d-move-meta">
                   <span class="d-move-when">${this.fmtDateTime(m.at)}</span>
-                  <span class="d-move-reason">${this.esc(m.reason || (positive ? 'reposição' : 'uso em obra'))}</span>
+                  <span class="d-move-reason">${esc(m.reason || (positive ? 'reposição' : 'uso em obra'))}</span>
                 </span>
                 <span class="d-move-after">ficou ${this.fmtQty(m.qtyAfter)}</span>
               </li>
@@ -421,7 +422,7 @@ export class ToolsViewComponent {
 
     const overlay = this.openSheet(`
       <div class="d-sheet-head">
-        <h3 class="d-sheet-title">${this.esc(tool.name)}</h3>
+        <h3 class="d-sheet-title">${esc(tool.name)}</h3>
         <button type="button" class="btn-close-detail" data-close="1" aria-label="Fechar">&times;</button>
       </div>
       <p class="d-sheet-sub">Últimos movimentos</p>
@@ -454,7 +455,7 @@ export class ToolsViewComponent {
 
       <p class="d-field-label">Unidade</p>
       <div class="d-unit-row">
-        ${TOOL_UNITS.map((u, i) => `<button type="button" class="d-unit-pill${i === 0 ? ' active' : ''}" data-unit="${this.esc(u)}">${this.esc(u)}</button>`).join('')}
+        ${TOOL_UNITS.map((u, i) => `<button type="button" class="d-unit-pill${i === 0 ? ' active' : ''}" data-unit="${esc(u)}">${esc(u)}</button>`).join('')}
       </div>
 
       <button type="button" class="d-btn-primary-wide" id="d-new-tool-save">Guardar ferramenta</button>
@@ -517,14 +518,6 @@ export class ToolsViewComponent {
       .trim();
   }
 
-  esc(str) {
-    if (str == null) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 }
 
 /** Escapa um id para uso seguro dentro de um selector de atributo. */

@@ -2,6 +2,7 @@ import { notesRepo } from '../db/notesRepo.js';
 import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 /**
  * Ecrã NOTAS — notas soltas, sem campos obrigatórios.
  *
@@ -95,7 +96,7 @@ export class NotesViewComponent {
         <div class="nv-search">
           <label class="form-label" for="nv-search-input">Procurar nas notas</label>
           <input type="text" id="nv-search-input" class="form-input" placeholder="Palavra da nota ou local"
-                 value="${this.esc(this.searchQuery)}" />
+                 value="${esc(this.searchQuery)}" />
         </div>
       ` : ''}
       <div class="nv-list">${this.renderNotes()}</div>
@@ -107,7 +108,7 @@ export class NotesViewComponent {
       if (this.searchQuery) {
         return `
           <div class="nv-empty">
-            <h2 class="nv-empty-title">Nenhuma nota com "${this.esc(this.searchQuery)}"</h2>
+            <h2 class="nv-empty-title">Nenhuma nota com "${esc(this.searchQuery)}"</h2>
             <p class="nv-empty-text">Apague a procura para ver todas as notas.</p>
           </div>
         `;
@@ -128,24 +129,24 @@ export class NotesViewComponent {
 
   renderNote(note) {
     return `
-      <article class="nv-note${note.pinned ? ' nv-note--pinned' : ''}" data-note-id="${this.esc(note.id)}">
+      <article class="nv-note${note.pinned ? ' nv-note--pinned' : ''}" data-note-id="${esc(note.id)}">
         <header class="nv-note-head">
-          <span class="nv-note-date">${this.esc(formatStamp(note.createdAt))}</span>
+          <span class="nv-note-date">${esc(formatStamp(note.createdAt))}</span>
           ${note.pinned ? '<span class="nv-note-flag">Fixada</span>' : ''}
         </header>
 
-        <p class="nv-note-body">${this.esc(note.body)}</p>
+        <p class="nv-note-body">${esc(note.body)}</p>
 
-        ${note.locationName ? `<p class="nv-note-loc">${this.esc(note.locationName)}</p>` : ''}
+        ${note.locationName ? `<p class="nv-note-loc">${esc(note.locationName)}</p>` : ''}
 
         <div class="nv-note-actions">
-          <button type="button" class="nv-act nv-act--report" data-action="to-report" data-id="${this.esc(note.id)}">Virar intervenção</button>
-          <button type="button" class="nv-act nv-act--task" data-action="to-task" data-id="${this.esc(note.id)}">Virar tarefa</button>
-          <button type="button" class="nv-act" data-action="pin" data-id="${this.esc(note.id)}">
+          <button type="button" class="nv-act nv-act--report" data-action="to-report" data-id="${esc(note.id)}">Virar intervenção</button>
+          <button type="button" class="nv-act nv-act--task" data-action="to-task" data-id="${esc(note.id)}">Virar tarefa</button>
+          <button type="button" class="nv-act" data-action="pin" data-id="${esc(note.id)}">
             <span class="nv-act-glyph">${SVG_PIN}</span>
             <span>${note.pinned ? 'Desafixar' : 'Fixar'}</span>
           </button>
-          <button type="button" class="nv-act nv-act--del" data-action="del" data-id="${this.esc(note.id)}">Apagar</button>
+          <button type="button" class="nv-act nv-act--del" data-action="del" data-id="${esc(note.id)}">Apagar</button>
         </div>
       </article>
     `;
@@ -332,15 +333,6 @@ export class NotesViewComponent {
     }
   }
 
-  esc(str) {
-    if (typeof str !== 'string') return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
 }
 
 function formatStamp(iso) {

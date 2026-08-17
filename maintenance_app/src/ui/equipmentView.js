@@ -2,6 +2,7 @@ import { equipmentRepo, EQUIPMENT_CATEGORIES } from '../db/equipmentRepo.js';
 import { reportsRepo } from '../db/reportsRepo.js';
 import { toast } from './toast.js';
 
+import { esc } from '../utils/html.js';
 /** Rótulos em português das categorias do repositório. */
 const CATEGORY_LABELS = {
   iluminacao: 'Iluminação',
@@ -69,13 +70,13 @@ export class EquipmentViewComponent {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </span>
           <input type="text" id="input-search-equip" class="form-input search-input"
-                 placeholder="Pesquisar equipamento..." value="${this.esc(this.searchQuery)}" />
+                 placeholder="Pesquisar equipamento..." value="${esc(this.searchQuery)}" />
         </div>
 
         <div class="d-cat-row">
           <button type="button" class="d-cat-pill${this.activeCategory === 'all' ? ' active' : ''}" data-cat="all">Todos</button>
           ${EQUIPMENT_CATEGORIES.map(c => `
-            <button type="button" class="d-cat-pill${this.activeCategory === c ? ' active' : ''}" data-cat="${this.esc(c)}">${this.esc(CATEGORY_LABELS[c] || c)}</button>
+            <button type="button" class="d-cat-pill${this.activeCategory === c ? ' active' : ''}" data-cat="${esc(c)}">${esc(CATEGORY_LABELS[c] || c)}</button>
           `).join('')}
         </div>
 
@@ -154,8 +155,8 @@ export class EquipmentViewComponent {
         <ul class="d-alert-list">
           ${broken.map(e => `
             <li class="d-alert-line">
-              <span class="d-alert-name">${this.esc(e.name)}</span>
-              <span class="d-alert-where">${this.esc(e.locationName || '')}</span>
+              <span class="d-alert-name">${esc(e.name)}</span>
+              <span class="d-alert-where">${esc(e.locationName || '')}</span>
             </li>
           `).join('')}
         </ul>
@@ -187,7 +188,7 @@ export class EquipmentViewComponent {
     return keys.map(key => `
       <div class="d-loc-group">
         <div class="d-loc-head">
-          <h3 class="d-loc-name">${this.esc(key)}</h3>
+          <h3 class="d-loc-name">${esc(key)}</h3>
           <span class="d-loc-count">${groups.get(key).length}</span>
         </div>
         ${groups.get(key).map(eq => this.renderEquipCard(eq)).join('')}
@@ -201,21 +202,21 @@ export class EquipmentViewComponent {
     const nReports = this.reportCounts.get(eq.id) || 0;
 
     return `
-      <article class="d-equip-card ${info.cls}" data-equip-id="${this.esc(eq.id)}" tabindex="0" role="button">
+      <article class="d-equip-card ${info.cls}" data-equip-id="${esc(eq.id)}" tabindex="0" role="button">
         <div class="d-equip-head">
           <span class="d-equip-cube" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
           </span>
-          <span class="d-equip-cat">${this.esc(CATEGORY_LABELS[eq.category] || eq.category || 'Outro')}</span>
+          <span class="d-equip-cat">${esc(CATEGORY_LABELS[eq.category] || eq.category || 'Outro')}</span>
         </div>
 
-        <h4 class="d-equip-name">${this.esc(eq.name)}</h4>
-        ${brandLine ? `<p class="d-equip-brand">${this.esc(brandLine)}</p>` : ''}
-        <p class="d-equip-status ${info.cls}" data-status-for="${this.esc(eq.id)}">${this.esc(info.label)}</p>
+        <h4 class="d-equip-name">${esc(eq.name)}</h4>
+        ${brandLine ? `<p class="d-equip-brand">${esc(brandLine)}</p>` : ''}
+        <p class="d-equip-status ${info.cls}" data-status-for="${esc(eq.id)}">${esc(info.label)}</p>
 
         <div class="d-equip-actions">
-          <button type="button" class="d-equip-btn-fault" data-act="fault" data-id="${this.esc(eq.id)}">Registar intervenção</button>
-          ${nReports > 0 ? `<button type="button" class="d-equip-btn-reports" data-act="reports" data-id="${this.esc(eq.id)}">Ver intervenções (${nReports})</button>` : ''}
+          <button type="button" class="d-equip-btn-fault" data-act="fault" data-id="${esc(eq.id)}">Registar intervenção</button>
+          ${nReports > 0 ? `<button type="button" class="d-equip-btn-reports" data-act="reports" data-id="${esc(eq.id)}">Ver intervenções (${nReports})</button>` : ''}
         </div>
       </article>
     `;
@@ -312,12 +313,12 @@ export class EquipmentViewComponent {
         <div class="sheet-drag-handle"><span class="drag-bar"></span></div>
 
         <div class="d-sheet-head">
-          <h3 class="d-sheet-title">${this.esc(eq.name)}</h3>
+          <h3 class="d-sheet-title">${esc(eq.name)}</h3>
           <button type="button" class="btn-close-detail" data-close="1" aria-label="Fechar">&times;</button>
         </div>
 
-        <p class="d-sheet-crumbs">Estádio Municipal de Leiria / ${this.esc(eq.locationName || 'sem local')}</p>
-        <p class="d-equip-status ${info.cls}" id="d-sheet-status">${this.esc(info.label)}</p>
+        <p class="d-sheet-crumbs">Estádio Municipal de Leiria / ${esc(eq.locationName || 'sem local')}</p>
+        <p class="d-equip-status ${info.cls}" id="d-sheet-status">${esc(info.label)}</p>
 
         <dl class="d-spec-list">
           ${this.specRow('Categoria', CATEGORY_LABELS[eq.category] || eq.category)}
@@ -328,12 +329,12 @@ export class EquipmentViewComponent {
           ${this.specRow('Notas', eq.notes)}
         </dl>
 
-        <p class="d-warranty ${this.warrantyClass(eq.warrantyUntil)}">${this.esc(this.warrantyText(eq.warrantyUntil))}</p>
+        <p class="d-warranty ${this.warrantyClass(eq.warrantyUntil)}">${esc(this.warrantyText(eq.warrantyUntil))}</p>
 
         <p class="d-field-label">Mudar estado</p>
         <div class="d-status-row">
           ${Object.keys(STATUS_INFO).map(s => `
-            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${eq.status === s ? ' active' : ''}" data-status="${this.esc(s)}">${this.esc(STATUS_INFO[s].label)}</button>
+            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${eq.status === s ? ' active' : ''}" data-status="${esc(s)}">${esc(STATUS_INFO[s].label)}</button>
           `).join('')}
         </div>
 
@@ -413,8 +414,8 @@ export class EquipmentViewComponent {
     if (!value) return '';
     return `
       <div class="d-spec-row">
-        <dt class="d-spec-key">${this.esc(label)}</dt>
-        <dd class="d-spec-val">${this.esc(value)}</dd>
+        <dt class="d-spec-key">${esc(label)}</dt>
+        <dd class="d-spec-val">${esc(value)}</dd>
       </div>
     `;
   }
@@ -455,14 +456,6 @@ export class EquipmentViewComponent {
       .trim();
   }
 
-  esc(str) {
-    if (str == null) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 }
 
 /** Escapa um id para uso seguro dentro de um selector de atributo. */
