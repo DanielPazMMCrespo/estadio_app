@@ -316,7 +316,6 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding-bottom: calc(var(--bottom-nav-height) + 24px);
   font-size: var(--fs-body);
   line-height: var(--lh-body);
 }

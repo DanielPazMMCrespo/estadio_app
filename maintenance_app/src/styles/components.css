@@ -1566,9 +1566,14 @@ select {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Nunca permitir scroll horizontal ---------------------------------- */
-html, body { max-width: 100%; overflow-x: hidden; }
-.app-container { overflow-x: hidden; }
+/* ---- Nunca permitir scroll horizontal ----------------------------------
+   overflow-x só no html. Também no body, um overflow-x sozinho (sem
+   overflow-y) faz o browser calcular overflow-y como "auto" (regra da
+   spec) — o body passa a "contentor de scroll" que nunca chega a
+   precisar de rolar, e o cabeçalho sticky parte porque cola a esse
+   contentor parado em vez de colar à página real. */
+html { max-width: 100%; overflow-x: hidden; }
+body { max-width: 100%; }
 
 /* Os rótulos "Foto Antes"/"Foto Depois" (main.js) estão dentro de um <div> sem
    style, por isso o seletor anterior não os alcançava. font-size inline: 0.75rem. */
