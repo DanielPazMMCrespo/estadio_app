@@ -1,50 +1,45 @@
-# FICHA 03 — Apagar código morto
+# FICHA 03 — Apagar o ficheiro fantasma
 
-**Tempo:** 20 minutos
-**Risco:** Zero (nenhum destes ficheiros é importado por ninguém)
-**Ficheiros:** 3 a apagar
+**Tempo:** 5 minutos
+**Risco:** Zero
+**Ficheiros:** 1 a apagar
 
-## O problema
+## Correção desta ficha (17/08/2026)
 
-Três ficheiros que ninguém usa. São ~500 linhas que vão para o pacote final e
-confundem quem lê o código. Um deles tem um nome absurdo: nasceu de um comando
-mal escrito.
+A versão anterior desta ficha mandava apagar **três** ficheiros. Estava errada.
 
-## Antes de apagar — confirmar que ninguém os usa
+Ao executar, descobriu-se que `src/ui/stadiumMap.js` e
+`src/services/audioService.js` **são importados por
+`tests/unit/field_tools.test.js`** (linhas 5 e 6). A verificação original só
+tinha olhado para `src/` e para o `index.html` — nunca para `tests/`.
 
-Corre estes três comandos. **Os três têm de dar resultado vazio** (ou só o
-próprio ficheiro):
+Apagá-los rebenta 4 testes. E apagar os testes também está proibido pela regra 7.
 
-```
-cd C:\dev\estadio\maintenance_app
-grep -rn "stadiumMap" src/ index.html
-grep -rn "audioService" src/ index.html
-```
+**Portanto: ficam.** São código que a app não usa mas que está sob teste — isso
+é uma decisão a tomar com o dono do projeto, não uma limpeza mecânica.
 
-Se o `grep` do `stadiumMap` mostrar alguma linha **fora** de
-`src/ui/stadiumMap.js`, para: escreve `BLOQUEADO: stadiumMap ainda é usado`.
+## O problema que sobra
 
-Se o `grep` do `audioService` mostrar alguma linha **fora** de
-`src/services/audioService.js`, para: escreve `BLOQUEADO: audioService ainda é usado`.
+Um ficheiro com nome de linha de código, criado por acidente por um comando mal
+escapado. Está vazio (0 bytes) e não é importado por ninguém.
 
 ## Apagar
 
 ```
 cd C:\dev\estadio\maintenance_app
-git rm src/ui/stadiumMap.js
-git rm src/services/audioService.js
 git rm "card.classList.remove(i.cls))"
 ```
 
-**Nota sobre o terceiro:** o nome do ficheiro é literalmente
-`card.classList.remove(i.cls))` — com parênteses. As aspas no comando são
-obrigatórias. Se o `git rm` disser que não existe, corre `ls` na pasta
-`maintenance_app` para confirmar o nome exato.
+**Nota:** o nome do ficheiro é literalmente `card.classList.remove(i.cls))` —
+com parênteses. As aspas no comando são obrigatórias. Se o `git rm` disser que
+não existe, corre `ls` na pasta `maintenance_app` para confirmar o nome exato.
 
 ## NÃO apagar
 
-Não apagues `src/ui/dashboard.js`. Parece código morto mas **é usado** —
-está importado no `main.js` linha 7. A ficha 08 vai ligá-lo à app.
+- `src/ui/stadiumMap.js` — testado pelo `field_tools.test.js`
+- `src/services/audioService.js` — testado pelo `field_tools.test.js`
+- `src/ui/dashboard.js` — é usado, importado no `main.js` linha 7. A ficha 08
+  vai ligá-lo à app.
 
 ## Verificar
 
@@ -58,7 +53,7 @@ Tem de dar `133 passed`.
 
 ```
 git add -A
-git commit -m "chore: apagar codigo morto (stadiumMap, audioService, ficheiro fantasma)"
+git commit -m "chore: apagar ficheiro fantasma criado por comando mal escapado"
 ```
 
 ## Resposta
@@ -67,5 +62,5 @@ git commit -m "chore: apagar codigo morto (stadiumMap, audioService, ficheiro fa
 FICHA: 03
 ESTADO: FEITO
 TESTES: 133 passed
-COMMIT: chore: apagar codigo morto (stadiumMap, audioService, ficheiro fantasma)
+COMMIT: chore: apagar ficheiro fantasma criado por comando mal escapado
 ```
