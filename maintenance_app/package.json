@@ -9,6 +9,7 @@
     "start": "node server.js",
     "preview": "vite preview",
     "test": "vitest run",
+    "verificar:estilos": "node scripts/verificar-estilos.mjs",
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
