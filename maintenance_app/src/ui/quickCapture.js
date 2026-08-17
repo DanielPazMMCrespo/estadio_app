@@ -205,10 +205,12 @@ export class QuickCaptureComponent {
           return;
         }
 
-        // Se digitou algo no input mas não escolheu da lista, usamos o texto
+        // Se digitou algo no input mas não escolheu da lista, usamos o texto.
+        // O id fica LOC_UNKNOWN e nunca null: o reportsRepo.create() exige um id
+        // e, com null, o registo era rejeitado e o técnico perdia o que escreveu.
         if (locInput && locInput.value !== this.selectedLocName) {
            this.selectedLocName = locInput.value.trim() || 'Estádio — local não indicado';
-           this.selectedLocId = null;
+           this.selectedLocId = 'LOC_UNKNOWN';
         }
 
         if (this.selectedLocId) {
@@ -217,7 +219,7 @@ export class QuickCaptureComponent {
         localStorage.setItem('last_used_loc_name', this.selectedLocName);
 
         const newReport = {
-          locationId: this.selectedLocId,
+          locationId: this.selectedLocId || 'LOC_UNKNOWN',
           locationName: this.selectedLocName,
           priority: this.priority,
           status: 'pending',
