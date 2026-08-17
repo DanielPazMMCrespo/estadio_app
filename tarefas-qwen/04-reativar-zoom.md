@@ -33,7 +33,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Commit
 
@@ -47,6 +47,6 @@ git commit -m "fix: reativar o zoom do utilizador (WCAG 1.4.4)"
 ```
 FICHA: 04
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: fix: reativar o zoom do utilizador (WCAG 1.4.4)
 ```

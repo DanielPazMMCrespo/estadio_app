@@ -124,7 +124,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Commit
 
@@ -138,6 +138,6 @@ git commit -m "feat: vibracao ao gravar intervencao e ao marcar tarefa feita"
 ```
 FICHA: 09
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: feat: vibracao ao gravar intervencao e ao marcar tarefa feita
 ```

@@ -52,7 +52,7 @@ está importado no `main.js` linha 7. A ficha 08 vai ligá-lo à app.
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Commit
 
@@ -66,6 +66,6 @@ git commit -m "chore: apagar codigo morto (stadiumMap, audioService, ficheiro fa
 ```
 FICHA: 03
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: chore: apagar codigo morto (stadiumMap, audioService, ficheiro fantasma)
 ```

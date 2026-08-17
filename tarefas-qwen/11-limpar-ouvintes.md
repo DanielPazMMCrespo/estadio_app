@@ -138,7 +138,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `126 passed`.
+Tem de dar `133 passed`.
 
 ## Verificação extra (opcional)
 
@@ -167,6 +167,6 @@ git commit -m "fix: remover ouvintes de cliques acumulados a cada redesenho"
 ```
 FICHA: 11
 ESTADO: FEITO
-TESTES: 126 passed
+TESTES: 133 passed
 COMMIT: fix: remover ouvintes de cliques acumulados a cada redesenho
 ```

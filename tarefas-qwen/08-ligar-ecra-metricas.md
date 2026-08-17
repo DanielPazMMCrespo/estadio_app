@@ -47,7 +47,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Verificação extra (opcional, se souberes arrancar a app)
 
@@ -74,6 +74,6 @@ git commit -m "feat: ligar o ecra de metricas ao menu Mais"
 ```
 FICHA: 08
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: feat: ligar o ecra de metricas ao menu Mais
 ```

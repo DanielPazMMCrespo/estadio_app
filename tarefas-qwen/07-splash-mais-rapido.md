@@ -54,7 +54,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Commit
 
@@ -68,6 +68,6 @@ git commit -m "perf: ecra de arranque de 3s para 900ms"
 ```
 FICHA: 07
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: perf: ecra de arranque de 3s para 900ms
 ```

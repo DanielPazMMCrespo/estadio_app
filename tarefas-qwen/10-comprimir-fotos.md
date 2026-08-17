@@ -105,9 +105,9 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar **`126 passed`** (os 120 de sempre + os 6 do compressor).
+Tem de dar **`133 passed`** (120 originais + 6 do compressor + 7 do esc).
 
-Se der `120 passed`, os testes do compressor não estão a correr — escreve
+Se der menos de 133, os testes do compressor não estão a correr — escreve
 `BLOQUEADO: testes do photoCompressor não encontrados`.
 
 ## Verificação extra (importante, se souberes arrancar a app)
@@ -137,6 +137,6 @@ git commit -m "perf: comprimir fotos para 1600px JPEG antes de guardar"
 ```
 FICHA: 10
 ESTADO: FEITO
-TESTES: 126 passed
+TESTES: 133 passed
 COMMIT: perf: comprimir fotos para 1600px JPEG antes de guardar
 ```

@@ -68,7 +68,7 @@ cd C:\dev\estadio\maintenance_app
 npm test
 ```
 
-Tem de dar `120 passed`.
+Tem de dar `133 passed`.
 
 ## Commit
 
@@ -82,6 +82,6 @@ git commit -m "perf: travar a pesquisa 250ms antes de redesenhar a lista"
 ```
 FICHA: 06
 ESTADO: FEITO
-TESTES: 120 passed
+TESTES: 133 passed
 COMMIT: perf: travar a pesquisa 250ms antes de redesenhar a lista
 ```
