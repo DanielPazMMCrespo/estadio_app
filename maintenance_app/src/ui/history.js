@@ -3,6 +3,7 @@ import { getPhotoDataUrl } from '../db/db.js';
 import { toast } from './toast.js';
 
 import { esc } from '../utils/html.js';
+import { haptics } from '../services/haptics.js';
 /**
  * Feed / History Component — Rich Issue Cards with Status & Priority badges,
  * instant search, fast status toggle, and filter chips.
@@ -285,6 +286,8 @@ export class HistoryComponent {
         if (!confirm('Tem a certeza que pretende eliminar esta intervenção?')) return;
         try {
           await reportsRepo.remove(id);
+          // Dois toques em vez de um: eliminar não deve sentir-se igual a gravar.
+          haptics.warning();
           toast.success('Intervenção eliminada');
           await this.render();
           if (this.onDelete) this.onDelete(id);
@@ -302,6 +305,7 @@ export class HistoryComponent {
         const nextStatus = btn.dataset.next;
         try {
           await reportsRepo.setStatus(id, nextStatus);
+          haptics.success();
           toast.success(nextStatus === 'resolved' ? 'Intervenção concluída!' : 'Trabalho em curso!');
           await this.render();
         } catch (err) {

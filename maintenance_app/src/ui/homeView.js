@@ -3,6 +3,7 @@ import { tasksRepo } from '../db/tasksRepo.js';
 import { speechService } from '../services/speechService.js';
 
 import { esc } from '../utils/html.js';
+import { haptics } from '../services/haptics.js';
 
 /**
  * Ouvinte de cliques na página, guardado A NÍVEL DO MÓDULO e não da instância.
@@ -257,6 +258,9 @@ export class HomeViewComponent {
             audioDuration: 0
           });
           
+          // Vibra ANTES do refresh: é este o botão que o técnico usa a sério
+          // (o do ecrã Hoje), e era o único que não vibrava.
+          haptics.success();
           if (window.toast) window.toast.success('Intervenção registada!');
           descInput.value = '';
           locInput.value = '';
