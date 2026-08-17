@@ -125,8 +125,9 @@
   /* Véu por trás de modais e folhas */
   --color-overlay: rgba(20, 24, 30, 0.45);
 
-  /* Cabeçalho translúcido (o conteúdo passa por baixo ao rolar) */
-  --color-header-bg: rgba(255, 255, 255, 0.92);
+  /* Cabeçalho quase opaco: sem desfoque, precisa de mais opacidade para o
+     conteúdo que passa por baixo não se ler através dele. */
+  --color-header-bg: rgba(255, 255, 255, 0.97);
 
   /* Toast: escuro de propósito, para saltar à vista sobre uma UI clara */
   --color-toast-bg: #14181E;
@@ -218,7 +219,7 @@
     --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
 
     --color-overlay: rgba(0, 0, 0, 0.65);
-    --color-header-bg: rgba(16, 20, 24, 0.92);
+    --color-header-bg: rgba(16, 20, 24, 0.97);
 
     --color-toast-bg: #1D242B;
     --color-toast-text: #F4F7FA;
@@ -292,7 +293,7 @@
   --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
 
   --color-overlay: rgba(0, 0, 0, 0.65);
-  --color-header-bg: rgba(16, 20, 24, 0.92);
+  --color-header-bg: rgba(16, 20, 24, 0.97);
 
   --color-toast-bg: #1D242B;
   --color-toast-text: #F4F7FA;
@@ -327,9 +328,10 @@ body {
    src/main.js mede a altura real e escreve --header-height-actual, que
    o .main-content usa para nunca ficar tapado por baixo dele. */
 .app-header {
+  /* Sem backdrop-filter: o desfoque força uma repintura a cada rolagem e dava
+     arrastos visíveis em Android antigo. Cor quase opaca dá o mesmo efeito
+     visual sem custo nenhum. */
   background: var(--color-header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
   padding: 8px 16px;
   position: fixed;

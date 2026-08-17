@@ -53,15 +53,29 @@ telemóvel provável do técnico — dá arrastos visíveis.
 ## Alteração 3 de 3 — o mesmo nos dois blocos de tema escuro
 
 O valor `rgba(16, 20, 24, 0.92)` aparece **duas vezes** no ficheiro: uma no
-bloco `@media (prefers-color-scheme: dark)` e outra no bloco
-`:root[data-theme="dark"]`. **Troca as duas.**
+bloco `@media (prefers-color-scheme: dark)` (linha ~222) e outra no bloco
+`:root[data-theme="dark"]` (linha ~296). **Troca as duas.**
 
-### ANTES (as duas ocorrências)
+> **ATENÇÃO — armadilha:** as duas linhas têm **indentação diferente**. A de
+> dentro do `@media` tem **4 espaços** à esquerda; a outra tem **2**. Um
+> substituir-tudo que inclua a indentação só apanha uma. Trata-as separadamente.
+
+### ANTES (dentro do `@media`, 4 espaços)
+```css
+    --color-header-bg: rgba(16, 20, 24, 0.92);
+```
+
+### DEPOIS
+```css
+    --color-header-bg: rgba(16, 20, 24, 0.97);
+```
+
+### ANTES (no `:root[data-theme="dark"]`, 2 espaços)
 ```css
   --color-header-bg: rgba(16, 20, 24, 0.92);
 ```
 
-### DEPOIS (as duas ocorrências)
+### DEPOIS
 ```css
   --color-header-bg: rgba(16, 20, 24, 0.97);
 ```
