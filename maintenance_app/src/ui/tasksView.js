@@ -329,7 +329,7 @@ export class TasksViewComponent {
     overlay.id = 'tv-sheet-new-task';
     overlay.className = 'bottom-sheet-overlay animate-fade-in';
     overlay.innerHTML = `
-      <div class="bottom-sheet-content tv-sheet">
+      <div class="bottom-sheet-content tv-sheet" style="max-height: 95vh; display: flex; flex-direction: column;">
         <div class="sheet-drag-handle"><div class="drag-bar"></div></div>
 
         <div class="tv-sheet-head">
@@ -337,44 +337,48 @@ export class TasksViewComponent {
           <button type="button" class="btn-close-detail" id="tv-sheet-close" aria-label="Fechar">&times;</button>
         </div>
 
-        <div class="form-group" style="margin-bottom: 12px;">
-          <div class="form-label-row">
-            <label class="form-label" for="tv-new-title">O que há a fazer? *</label>
-            <button type="button" id="tv-mic-new" class="btn-secondary btn-dictate" title="Escrita por voz">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              <span>Escrita por voz</span>
-            </button>
+        <div style="flex: 1; overflow-y: auto;">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <div class="form-label-row">
+              <label class="form-label" for="tv-new-title">O que há a fazer? *</label>
+              <button type="button" id="tv-mic-new" class="btn-secondary btn-dictate" title="Escrita por voz">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <span>Escrita por voz</span>
+              </button>
+            </div>
+            <textarea id="tv-new-title" class="form-textarea tv-new-title" rows="2"
+                      placeholder="Ex: Trocar lâmpada na bancada norte... (pode usar escrita por voz)"></textarea>
           </div>
-          <textarea id="tv-new-title" class="form-textarea tv-new-title" rows="2"
-                    placeholder="Ex: Trocar lâmpada na bancada norte... (pode usar escrita por voz)"></textarea>
-        </div>
 
-        <p class="tv-sheet-hint">Escolha o dia. Fica gravado logo.</p>
-        <div class="tv-sheet-days">
-          <button type="button" class="tv-day-btn tv-day-btn--today" id="tv-save-today">Hoje</button>
-          <button type="button" class="tv-day-btn" id="tv-save-tomorrow">Amanhã</button>
-        </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Prioridade</label>
+            <div class="tv-priority-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;" id="tv-new-priority-group">
+              <button type="button" class="btn-secondary tv-prio-btn" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;">Baixa</button>
+              <button type="button" class="btn-secondary tv-prio-btn active" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem; border-color: var(--color-gold); color: var(--color-gold);">Média</button>
+              <button type="button" class="btn-secondary tv-prio-btn" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;">Crítica</button>
+            </div>
+          </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label">Prioridade</label>
-          <div class="tv-priority-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;" id="tv-new-priority-group">
-            <button type="button" class="btn-secondary tv-prio-btn" data-priority="low" style="padding: 10px 4px; font-size: 0.95rem;">Baixa</button>
-            <button type="button" class="btn-secondary tv-prio-btn active" data-priority="medium" style="padding: 10px 4px; font-size: 0.95rem; border-color: var(--color-gold); color: var(--color-gold);">Média</button>
-            <button type="button" class="btn-secondary tv-prio-btn" data-priority="critical" style="padding: 10px 4px; font-size: 0.95rem;">Crítica</button>
+          <button type="button" class="tv-more-toggle" id="tv-more-toggle" aria-expanded="false">
+            Mais detalhes (opcional)
+          </button>
+
+          <div class="tv-more" id="tv-more" hidden>
+            <label class="form-label" for="tv-new-loc">Local</label>
+            <input type="text" id="tv-new-loc" class="form-input" placeholder="Ex: Bancada norte" />
+            ${this.onNewTaskForLocation ? '<button type="button" class="tv-pick-loc" id="tv-pick-loc">Escolher local do estádio</button>' : ''}
+
+            <label class="form-label" for="tv-new-notes">Notas</label>
+            <textarea id="tv-new-notes" class="form-textarea" rows="2" placeholder="O que for útil lembrar"></textarea>
           </div>
         </div>
 
-        <button type="button" class="tv-more-toggle" id="tv-more-toggle" aria-expanded="false">
-          Mais detalhes (opcional)
-        </button>
-
-        <div class="tv-more" id="tv-more" hidden>
-          <label class="form-label" for="tv-new-loc">Local</label>
-          <input type="text" id="tv-new-loc" class="form-input" placeholder="Ex: Bancada norte" />
-          ${this.onNewTaskForLocation ? '<button type="button" class="tv-pick-loc" id="tv-pick-loc">Escolher local do estádio</button>' : ''}
-
-          <label class="form-label" for="tv-new-notes">Notas</label>
-          <textarea id="tv-new-notes" class="form-textarea" rows="2" placeholder="O que for útil lembrar"></textarea>
+        <div style="padding-top: 12px; background: var(--color-bg); border-top: 1px solid var(--color-border);">
+          <p class="tv-sheet-hint">Escolha o dia. Fica gravado logo.</p>
+          <div class="tv-sheet-days">
+            <button type="button" class="tv-day-btn tv-day-btn--today" id="tv-save-today">Hoje</button>
+            <button type="button" class="tv-day-btn" id="tv-save-tomorrow">Amanhã</button>
+          </div>
         </div>
       </div>
     `;
