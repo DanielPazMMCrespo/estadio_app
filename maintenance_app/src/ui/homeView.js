@@ -40,12 +40,12 @@ export class HomeViewComponent {
           <p style="color: var(--color-text-secondary); font-size: 1.3rem; margin: 8px 0 0 0;">O que vamos fazer?</p>
         </div>
         
-        <!-- Acção Principal: Único destaque visual do ecrã (Flow "Camera-First") -->
+        <!-- Acção Principal: Único destaque visual do ecrã -->
         <div>
           <button type="button" id="btn-main-report" class="touch-target" style="width: 100%; background: var(--color-brand-primary); color: #fff; font-size: 1.5rem; font-weight: 800; padding: 24px 16px; border-radius: 16px; border: none; box-shadow: 0 8px 24px rgba(15, 110, 92, 0.4); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer;">
-            <!-- Ícone de Câmara Gigante - Adapta-se ao modelo mental real do utilizador -->
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-            Tirar Foto do Problema
+            <!-- Ícone de Adição/Registo -->
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            Registar Problema
           </button>
         </div>
 
@@ -92,7 +92,7 @@ export class HomeViewComponent {
       btnReport.addEventListener('click', () => {
         haptics.success();
         if (this.onOpenFullReport) {
-          this.onOpenFullReport({ description: '', locationId: '', locationName: '', autoCamera: true });
+          this.onOpenFullReport({ description: '', locationId: '', locationName: '' });
         }
       });
     }
