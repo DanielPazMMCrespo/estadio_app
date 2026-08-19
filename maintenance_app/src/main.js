@@ -42,6 +42,8 @@ export class App {
     this.locationModal = null;
     this.currentView = 'home'; // 'home' | 'history' | 'tasks' | 'more' | 'tools' | 'equipment' | 'sectors' | 'notes' | 'settings' | 'reports'
     this.editingReportId = null;
+    this.pageTransition = null;  // véu com o logótipo, criado uma só vez
+    this.hasRendered = false;    // a primeira vista não leva véu: o splash ainda está no ecrã
 
     // Temporary storage during new report creation
     this.tempPhotos = []; // array of { id, blobData, dataUrl, type, mimeType }
@@ -67,6 +69,8 @@ export class App {
   }
 
   initShell() {
+    this.initPageTransition();
+
     const headerContainer = document.getElementById('header-container');
     if (headerContainer) {
       const savedName = localStorage.getItem('operator_name') || 'Técnico';
@@ -133,9 +137,19 @@ export class App {
   }
 
   navigateTo(viewId) {
+    // O véu só entra quando se muda mesmo de página. O refreshCurrentView()
+    // volta a chamar navigateTo() com a mesma vista depois de gravar ou apagar,
+    // e aí um logótipo a tapar o ecrã escondia a confirmação do que se gravou.
+    const mudouDePagina = this.hasRendered && viewId !== this.currentView;
+
     this.currentView = viewId;
     const main = document.getElementById('main-content');
     if (!main) return;
+
+    if (mudouDePagina) {
+      this.playPageTransition();
+    }
+    this.hasRendered = true;
 
     main.classList.remove('page-enter');
     void main.offsetWidth;
@@ -1127,6 +1141,65 @@ export class App {
     } catch (e) {
       console.error(e);
       container.innerHTML = 'Erro ao carregar materiais.';
+    }
+  }
+
+  /**
+   * Cria o véu da transição uma só vez e deixa-o no fim do body.
+   *
+   * O ficheiro do logótipo é o mesmo que o cabeçalho já mostra em todas as
+   * páginas, por isso não custa rede nenhuma e continua a aparecer offline —
+   * numa app que trabalha nas caves do estádio isso não é detalhe.
+   */
+  initPageTransition() {
+    if (this.pageTransition) return;
+
+    const veil = document.createElement('div');
+    veil.className = 'page-transition';
+    // Decorativo: o leitor de ecrã anuncia a vista nova, não o logótipo.
+    veil.setAttribute('aria-hidden', 'true');
+
+    const logo = document.createElement('img');
+    logo.className = 'page-transition__logo';
+    logo.src = '/icons/mmcrespo-header.png';
+    logo.alt = '';
+
+    veil.appendChild(logo);
+    document.body.appendChild(veil);
+
+    // Sem isto a classe ficava colada e a animação não voltava a correr.
+    // O evento também sobe do logótipo, por isso confirma-se o alvo.
+    veil.addEventListener('animationend', (e) => {
+      if (e.target === veil) veil.classList.remove('is-running');
+    });
+
+    this.pageTransition = veil;
+  }
+
+  /** Mostra o logótipo por 320ms. Nunca bloqueia um toque (pointer-events: none). */
+  playPageTransition() {
+    const veil = this.pageTransition;
+    if (!veil) return;
+
+    // Com movimento reduzido o CSS anula a animação, e então o animationend
+    // nunca chega e a classe ficava colada ao elemento para sempre. Mais
+    // limpo é nem chegar a pôr a classe.
+    if (this.prefersReducedMotion()) return;
+
+    // Reiniciar do zero: sem isto, tocar noutro separador a meio da transição
+    // anterior não voltava a mostrar o logótipo.
+    veil.classList.remove('is-running');
+    void veil.offsetWidth;
+    veil.classList.add('is-running');
+  }
+
+  /** O técnico pediu menos movimento no telemóvel? Então não há véu nenhum. */
+  prefersReducedMotion() {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      // Ambientes de teste sem matchMedia: assume-se que a animação pode correr.
+      return false;
     }
   }
 

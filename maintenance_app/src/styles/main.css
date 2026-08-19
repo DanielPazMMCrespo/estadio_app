@@ -119,6 +119,88 @@ h1, h2, h3, h4, h5, h6 {
   to { opacity: 0; visibility: hidden; pointer-events: none; }
 }
 
+/* ==========================================================================
+   TRANSIÇÃO ENTRE PÁGINAS — o logótipo aparece por um instante
+
+   Mesma regra do splash acima: o tempo é do trabalho, não da marca. São 320ms
+   no total, porque o técnico troca de separador dezenas de vezes por turno.
+
+   Duas decisões que não se devem desfazer:
+   1. pointer-events: none do princípio ao fim. Se o técnico tocar noutro
+      separador a meio da transição, o toque passa e não se perde.
+   2. z-index 500: cobre o cabeçalho (100) e a barra inferior (120), mas fica
+      debaixo das folhas (1000), dos avisos (2000) e do splash (10000) — depois
+      de gravar, a confirmação tem de continuar à vista.
+   ========================================================================== */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.page-transition__logo {
+  width: 168px;
+  max-width: 54vw;
+  height: auto;
+}
+
+.page-transition.is-running {
+  visibility: visible;
+  animation: pageVeil 320ms ease-out forwards;
+}
+
+.page-transition.is-running .page-transition__logo {
+  animation: pageVeilLogo 320ms ease-out forwards;
+}
+
+@keyframes pageVeil {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  65%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes pageVeilLogo {
+  0%   { opacity: 0; transform: scale(0.94); }
+  35%  { opacity: 1; transform: scale(1); }
+  65%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.03); }
+}
+
+/* O conteúdo novo entra por baixo do véu. O navigateTo() já punha a classe
+   page-enter, mas ela não tinha CSS nenhum — não fazia nada. */
+.page-enter {
+  animation: pageEnter 220ms ease-out both;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Quem pediu menos movimento no telemóvel não leva véu nem deslize. A troca
+   de página passa a ser instantânea. */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .page-transition.is-running,
+  .page-transition.is-running .page-transition__logo {
+    animation: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .page-enter {
+    animation: none !important;
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--color-brand-primary, #557D14);
   outline-offset: 2px;
