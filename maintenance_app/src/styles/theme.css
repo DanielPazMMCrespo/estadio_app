@@ -63,9 +63,9 @@
      Dois valores por cor: o CHEIO (fundos sólidos com texto branco) e o
      de TEXTO (escurecido, para ler sobre branco com contraste >= 4.5:1).
      --------------------------------------------------------------------- */
-  --color-brand-primary: #4FA399;      /* verde mais suave — ação primária, ligações */
-  --color-brand-primary-hover: #3D8B7F;
-  --color-brand-text: #3D8B7F;         /* verde suave como texto sobre branco */
+  --color-brand-primary: #557D14;      /* verde do logotipo mmcrespo, escurecido — ação primária */
+  --color-brand-primary-hover: #4E7215;
+  --color-brand-text: #4E7215;         /* mesmo verde, legível sobre branco (5.6:1) */
 
   --color-stadium-green: #059669;      /* verde — concluído, ok */
   --color-stadium-glow: #0F6E5C;       /* legado: cor de destaque = verde-petróleo */
@@ -178,9 +178,9 @@
     --color-text-muted: #C3CDD8;
     --color-on-accent: #FFFFFF;
 
-    --color-brand-primary: #2DD4BF;
-    --color-brand-primary-hover: #5EEAD4;
-    --color-brand-text: #5EEAD4;
+    --color-brand-primary: #557D14;
+    --color-brand-primary-hover: #658F1E;
+    --color-brand-text: #8CC63F;
 
     --color-stadium-green: #10B981;
     --color-stadium-glow: #2DD4BF;
@@ -252,9 +252,9 @@
   --color-text-muted: #C3CDD8;
   --color-on-accent: #FFFFFF;
 
-  --color-brand-primary: #2DD4BF;
-  --color-brand-primary-hover: #5EEAD4;
-  --color-brand-text: #5EEAD4;
+  --color-brand-primary: #557D14;
+  --color-brand-primary-hover: #658F1E;
+  --color-brand-text: #8CC63F;
 
   --color-stadium-green: #10B981;
   --color-stadium-glow: #2DD4BF;
