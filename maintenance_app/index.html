@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt">
+<!-- data-theme="light" fixa o fundo branco: o tema escuro deixava a app
+     turquesa e com pouco contraste ao sol. -->
+<html lang="pt" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <!-- O zoom fica LIGADO de propósito: o técnico precisa de ampliar para ler
        etiquetas e números de série nas fotos. Bloquear o zoom falha a WCAG 1.4.4. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- Tema claro por defeito. O escuro é opção e só entra se o sistema o pedir. -->
-  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#101418" media="(prefers-color-scheme: dark)" />
+  <!-- Fundo branco sempre, mesmo com o telemóvel em modo escuro. -->
   <meta name="theme-color" content="#FFFFFF" />
   <meta name="description" content="Gestão de relatórios de manutenção diária – Estádio Municipal de Leiria" />
   <meta name="apple-mobile-web-app-capable" content="yes" />

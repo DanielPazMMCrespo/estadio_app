@@ -616,7 +616,7 @@ export class App {
               <button type="button" class="btn-secondary priority-select-btn" data-priority="low">
                 Baixa
               </button>
-              <button type="button" class="btn-secondary priority-select-btn active" data-priority="medium" style="border-color:var(--color-gold); color:var(--color-gold);">
+              <button type="button" class="btn-secondary priority-select-btn active" data-priority="medium">
                 Média
               </button>
               <button type="button" class="btn-secondary priority-select-btn" data-priority="critical">
@@ -630,7 +630,7 @@ export class App {
           <div class="form-group">
             <label class="form-label">Estado Inicial</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;" id="status-options-group">
-              <button type="button" class="btn-secondary status-select-btn active" data-status="pending" style="border-color:var(--color-gold); color:var(--color-gold);">
+              <button type="button" class="btn-secondary status-select-btn active" data-status="pending">
                 Pendente
               </button>
               <button type="button" class="btn-secondary status-select-btn" data-status="in_progress">
@@ -735,17 +735,13 @@ export class App {
     if (priorityGroup && priorityInput) {
       priorityGroup.querySelectorAll('.priority-select-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          // A cor de cada opção vem do CSS (--seg-color), por data-priority.
+          // Aqui só se marca qual está escolhida.
           priorityGroup.querySelectorAll('.priority-select-btn').forEach(b => {
             b.classList.remove('active');
-            b.style.borderColor = '';
-            b.style.color = '';
           });
           btn.classList.add('active');
-          const p = btn.dataset.priority;
-          priorityInput.value = p;
-          if (p === 'critical') { btn.style.borderColor = 'var(--color-danger)'; btn.style.color = 'var(--color-danger)'; }
-          else if (p === 'medium') { btn.style.borderColor = 'var(--color-gold)'; btn.style.color = 'var(--color-gold)'; }
-          else { btn.style.borderColor = 'var(--color-stadium-green)'; btn.style.color = 'var(--color-stadium-green)'; }
+          priorityInput.value = btn.dataset.priority;
         });
       });
     }
@@ -756,17 +752,12 @@ export class App {
     if (statusGroup && statusInput) {
       statusGroup.querySelectorAll('.status-select-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          // A cor de cada opção vem do CSS (--seg-color), por data-status.
           statusGroup.querySelectorAll('.status-select-btn').forEach(b => {
             b.classList.remove('active');
-            b.style.borderColor = '';
-            b.style.color = '';
           });
           btn.classList.add('active');
-          const s = btn.dataset.status;
-          statusInput.value = s;
-          if (s === 'resolved') { btn.style.borderColor = 'var(--color-stadium-glow)'; btn.style.color = 'var(--color-stadium-glow)'; }
-          else if (s === 'in_progress') { btn.style.borderColor = 'var(--color-info)'; btn.style.color = 'var(--color-info)'; }
-          else { btn.style.borderColor = 'var(--color-gold)'; btn.style.color = 'var(--color-gold)'; }
+          statusInput.value = btn.dataset.status;
         });
       });
     }

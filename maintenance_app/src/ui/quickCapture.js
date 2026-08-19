@@ -79,7 +79,7 @@ export class QuickCaptureComponent {
             <label class="form-label" style="font-size: 0.9rem;">Prioridade</label>
             <div style="display:flex; gap:8px;" id="qc-priority-group">
               <button type="button" class="btn-secondary touch-target priority-btn" data-priority="low" style="flex:1;">Baixa</button>
-              <button type="button" class="btn-secondary touch-target priority-btn active" data-priority="medium" style="flex:1; border-color:var(--color-gold); color:var(--color-gold);">Média</button>
+              <button type="button" class="btn-secondary touch-target priority-btn active" data-priority="medium" style="flex:1;">Média</button>
               <button type="button" class="btn-secondary touch-target priority-btn" data-priority="critical" style="flex:1;">Crítica</button>
             </div>
           </div>
@@ -117,16 +117,12 @@ export class QuickCaptureComponent {
     if (priorityGroup) {
       priorityGroup.querySelectorAll('.priority-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          // A cor de cada opção vem do CSS (--seg-color), por data-priority.
           priorityGroup.querySelectorAll('.priority-btn').forEach(b => {
             b.classList.remove('active');
-            b.style.borderColor = '';
-            b.style.color = '';
           });
           btn.classList.add('active');
           this.priority = btn.dataset.priority;
-          if (this.priority === 'critical') { btn.style.borderColor = 'var(--color-danger)'; btn.style.color = 'var(--color-danger)'; }
-          else if (this.priority === 'medium') { btn.style.borderColor = 'var(--color-gold)'; btn.style.color = 'var(--color-gold)'; }
-          else { btn.style.borderColor = 'var(--color-stadium-green)'; btn.style.color = 'var(--color-stadium-green)'; }
         });
       });
     }

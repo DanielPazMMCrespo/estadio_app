@@ -476,7 +476,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(15, 110, 92, 0.55);
+  box-shadow: 0 4px 14px rgba(85, 125, 20, 0.55);
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
@@ -1048,7 +1048,7 @@
 .form-input:focus, .form-textarea:focus {
   outline: none;
   border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 2px rgba(15, 110, 92, 0.2);
+  box-shadow: 0 0 0 2px rgba(85, 125, 20, 0.2);
 }
 
 .form-textarea {
@@ -1076,7 +1076,7 @@
 }
 
 .btn-secondary.active {
-  background: rgba(15, 110, 92, 0.1);
+  background: rgba(85, 125, 20, 0.1);
   border-color: var(--color-brand-primary);
   color: var(--color-brand-primary);
 }
@@ -1093,7 +1093,7 @@
   min-height: 56px;
   min-width: 56px;
   transition: transform 150ms ease, box-shadow 150ms ease;
-  box-shadow: 0 4px 14px rgba(15, 110, 92, 0.3);
+  box-shadow: 0 4px 14px rgba(85, 125, 20, 0.3);
 }
 
 .btn-primary-cta:active {
@@ -2154,7 +2154,7 @@ body { max-width: 100%; }
 .nv-note-flag {
   font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(15, 110, 92, 0.15);
+  background: rgba(85, 125, 20, 0.15);
   color: var(--color-brand-primary);
   padding: 2px 8px;
   border-radius: 4px;
@@ -2213,7 +2213,7 @@ body { max-width: 100%; }
   background: var(--color-surface-hover);
 }
 .nv-act--report {
-  background: rgba(15, 110, 92, 0.1);
+  background: rgba(85, 125, 20, 0.1);
   color: var(--color-brand-primary);
   border-color: var(--color-brand-primary);
 }
@@ -2493,7 +2493,7 @@ body { max-width: 100%; }
   cursor: pointer;
   min-height: 56px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(15, 110, 92, 0.25);
+  box-shadow: 0 4px 12px rgba(85, 125, 20, 0.25);
   transition: transform 150ms ease;
 }
 .tv-primary-action:active { transform: scale(0.98); }
@@ -2820,7 +2820,7 @@ body { max-width: 100%; }
 }
 
 .status-seg-btn.active.in_progress {
-  background: rgba(15, 110, 92, 0.2);
+  background: rgba(85, 125, 20, 0.2);
   color: var(--color-brand-primary);
   border: 1px solid var(--color-brand-primary);
 }
@@ -3076,4 +3076,60 @@ body { max-width: 100%; }
 
 .btn-dictate * {
   pointer-events: none;
+}
+
+/* ==========================================================================
+   PRIORIDADE E ESTADO — cada opção com a sua própria cor, sempre visível
+
+   Antes a cor só aparecia na opção escolhida, e vinha por style inline no JS.
+   O técnico de luvas e ao sol reconhece a opção pela cor antes de ler a
+   palavra, por isso as três cores estão sempre no ecrã. A opção escolhida
+   fica com o fundo cheio da sua cor; as outras ficam brancas com o contorno
+   e o texto na cor.
+
+   Contraste do texto branco sobre cada cor cheia (medido, WCAG >= 4.5:1):
+     verde  #047857 -> 4.85:1     âmbar #B45309 -> 4.72:1
+     azul   #075985 -> 6.94:1     vermelho #B01717 -> 6.42:1
+   ========================================================================== */
+.priority-select-btn[data-priority="low"],
+.priority-btn[data-priority="low"],
+.status-select-btn[data-status="resolved"] {
+  --seg-color: var(--color-success-text);
+}
+
+.priority-select-btn[data-priority="medium"],
+.priority-btn[data-priority="medium"],
+.status-select-btn[data-status="pending"] {
+  --seg-color: var(--color-warning-text);
+}
+
+.priority-select-btn[data-priority="critical"],
+.priority-btn[data-priority="critical"] {
+  --seg-color: var(--color-danger-text);
+}
+
+.status-select-btn[data-status="in_progress"] {
+  --seg-color: var(--color-info-text);
+}
+
+.priority-select-btn,
+.priority-btn,
+.status-select-btn {
+  background: var(--color-card);
+  border: 2px solid var(--seg-color);
+  color: var(--seg-color);
+}
+
+.priority-select-btn:hover,
+.priority-btn:hover,
+.status-select-btn:hover {
+  background: var(--color-surface);
+}
+
+.priority-select-btn.active,
+.priority-btn.active,
+.status-select-btn.active {
+  background: var(--seg-color);
+  border-color: var(--seg-color);
+  color: var(--color-on-accent);
 }

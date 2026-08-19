@@ -574,7 +574,7 @@
   font-size: var(--fs-label);
   font-weight: 700;
   background: var(--tint-blue);
-  color: var(--color-brand-primary);
+  color: var(--color-brand-text);
   padding: 2px 8px;
   border-radius: var(--radius-xs);
   white-space: nowrap;
@@ -640,7 +640,7 @@
 }
 .nv-act--report {
   background: var(--tint-blue);
-  color: var(--color-brand-primary);
+  color: var(--color-brand-text);
   border-color: var(--color-brand-primary);
 }
 .nv-act--task {
