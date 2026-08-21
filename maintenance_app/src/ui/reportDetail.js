@@ -2,6 +2,7 @@ import { reportsRepo } from '../db/reportsRepo.js';
 import { getPhotoDataUrl } from '../db/db.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
+import { haptics } from '../services/haptics.js';
 
 import { esc } from '../utils/html.js';
 /**
@@ -196,10 +197,24 @@ export class ReportDetailComponent {
       });
     });
 
-    // Export PDF
-    this.modalEl.querySelector('#btn-export-pdf')?.addEventListener('click', () => {
-      if (this.currentReport) {
-        PdfService.exportReport(this.currentReport);
+    // Exportar PDF — download direto, sem abrir separador nenhum.
+    // O botão fica desativado enquanto o ficheiro é montado: com fotos grandes
+    // isto leva um segundo e o técnico de luvas carregava três vezes.
+    const exportBtn = this.modalEl.querySelector('#btn-export-pdf');
+    exportBtn?.addEventListener('click', async () => {
+      if (!this.currentReport || exportBtn.disabled) return;
+      exportBtn.disabled = true;
+      exportBtn.setAttribute('aria-busy', 'true');
+      try {
+        const result = await PdfService.exportReport(this.currentReport);
+        haptics.success();
+        toast.success(result?.outcome === 'shared' ? 'PDF pronto para guardar' : 'PDF transferido');
+      } catch (err) {
+        haptics.warning();
+        toast.error('Não foi possível gerar o PDF');
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.removeAttribute('aria-busy');
       }
     });
 

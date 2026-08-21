@@ -1,6 +1,7 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
+import { haptics } from '../services/haptics.js';
 
 import { esc } from '../utils/html.js';
 const WEEKDAY_MS = 24 * 60 * 60 * 1000;
@@ -197,15 +198,28 @@ export class ReportsViewComponent {
 
     const generateBtn = this.container.querySelector('#rv-generate');
     if (generateBtn) {
-      generateBtn.addEventListener('click', () => {
-        if (!this.filtered.length) return;
-        const { label, rangeText } = this.getRange();
-        PdfService.exportSummaryReport(this.filtered, {
-          periodLabel: label,
-          rangeText,
-          sectorLabel: this.sectorFilter || 'Todas as áreas'
-        });
-        toast.success('Relatório gerado. Escolha "Guardar como PDF" na janela de impressão.');
+      // Download direto do PDF. Um relatório de mês com fotos leva alguns
+      // segundos a montar, por isso o botão bloqueia enquanto trabalha.
+      generateBtn.addEventListener('click', async () => {
+        if (!this.filtered.length || generateBtn.disabled) return;
+        generateBtn.disabled = true;
+        generateBtn.setAttribute('aria-busy', 'true');
+        try {
+          const { label, rangeText } = this.getRange();
+          const result = await PdfService.exportSummaryReport(this.filtered, {
+            periodLabel: label,
+            rangeText,
+            sectorLabel: this.sectorFilter || 'Todas as áreas'
+          });
+          haptics.success();
+          toast.success(result?.outcome === 'shared' ? 'PDF pronto para guardar' : 'Relatório transferido');
+        } catch (err) {
+          haptics.warning();
+          toast.error('Não foi possível gerar o relatório');
+        } finally {
+          generateBtn.disabled = false;
+          generateBtn.removeAttribute('aria-busy');
+        }
       });
     }
   }
