@@ -60,14 +60,14 @@ export class HomeViewComponent {
         
         <!-- Bloco 1: Ação Hero Principal (Registar Avaria) -->
         <div>
-          <button type="button" id="btn-hero-report" class="touch-target" style="width: 100%; background: var(--color-brand-primary); color: var(--color-on-accent); padding: 20px 18px; border-radius: var(--radius-card); border: none; box-shadow: var(--shadow-md); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; cursor: pointer; transition: transform 120ms ease;">
+          <button type="button" id="btn-hero-report" class="touch-target" aria-label="Registar nova avaria" style="width: 100%; background: var(--color-brand-primary); color: var(--color-on-accent); padding: 20px 18px; border-radius: var(--radius-card); border: none; box-shadow: var(--shadow-md); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; cursor: pointer; transition: transform 120ms ease;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="16"></line>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
-              <span style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em;">Registar Nova Avaria</span>
+              <span style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em;">Registar</span>
             </div>
             
             <!-- Pistas táteis: O que posso usar? -->
