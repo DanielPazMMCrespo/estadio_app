@@ -1,5 +1,5 @@
 import { reportsRepo } from '../db/reportsRepo.js';
-import { locationsRepo } from '../db/locationsRepo.js';
+import { locationsRepo, locationLabel } from '../db/locationsRepo.js';
 
 import { esc } from '../utils/html.js';
 /**
@@ -158,7 +158,7 @@ export class StadiumNavigatorComponent {
       
       // Filter rooms matching query
       const matchingRooms = (sec.rooms || []).filter(r => {
-        const matchesQuery = !q || r.name.toLowerCase().includes(q) || (r.description && r.description.toLowerCase().includes(q)) || sec.name.toLowerCase().includes(q);
+        const matchesQuery = !q || r.name.toLowerCase().includes(q) || (r.number && String(r.number).toLowerCase().includes(q)) || (r.description && r.description.toLowerCase().includes(q)) || sec.name.toLowerCase().includes(q);
         const roomStat = stats.rooms[r.id] || { total: 0, critical: 0 };
         
         if (this.filterMode === 'with_issues' && roomStat.total === 0 && secStat.total === 0) return false;
@@ -248,10 +248,10 @@ export class StadiumNavigatorComponent {
     }
 
     return `
-      <div class="room-row" data-room-id="${room.id}" data-room-name="${esc(room.name)}" data-sector-code="${sec.code || sec.id}">
+      <div class="room-row" data-room-id="${room.id}" data-room-name="${esc(locationLabel(room))}" data-sector-code="${sec.code || sec.id}">
         <div class="room-info">
           <div class="room-name-row">
-            <strong class="room-name">${esc(room.name)}</strong>
+            <strong class="room-name">${esc(locationLabel(room))}</strong>
             ${roomBadge}
           </div>
           ${room.description ? `<span class="room-desc">${esc(room.description)}</span>` : ''}

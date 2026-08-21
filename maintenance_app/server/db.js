@@ -38,6 +38,7 @@ export async function initDatabase() {
         CREATE TABLE IF NOT EXISTS locations (
           id VARCHAR(100) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
+          number VARCHAR(12) DEFAULT '',
           is_custom BOOLEAN DEFAULT FALSE,
           description TEXT,
           created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -145,6 +146,7 @@ export async function initDatabase() {
         CREATE INDEX IF NOT EXISTS idx_notes_updated ON notes(updated_at);
         CREATE INDEX IF NOT EXISTS idx_tools_updated ON tools(updated_at);
         CREATE INDEX IF NOT EXISTS idx_equipment_updated ON equipment(updated_at);
+        ALTER TABLE locations ADD COLUMN IF NOT EXISTS number VARCHAR(12) DEFAULT '';
         CREATE INDEX IF NOT EXISTS idx_locations_updated ON locations(updated_at);
       `);
 
@@ -325,12 +327,13 @@ export async function processSyncPush(mutations) {
           ]);
         }
       } else if (entityType === 'location' || entityType === 'locations') {
-        const { name, isCustom, description, createdAt, updatedAt, deleted } = payload || {};
+        const { name, number, isCustom, description, createdAt, updatedAt, deleted } = payload || {};
         await client.query(`
-          INSERT INTO locations (id, name, is_custom, description, created_at, updated_at, deleted)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          INSERT INTO locations (id, name, number, is_custom, description, created_at, updated_at, deleted)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
           ON CONFLICT (id) DO UPDATE SET
             name = EXCLUDED.name,
+            number = EXCLUDED.number,
             is_custom = EXCLUDED.is_custom,
             description = EXCLUDED.description,
             updated_at = EXCLUDED.updated_at,
@@ -339,6 +342,7 @@ export async function processSyncPush(mutations) {
         `, [
           entityId,
           name || '',
+          number || '',
           Boolean(isCustom),
           description || '',
           createdAt || now,
@@ -489,6 +493,7 @@ export async function getSyncPull(sinceTimestamp) {
   const locations = locRes.rows.map(l => ({
     id: l.id,
     name: l.name,
+    number: l.number || '',
     isCustom: l.is_custom,
     description: l.description,
     createdAt: l.created_at?.toISOString ? l.created_at.toISOString() : l.created_at,

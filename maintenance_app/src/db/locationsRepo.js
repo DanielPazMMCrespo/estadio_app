@@ -27,6 +27,33 @@ export const PREDEFINED_LOCATION_IDS = {
 };
 
 /**
+ * Comprime o numero da divisao: texto curto, sem espacos nas pontas.
+ * Aceita letras porque os tecnicos usam chaves como "12A" ou "B3".
+ * @param {*} value
+ * @returns {string}
+ */
+export function normalizeLocationNumber(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim().slice(0, 12);
+}
+
+/**
+ * Etiqueta de leitura de uma divisao: "12 - Sala de Bombas".
+ * Sem numero devolve so o nome. Os tecnicos identificam as divisoes pelo
+ * numero, por isso o numero vem primeiro.
+ * @param {Object|null} loc
+ * @returns {string}
+ */
+export function locationLabel(loc) {
+  if (!loc) return '';
+  const number = normalizeLocationNumber(loc.number);
+  const name = loc.name ? String(loc.name).trim() : '';
+  if (!number) return name;
+  if (!name) return number;
+  return number + ' - ' + name;
+}
+
+/**
  * Hierarchical structure template for Estádio Municipal de Leiria.
  */
 export const STADIUM_HIERARCHY = [
@@ -135,6 +162,7 @@ export const DEFAULT_LOCATIONS = STADIUM_HIERARCHY.flatMap(sec =>
   sec.rooms.map(r => ({
     id: r.id,
     name: r.name,
+    number: r.number || '',
     sectorId: sec.id,
     sectorName: sec.name,
     description: r.description || '',
@@ -228,6 +256,7 @@ export class LocationsRepository {
     const name = String(locationData.name).trim();
     const id = locationData.id || PREDEFINED_LOCATION_IDS[name] || generateUUID();
     const description = locationData.description ? String(locationData.description).trim() : '';
+    const number = normalizeLocationNumber(locationData.number);
     const sectorId = locationData.sectorId || 'SEC_CUSTOM';
     const sectorName = locationData.sectorName || 'Outras Instalações & Setores';
     const isCustom = locationData.isCustom !== undefined ? Boolean(locationData.isCustom) : true;
@@ -237,6 +266,7 @@ export class LocationsRepository {
     const locationObj = {
       id,
       name,
+      number,
       sectorId,
       sectorName,
       description,
@@ -284,6 +314,7 @@ export class LocationsRepository {
         return {
           id,
           name,
+          number: '',
           sectorId: 'SEC_CUSTOM',
           sectorName: 'Geral',
           description: '',
@@ -298,6 +329,7 @@ export class LocationsRepository {
         return {
           id,
           name,
+          number: normalizeLocationNumber(item.number),
           sectorId: item.sectorId || 'SEC_CUSTOM',
           sectorName: item.sectorName || 'Geral',
           description: item.description ? String(item.description).trim() : '',
@@ -327,6 +359,7 @@ export class LocationsRepository {
     const updated = {
       ...existing,
       name: updates.name ? String(updates.name).trim() : existing.name,
+      number: updates.number !== undefined ? normalizeLocationNumber(updates.number) : normalizeLocationNumber(existing.number),
       description: updates.description !== undefined ? String(updates.description).trim() : existing.description,
       sectorId: updates.sectorId !== undefined ? updates.sectorId : existing.sectorId,
       sectorName: updates.sectorName !== undefined ? updates.sectorName : existing.sectorName,
@@ -338,7 +371,7 @@ export class LocationsRepository {
       entityType: 'location',
       entityId: id,
       action: 'UPDATE',
-      payload: { id, name: updated.name, description: updated.description, sectorName: updated.sectorName },
+      payload: { id, name: updated.name, number: updated.number, description: updated.description, sectorName: updated.sectorName },
       timestamp: Date.now(),
       retryCount: 0
     };

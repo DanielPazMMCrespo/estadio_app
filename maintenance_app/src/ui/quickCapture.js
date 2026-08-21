@@ -1,5 +1,5 @@
 import { reportsRepo } from '../db/reportsRepo.js';
-import { locationsRepo } from '../db/locationsRepo.js';
+import { locationsRepo, locationLabel } from '../db/locationsRepo.js';
 import { speechService } from '../services/speechService.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
@@ -153,6 +153,7 @@ export class QuickCaptureComponent {
         if (q) {
           matches = this.locations.filter(l => 
             (l.name && l.name.toLowerCase().includes(q)) || 
+            (l.number && String(l.number).toLowerCase().includes(q)) ||
             (l.sectorName && l.sectorName.toLowerCase().includes(q))
           );
         }
@@ -165,8 +166,8 @@ export class QuickCaptureComponent {
         } else {
           locDropdown.style.display = 'block';
           locDropdown.innerHTML = matches.map(l => `
-            <div class="loc-option touch-target" data-id="${l.id}" data-name="${esc(l.name)}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
-              <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${esc(l.name)}</div>
+            <div class="loc-option touch-target" data-id="${l.id}" data-name="${esc(locationLabel(l))}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
+              <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${esc(locationLabel(l))}</div>
               <div style="font-size: 0.8rem; color: var(--color-text-secondary);">${esc(l.sectorName)}</div>
             </div>
           `).join('');

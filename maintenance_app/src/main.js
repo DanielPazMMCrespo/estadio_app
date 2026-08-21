@@ -1,5 +1,5 @@
 import { db } from './db/db.js';
-import { locationsRepo } from './db/locationsRepo.js';
+import { locationsRepo, locationLabel } from './db/locationsRepo.js';
 import { reportsRepo } from './db/reportsRepo.js';
 import { materialsRepo } from './db/materialsRepo.js';
 import { HeaderComponent } from './ui/header.js';
@@ -345,7 +345,7 @@ export class App {
           </div>
 
           <div style="margin-bottom: 14px; position: relative;">
-            <input type="text" id="settings-room-search" class="form-input" inputmode="search" placeholder="Pesquisar nome da sala, piso ou chave..." autocomplete="off" style="width: 100%; padding: 12px 14px 12px 40px !important;" />
+            <input type="text" id="settings-room-search" class="form-input" inputmode="search" placeholder="Pesquisar número, nome da sala ou setor..." autocomplete="off" style="width: 100%; padding: 12px 14px 12px 40px !important;" />
             <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
 
@@ -386,7 +386,7 @@ export class App {
           this.openRoomModal({
             loc, groupedSectors,
             onSave: async (data) => {
-              await locationsRepo.update(id, { name: data.name, sectorName: data.sectorName, description: data.description });
+              await locationsRepo.update(id, { name: data.name, number: data.number, sectorName: data.sectorName, description: data.description });
               toast.success('Sala atualizada!');
               this.renderSettings();
             }
@@ -412,7 +412,7 @@ export class App {
       container.innerHTML = rooms.map(room => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--color-card); border:1px solid var(--color-border); border-radius:var(--radius-sm); margin-bottom:4px;">
           <div>
-            <div style="font-size:0.9rem; font-weight:700; color:var(--color-text);">${this.esc(room.name)}</div>
+            <div style="font-size:0.9rem; font-weight:700; color:var(--color-text);">${this.esc(locationLabel(room))}</div>
             <div style="font-size:0.7rem; color:var(--color-text-muted); margin-top:2px;">${this.esc(room.sectorName)} ${room.description ? '— ' + this.esc(room.description) : ''}</div>
           </div>
           <div style="display:flex; gap:12px;">
@@ -462,6 +462,7 @@ export class App {
         } else {
           const filtered = flatRooms.filter(r => 
             (r.name && r.name.toLowerCase().includes(query)) || 
+            (r.number && String(r.number).toLowerCase().includes(query)) ||
             (r.sectorName && r.sectorName.toLowerCase().includes(query)) ||
             (r.description && r.description.toLowerCase().includes(query))
           );
@@ -478,7 +479,7 @@ export class App {
         onSave: async (data) => {
           const matchedSec = groupedSectors.find(s => s.name.toLowerCase() === data.sectorName.toLowerCase());
           const sectorId = matchedSec ? matchedSec.id : 'SEC_CUSTOM';
-          await locationsRepo.create({ name: data.name, sectorId, sectorName: data.sectorName, description: data.description, isCustom: true });
+          await locationsRepo.create({ name: data.name, number: data.number, sectorId, sectorName: data.sectorName, description: data.description, isCustom: true });
           toast.success('Sala adicionada!');
           this.renderSettings();
         }
@@ -537,6 +538,11 @@ export class App {
 
         <form id="form-room-editor" onsubmit="return false;">
           <div class="form-group">
+            <label class="form-label" for="input-room-number">Número da Divisão</label>
+            <input type="text" id="input-room-number" class="form-input" inputmode="text" autocomplete="off" maxlength="12" placeholder="Ex: 12 ou 12A" value="${isEdit ? this.esc(loc.number || '') : ''}" />
+          </div>
+
+          <div class="form-group">
             <label class="form-label" for="input-room-name">Nome da Sala / Equipamento *</label>
             <input type="text" id="input-room-name" class="form-input" placeholder="Ex: Sala de Bombas #2" value="${isEdit ? this.esc(loc.name || '') : ''}" required />
           </div>
@@ -571,6 +577,7 @@ export class App {
     if (saveBtn) {
       saveBtn.onclick = () => {
         const name = modal.querySelector('#input-room-name')?.value?.trim();
+        const number = modal.querySelector('#input-room-number')?.value?.trim() || '';
         const sectorName = modal.querySelector('#select-room-sector')?.value?.trim();
         const description = modal.querySelector('#input-room-desc')?.value?.trim() || '';
 
@@ -581,7 +588,7 @@ export class App {
 
         close();
         if (onSave) {
-          onSave({ name, sectorName, description });
+          onSave({ name, number, sectorName, description });
         }
       };
     }
