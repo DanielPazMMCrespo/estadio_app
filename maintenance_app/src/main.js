@@ -278,6 +278,10 @@ export class App {
   async renderMap() {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
+    // Cancela o redesenho da pesquisa que a vista anterior tenha a caminho.
+    if (this.stadiumNavigator && typeof this.stadiumNavigator.destroy === 'function') {
+      this.stadiumNavigator.destroy();
+    }
     this.stadiumNavigator = new StadiumNavigatorComponent(feed, {
       onNewReportForRoom: (roomId, roomName) => {
         this.openNewReport({ locationId: roomId, locationName: roomName });

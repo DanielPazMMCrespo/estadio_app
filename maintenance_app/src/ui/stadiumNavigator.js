@@ -57,6 +57,9 @@ export class StadiumNavigatorComponent {
     this.searchQuery = '';
     this.reports = [];
     this.sectors = [];
+    // Temporizador da pesquisa (ver bindEvents). Guardado para se poder
+    // cancelar: sem isto, sair da vista deixava um redesenho a caminho.
+    this.searchTimer = null;
   }
 
   sectorShortName(sec) {
@@ -337,13 +340,22 @@ export class StadiumNavigatorComponent {
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value;
-        this.refreshBody({ focoNaPesquisa: true });
+        // Espera 200 ms antes de redesenhar. Sem isto, cada letra escrita
+        // voltava a desenhar as 33 salas e a religar todos os ouvintes — a
+        // escrever depressa, num telemóvel de obra, isso engasgava o campo.
+        // O que se vê escrito é o valor nativo do input, por isso não há
+        // atraso visível a escrever; só a lista é que espera.
+        clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.refreshBody({ focoNaPesquisa: true });
+        }, 200);
       });
     }
 
     const clearSearch = this.container.querySelector('#btn-clear-sec-search');
     if (clearSearch) {
       clearSearch.addEventListener('click', () => {
+        clearTimeout(this.searchTimer);
         this.searchQuery = '';
         this.refreshBody();
       });
@@ -399,6 +411,12 @@ export class StadiumNavigatorComponent {
         }
       });
     });
+  }
+
+  /** Chamar ao sair da vista: cancela o redesenho da pesquisa que esteja a caminho. */
+  destroy() {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = null;
   }
 
   refreshBody({ focoNaPesquisa = false } = {}) {
