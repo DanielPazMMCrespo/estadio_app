@@ -66,7 +66,7 @@ export class MoreViewComponent {
     if (!this.container) return;
 
     const rows = MENU_ITEMS.map(item => `
-          <button type="button" class="more-menu-item ht-tile touch-target${item.wide ? ' ht-tile-wide' : ''}" data-target="${item.target}" aria-label="${item.label}">
+          <button type="button" class="more-menu-item ht-tile touch-target${item.wide ? ' ht-tile-wide ht-tile-lay' : ''}" data-target="${item.target}" aria-label="${item.label}">
             <span class="ht-icon ${item.tint}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${item.icon}</svg>
             </span>

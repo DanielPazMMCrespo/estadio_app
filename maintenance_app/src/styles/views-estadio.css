@@ -1,0 +1,166 @@
+/* =========================================================================
+   views-estadio.css — o ecrã "Estádio" (setores e salas).
+   A grelha e a caixa vêm de styles/quadrados.css, iguais à página principal
+   e ao menu Mais. Aqui fica só o que é próprio deste ecrã: o cabeçalho, o
+   botão de voltar, a cor do glifo de cada setor e o botão "Ver".
+   Regras: nenhum texto abaixo de 18px, nenhuma cor literal, nenhum rem
+   em font-size, cada alvo de toque folgado.
+   ========================================================================= */
+
+/* ---- Cabeçalho do ecrã ---- */
+
+.ev-header {
+  margin-bottom: 14px;
+}
+
+.ev-title {
+  font-size: var(--fs-display);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+  line-height: var(--lh-tight);
+}
+
+.ev-subtitle {
+  font-size: var(--fs-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--lh-tight);
+}
+
+/* ---- Voltar aos setores ----
+   Fica em cima e com a largura toda. Uma seta pequena no canto não se
+   acerta de luvas; esta barra tem 56px de altura. ---- */
+
+.ev-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  text-align: left;
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ev-back:active {
+  background: var(--color-surface);
+}
+
+.ev-back:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+.ev-back-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.ev-back-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.ev-back-label {
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: var(--lh-tight);
+}
+
+/* ---- Cor do glifo de cada setor ----
+   Só o glifo é colorido; a caixa do quadrado fica neutra. As classes seguem
+   o campo `icon` de STADIUM_HIERARCHY. ---- */
+
+.ev-ico-poente    { background: var(--tint-amber);   color: var(--sec-poente); }
+.ev-ico-nascente  { background: var(--tint-blue);    color: var(--sec-nascente); }
+.ev-ico-norte     { background: var(--tint-neutral); color: var(--sec-norte); }
+.ev-ico-sul       { background: var(--tint-red);     color: var(--sec-sul); }
+.ev-ico-relvado   { background: var(--tint-green);   color: var(--sec-relvado); }
+.ev-ico-tecnica   { background: var(--tint-amber);   color: var(--sec-tecnica); }
+.ev-ico-exterior  { background: var(--tint-neutral); color: var(--sec-exterior); }
+.ev-ico-room      { background: var(--tint-neutral); color: var(--color-text-secondary); }
+
+/* O nome do setor um ponto abaixo do nome da sala: "Zonas Técnicas" a 21px
+   parte em duas linhas e faz o quadrado crescer sem necessidade. */
+.ev-sector .ht-name {
+  font-size: var(--fs-body);
+}
+
+/* ---- Caixa de sala ---- */
+
+.ev-room-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* O botão "Ver" leva o técnico ao histórico daquela sala. Só aparece quando
+   há avarias abertas ali, por isso não precisa de explicar mais. */
+.ev-room-view {
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  color: var(--color-brand-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-label);
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ev-room-view:active {
+  background: var(--color-bg-alt);
+}
+
+.ev-room-view:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+/* Com o botão "Ver" à direita, o número no canto ficava por cima dele. */
+.ev-room .ht-flag {
+  position: static;
+  flex-shrink: 0;
+}
+
+/* ---- Nada encontrado ---- */
+
+.ev-empty {
+  grid-column: 1 / -1;
+  padding: 24px 16px;
+  text-align: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.ev-empty-title {
+  font-size: var(--fs-title);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 6px 0;
+  line-height: var(--lh-tight);
+}
+
+.ev-empty-desc {
+  font-size: var(--fs-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--lh-body);
+}

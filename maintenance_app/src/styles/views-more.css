@@ -52,16 +52,6 @@
 
 /* ---- O sétimo quadrado ----
    Sete não dá grelha de dois. As Definições ficam com a largura toda, mas
-   deitadas: um quadrado alto e vazio só para uma palavra chamava mais
-   atenção do que aquilo que merece. É a opção menos usada do ecrã. ---- */
-
-.more-view .ht-tile-wide {
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  min-height: 88px;
-}
-
-.more-view .ht-tile-wide .ht-name {
-  margin-top: 0;
-}
+   deitadas (.ht-tile-lay, de quadrados.css): um quadrado alto e vazio só
+   para uma palavra chamava mais atenção do que aquilo que merece. É a
+   opção menos usada do ecrã. ---- */
