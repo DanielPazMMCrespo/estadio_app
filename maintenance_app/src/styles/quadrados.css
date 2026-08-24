@@ -1,5 +1,8 @@
 /* =========================================================================
-   views-home-tiles.css — a página principal em quadrados (Opção B).
+   quadrados.css — a grelha de quadrados de navegação.
+   Serve a página principal (Hoje) e o menu Mais. Ficheiro partilhado de
+   propósito: os dois ecrãs têm de ficar iguais ao pixel, e duas cópias das
+   mesmas regras acabam sempre a divergir.
    Um quadrado grande por destino. Nada de listas, nada de números soltos.
    Regras: nenhum texto abaixo de 18px, nenhuma cor literal, nenhum rem
    em font-size, cada quadrado com alvo de toque muito acima dos 48px.

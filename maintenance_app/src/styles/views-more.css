@@ -1,8 +1,10 @@
 /* =========================================================================
    views-more.css — o ecrã "Mais".
-   É o ecrã mais simples da app: cinco linhas grandes e nada mais.
+   É o ecrã mais simples da app: sete quadrados grandes e nada mais.
+   O estilo do quadrado vem de styles/quadrados.css, igual à página
+   principal. Aqui fica o cabeçalho e a cor do glifo de cada destino.
    Regras: nenhum texto abaixo de 18px, nenhuma cor literal, nenhum rem
-   em font-size, cada linha com alvo de toque folgado.
+   em font-size, cada quadrado com alvo de toque folgado.
    ========================================================================= */
 
 .more-view {
@@ -33,75 +35,33 @@
   line-height: 1.35;
 }
 
-/* ---- Lista de linhas ---- */
+/* ---- Cor do glifo de cada destino ----
+   A grelha e o quadrado vivem em styles/quadrados.css, partilhados com a
+   página principal. Aqui fica só o que é próprio deste ecrã: a cor.
+   Só o glifo é colorido; a caixa do quadrado fica neutra.
+   O Estádio, as Ferramentas e o Equipamento repetem a cor que já têm na
+   página principal — o mesmo destino nunca muda de cor. ---- */
 
-.mv-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.mv-ico-reports    { background: var(--tint-neutral); color: var(--sec-exterior); }
+.mv-ico-metrics    { background: var(--tint-green);   color: var(--color-success-text); }
+.mv-ico-tools      { background: var(--tint-amber);   color: var(--color-warning-text); }
+.mv-ico-equipment  { background: var(--tint-neutral); color: var(--sec-norte); }
+.mv-ico-sectors    { background: var(--tint-blue);    color: var(--sec-nascente); }
+.mv-ico-notes      { background: var(--tint-amber);   color: var(--sec-poente); }
+.mv-ico-settings   { background: var(--tint-neutral); color: var(--color-text-secondary); }
 
-.mv-item {
-  display: flex;
+/* ---- O sétimo quadrado ----
+   Sete não dá grelha de dois. As Definições ficam com a largura toda, mas
+   deitadas: um quadrado alto e vazio só para uma palavra chamava mais
+   atenção do que aquilo que merece. É a opção menos usada do ecrã. ---- */
+
+.more-view .ht-tile-wide {
+  flex-direction: row;
   align-items: center;
   gap: 16px;
-  width: 100%;
-  min-height: 72px; /* acima do mínimo de 64px pedido */
-  padding: 16px;
-  text-align: left;
-  background: var(--color-card);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  min-height: 88px;
 }
 
-.mv-item:active {
-  background: var(--color-bg-alt);
-  transform: scale(0.995);
-}
-
-.mv-item:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus-ring);
-}
-
-.mv-item-icon {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  color: var(--color-brand-primary);
-}
-
-.mv-item-icon svg {
-  width: 28px;
-  height: 28px;
-}
-
-/* O rótulo é a única coisa que ele precisa de ler. Grande e a negrito. */
-.mv-item-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: var(--fs-body-lg);
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--color-text);
-}
-
-.mv-item-chevron {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-}
-
-.mv-item-chevron svg {
-  width: 24px;
-  height: 24px;
+.more-view .ht-tile-wide .ht-name {
+  margin-top: 0;
 }
