@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Três propostas para o ecrã Hoje — App do Estádio</title>
+<style>
+/* Tokens copiados de maintenance_app/src/styles/theme.css (tema claro).
+   Ficheiro de maqueta: não faz parte da app. */
+:root {
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F4F6F8;
+  --color-card: #FFFFFF;
+  --color-surface: #EFF2F6;
+  --color-border: #D8DEE4;
+  --color-border-subtle: #E6EAEF;
+  --color-text: #14181E;
+  --color-text-secondary: #4A5560;
+  --color-on-accent: #FFFFFF;
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fs-nav: 18px; --fs-label: 18px; --fs-body: 19px; --fs-body-lg: 21px;
+  --fs-title: 24px; --fs-display: 30px; --fs-kpi: 34px;
+  --lh-tight: 1.25; --lh-body: 1.5;
+  --color-brand-primary: #557D14;
+  --color-brand-text: #4E7215;
+  --color-success: #059669; --color-success-text: #047857;
+  --color-gold: #B45309; --color-warning-text: #B45309;
+  --color-danger: #C81E1E; --color-danger-text: #B01717;
+  --color-info: #0369A1; --color-info-text: #075985;
+  --tint-blue: #EFF5E2; --tint-green: #E8F6F0; --tint-amber: #FCF3E7;
+  --tint-red: #FCECEC; --tint-neutral: #EFF2F6;
+  --sec-poente:#B45309; --sec-nascente:#0369A1; --sec-norte:#6D28D9;
+  --sec-sul:#BE123C; --sec-relvado:#047857; --sec-tecnica:#92400E; --sec-exterior:#475569;
+  --radius-sm: 8px; --radius-md: 10px; --radius-card: 12px; --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(20,24,30,.06), 0 1px 3px rgba(20,24,30,.04);
+  --shadow-md: 0 2px 6px rgba(20,24,30,.08), 0 4px 12px rgba(20,24,30,.06);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: var(--font-family); color: var(--color-text);
+  background: #E7EBF0; padding: 28px 20px 40px;
+}
+h1.pg { font-size: 26px; margin: 0 0 6px; }
+p.pg { font-size: 17px; color: var(--color-text-secondary); margin: 0 0 26px; max-width: 96ch; line-height: 1.5; }
+
+.palco { display: flex; gap: 26px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px; }
+.coluna { flex: 0 0 auto; }
+.coluna > h2 { font-size: 20px; margin: 0 0 2px; }
+.coluna > .lead { font-size: 16px; color: var(--color-text-secondary); margin: 0 0 12px; width: 393px; line-height: 1.45; }
+
+/* moldura de telemóvel: 393x851 exatos, o mesmo do Pixel 5 */
+.tel {
+  width: 393px; height: 851px; background: var(--color-bg-alt);
+  border-radius: 22px; box-shadow: 0 8px 30px rgba(20,24,30,.18);
+  overflow: hidden; display: flex; flex-direction: column; position: relative;
+}
+.tel-cab {
+  flex: 0 0 auto; height: 60px; background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+}
+.tel-cab .logo { width: 34px; height: 34px; border-radius: 9px; background: var(--color-brand-primary); flex: 0 0 auto; }
+.tel-cab .quem { font-size: var(--fs-label); font-weight: 700; }
+.tel-cab .liga { margin-left: auto; font-size: 15px; font-weight: 700; color: var(--color-success-text); background: var(--tint-green); padding: 4px 9px; border-radius: 999px; }
+
+.tel-corpo { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 18px; }
+
+.tel-nav {
+  flex: 0 0 auto; height: 66px; background: var(--color-bg);
+  border-top: 1px solid var(--color-border); display: flex;
+}
+.tel-nav button {
+  flex: 1; background: none; border: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; cursor: pointer;
+  font-family: inherit; color: var(--color-text-secondary);
+}
+.tel-nav button.on { color: var(--color-brand-text); }
+.tel-nav .gl { width: 22px; height: 22px; }
+.tel-nav .rot { font-size: var(--fs-nav); font-weight: 700; }
+
+/* --------- peças comuns --------- */
+.cta {
+  width: 100%; min-height: 62px; border: 0; border-radius: var(--radius-card);
+  background: var(--color-brand-primary); color: var(--color-on-accent);
+  font-family: inherit; font-size: var(--fs-body-lg); font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  cursor: pointer; box-shadow: var(--shadow-md);
+}
+.cta .sub { display: block; font-size: var(--fs-label); font-weight: 600; opacity: .92; }
+
+.saudacao { font-size: var(--fs-display); font-weight: 800; margin: 2px 0 2px; line-height: var(--lh-tight); }
+.local { font-size: var(--fs-label); color: var(--color-text-secondary); margin: 0 0 14px; }
+
+.cartao {
+  background: var(--color-card); border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-sm);
+  padding: 14px; margin-bottom: 12px;
+}
+.cartao-cab { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cartao-tit { font-size: var(--fs-title); font-weight: 800; margin: 0; }
+.cartao-lig { background: none; border: 0; font-family: inherit; font-size: var(--fs-label); font-weight: 700; color: var(--color-brand-text); cursor: pointer; padding: 6px; }
+
+/* faixa de estado (KPI tocáveis) */
+.faixa { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.kpi {
+  min-height: 82px; border: 1px solid var(--color-border); border-radius: var(--radius-card);
+  background: var(--color-card); cursor: pointer; font-family: inherit;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  box-shadow: var(--shadow-sm);
+}
+.kpi b { font-size: var(--fs-kpi); font-weight: 800; line-height: 1; }
+.kpi span { font-size: var(--fs-label); font-weight: 700; color: var(--color-text-secondary); }
+.kpi.crit { background: var(--tint-red); border-color: #F3C9C9; }
+.kpi.crit b { color: var(--color-danger-text); }
+.kpi.crit span { color: var(--color-danger-text); }
+.kpi.curso { background: var(--tint-amber); border-color: #F0DCC0; }
+.kpi.curso b, .kpi.curso span { color: var(--color-warning-text); }
+.kpi.hoje b { color: var(--color-brand-text); }
+
+/* linha de tarefa com marcar-feita de 1 toque */
+.tarefa { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--color-border-subtle); }
+.tarefa:first-of-type { border-top: 0; }
+.chk {
+  width: 48px; height: 48px; flex: 0 0 auto; border-radius: 50%;
+  border: 2px solid var(--color-border); background: var(--color-card); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--color-success);
+}
+.chk svg { width: 24px; height: 24px; opacity: .22; }
+.tarefa-txt { min-width: 0; flex: 1; display: block; overflow: hidden; }
+.tarefa-nome { display: block; font-size: var(--fs-body); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tarefa-meta { display: block; font-size: var(--fs-label); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel { font-size: 15px; font-weight: 800; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+.sel-crit { background: var(--tint-red); color: var(--color-danger-text); }
+.sel-med { background: var(--tint-amber); color: var(--color-warning-text); }
+.sel-curso { background: var(--tint-blue); color: var(--color-info-text); }
+.sel-ok { background: var(--tint-green); color: var(--color-success-text); }
+
+/* linha de registo */
+.reg { display: flex; gap: 11px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--color-border-subtle); cursor: pointer; }
+.reg:first-of-type { border-top: 0; }
+.pt { width: 12px; height: 12px; border-radius: 50%; margin-top: 6px; flex: 0 0 auto; }
+.pt-crit { background: var(--color-danger); }
+.pt-med { background: var(--color-gold); }
+.pt-low { background: var(--color-text-secondary); }
+.reg-txt { min-width: 0; flex: 1; display: block; overflow: hidden; }
+.reg-nome { display: block; font-size: var(--fs-body); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reg-meta { display: block; font-size: var(--fs-label); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* grelha de quadrados */
+.grelha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qd {
+  position: relative; min-height: 118px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); background: var(--color-card); cursor: pointer;
+  font-family: inherit; box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+  font-size: var(--fs-label);
+}
+.qd-larga { grid-column: 1 / -1; }
+.qd .ic { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: var(--tint-neutral); }
+.qd .ic svg { width: 24px; height: 24px; }
+.qd .nm { font-size: var(--fs-body-lg); font-weight: 800; }
+.qd .mt { font-size: var(--fs-label); color: var(--color-text-secondary); }
+.qd .bd {
+  position: absolute; top: 8px; right: 8px; min-width: 32px; height: 30px; padding: 0 8px;
+  border-radius: 999px; background: var(--color-surface); color: var(--color-text);
+  font-size: var(--fs-label); font-weight: 800; display: flex; align-items: center; justify-content: center;
+}
+.qd .bd-crit { background: var(--color-danger); color: #fff; }
+.qd .bd-ok { background: var(--tint-green); color: var(--color-success-text); }
+
+/* quadrado vivo: numero grande dentro */
+.qdv {
+  position: relative; min-height: 126px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); background: var(--color-card); cursor: pointer;
+  font-family: inherit; box-shadow: var(--shadow-sm); padding: 12px 13px;
+  display: flex; flex-direction: column; justify-content: space-between; text-align: left;
+}
+.qdv .topo { display: flex; align-items: center; justify-content: space-between; }
+.qdv .ic { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--tint-neutral); }
+.qdv .ic svg { width: 22px; height: 22px; }
+.qdv .num { font-size: var(--fs-kpi); font-weight: 800; line-height: 1; }
+.qdv .nm { font-size: var(--fs-body-lg); font-weight: 800; }
+.qdv .mt { font-size: var(--fs-label); color: var(--color-text-secondary); }
+.qdv.alerta { border-color: #F3C9C9; background: var(--tint-red); }
+.qdv.alerta .num, .qdv.alerta .mt { color: var(--color-danger-text); }
+.qdv.alerta .ic { background: #F8DADA; color: var(--color-danger-text); }
+.qdv.calmo .num { color: var(--color-success-text); }
+
+.aviso { font-size: var(--fs-label); font-weight: 700; color: var(--color-warning-text); background: var(--tint-amber); border: 1px solid #F0DCC0; border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 10px; }
+
+.notas { width: 393px; margin-top: 14px; font-size: 16px; line-height: 1.5; color: var(--color-text); }
+.notas h3 { font-size: 17px; margin: 12px 0 5px; }
+.notas ul { margin: 0; padding-left: 20px; }
+.notas li { margin-bottom: 4px; }
+.tag { display: inline-block; font-size: 14px; font-weight: 800; padding: 2px 7px; border-radius: 5px; }
+.tag-bom { background: var(--tint-green); color: var(--color-success-text); }
+.tag-mau { background: var(--tint-red); color: var(--color-danger-text); }
+
+</style>
+</head>
+<body>
+
+<h1 class="pg">Três propostas para o ecrã <em>Hoje</em></h1>
+<p class="pg">
+  Cada moldera tem 393 × 851 px — o mesmo do Pixel 5 usado nos testes. Os dados são os
+  mesmos nas três: <strong>7 avarias abertas, 3 críticas, 2 em curso, 4 tarefas para hoje</strong>.
+  O cabeçalho e a barra inferior são os que a app já tem. O que muda é só o meio.
+</p>
+
+<div class="palco">
+
+<!-- ================================================================== -->
+<!-- PROPOSTA A                                                          -->
+<!-- ================================================================== -->
+<div class="coluna" id="col-A">
+  <h2>A — Quadrados puros</h2>
+  <p class="lead">A ideia do Márcio, levada ao melhor que consegue ser. A home é uma
+  rampa de lançamento: alvos enormes, nada para ler, zero decisões. Tirei os três
+  quadrados que repetiam a barra de baixo e usei o espaço para aumentar os que ficam.</p>
+
+  <div class="tel" data-prop="A">
+    <div class="tel-cab">
+      <div class="logo"></div><span class="quem">Daniel</span><span class="liga">Ligado</span>
+    </div>
+    <div class="tel-corpo">
+      <button class="cta" data-nav>
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Registar avaria<span class="sub">Foto, voz ou texto</span></span>
+      </button>
+
+      <div class="grelha" style="margin-top:12px">
+        <button class="qd" data-nav style="min-height:158px">
+          <span class="ic" style="color:var(--sec-relvado)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          <span class="nm">Estádio</span><span class="mt">33 salas</span>
+        </button>
+        <button class="qd" data-nav style="min-height:158px">
+          <span class="ic" style="color:var(--sec-tecnica)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+          <span class="nm">Ferramentas</span><span class="mt">Stock</span>
+        </button>
+        <button class="qd" data-nav style="min-height:158px">
+          <span class="ic" style="color:var(--sec-nascente)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg></span>
+          <span class="nm">Equipamento</span><span class="mt">Instalado</span>
+        </button>
+        <button class="qd" data-nav style="min-height:158px">
+          <span class="ic" style="color:var(--sec-norte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+          <span class="nm">Métricas</span><span class="mt">Do mês</span>
+        </button>
+      </div>
+    </div>
+    <nav class="tel-nav">
+      <button class="on"><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rot">Hoje</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="rot">Avarias</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="rot">Tarefas</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span class="rot">Mais</span></button>
+    </nav>
+  </div>
+
+  <div class="notas">
+    <h3><span class="tag tag-bom">Ganha</span></h3>
+    <ul>
+      <li>Alvos de 158 px. De luvas, ao sol, acerta-se sem olhar.</li>
+      <li>Nada para ler. Zero carga na cabeça.</li>
+      <li>Sem scroll. Tudo cabe no primeiro ecrã.</li>
+      <li>Um só padrão visual em toda a app.</li>
+    </ul>
+    <h3><span class="tag tag-mau">Perde</span></h3>
+    <ul>
+      <li>Continua a não dizer nada. As 3 críticas ficam invisíveis.</li>
+      <li>Ver as tarefas de hoje: 1 toque. Marcar uma feita: 2 toques.</li>
+      <li>O técnico tem de se lembrar de ir ver. A app não o avisa.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- PROPOSTA B                                                          -->
+<!-- ================================================================== -->
+<div class="coluna" id="col-B">
+  <h2>B — Lista com dados</h2>
+  <p class="lead">A ideia do Daniel. A home é um painel: diz o estado do estádio e deixa
+  fechar tarefas ali mesmo. Os quadrados desaparecem; a navegação fica toda na barra de
+  baixo e no menu "Mais".</p>
+
+  <div class="tel" data-prop="B">
+    <div class="tel-cab">
+      <div class="logo"></div><span class="quem">Daniel</span><span class="liga">Ligado</span>
+    </div>
+    <div class="tel-corpo">
+      <h2 class="saudacao">Bom dia!</h2>
+      <p class="local">Estádio Municipal de Leiria</p>
+
+      <button class="cta" data-nav>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Registar avaria<span class="sub">Foto, voz ou texto</span></span>
+      </button>
+
+      <div class="faixa" style="margin-top:12px">
+        <button class="kpi crit" data-dado><b>3</b><span>Críticas</span></button>
+        <button class="kpi curso" data-dado><b>2</b><span>Em curso</span></button>
+        <button class="kpi" data-dado><b>7</b><span>Abertas</span></button>
+      </div>
+
+      <div class="cartao">
+        <div class="cartao-cab">
+          <h3 class="cartao-tit">Tarefas de hoje</h3>
+          <button class="cartao-lig" data-nav>Ver as 4</button>
+        </div>
+        <div class="tarefa" data-dado>
+          <button class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 5"/></svg></button>
+          <span class="tarefa-txt"><span class="tarefa-nome">Verificar níveis do depósito</span><span class="tarefa-meta">Sala de Bombas &amp; Caldeiras</span></span>
+          <span class="sel sel-crit">Crítica</span>
+        </div>
+        <div class="tarefa" data-dado>
+          <button class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 5"/></svg></button>
+          <span class="tarefa-txt"><span class="tarefa-nome">Limpar filtros AVAC</span><span class="tarefa-meta">Balneário Principal</span></span>
+          <span class="sel sel-med">Média</span>
+        </div>
+        <div class="tarefa" data-dado>
+          <button class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 5"/></svg></button>
+          <span class="tarefa-txt"><span class="tarefa-nome">Cortar relva do relvado principal</span><span class="tarefa-meta">Relvado Principal</span></span>
+          <span class="sel sel-med">Média</span>
+        </div>
+      </div>
+
+      <div class="cartao">
+        <div class="cartao-cab">
+          <h3 class="cartao-tit">Últimos registos</h3>
+          <button class="cartao-lig" data-nav>Histórico</button>
+        </div>
+        <div class="reg" data-dado>
+          <span class="pt pt-crit"></span>
+          <span class="reg-txt"><span class="reg-nome">Fuga de água na caldeira 2</span><span class="reg-meta">08:12 · Sala de Bombas &amp; Caldeiras</span></span>
+          <span class="sel sel-crit">Crítica</span>
+        </div>
+        <div class="reg" data-dado>
+          <span class="pt pt-crit"></span>
+          <span class="reg-txt"><span class="reg-nome">Bomba de rega com ruído</span><span class="reg-meta">09:04 · Sistema de Rega &amp; Aspersores</span></span>
+          <span class="sel sel-curso">Em curso</span>
+        </div>
+        <div class="reg" data-dado>
+          <span class="pt pt-med"></span>
+          <span class="reg-txt"><span class="reg-nome">Porta do balneário não fecha</span><span class="reg-meta">09:37 · Balneário Visitante</span></span>
+          <span class="sel sel-curso">Em curso</span>
+        </div>
+      </div>
+    </div>
+    <nav class="tel-nav">
+      <button class="on"><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rot">Hoje</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="rot">Avarias</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="rot">Tarefas</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span class="rot">Mais</span></button>
+    </nav>
+  </div>
+
+  <div class="notas">
+    <h3><span class="tag tag-bom">Ganha</span></h3>
+    <ul>
+      <li>As 3 críticas vêem-se sem tocar em nada.</li>
+      <li>Marcar tarefa feita: 1 toque, no botão de 48 px.</li>
+      <li>Cada número da faixa é um atalho para a lista já filtrada.</li>
+    </ul>
+    <h3><span class="tag tag-mau">Perde</span></h3>
+    <ul>
+      <li>Alvos menores: linhas de 66 px em vez de quadrados de 158 px.</li>
+      <li>Há texto para ler. Ao sol e com pressa, é mais lento a apontar.</li>
+      <li>Precisa de scroll: 1,7 ecrãs.</li>
+      <li>Estádio, Ferramentas e Equipamento voltam a ficar a 2 toques.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- PROPOSTA C                                                          -->
+<!-- ================================================================== -->
+<div class="coluna" id="col-C">
+  <h2>C — Quadrados vivos <span class="tag tag-bom">híbrido</span></h2>
+  <p class="lead">A grelha do Márcio fica, com o tamanho e a calma dela. Mas cada quadrado
+  passa a dizer o seu número. E acima da grelha entra uma só linha: a coisa mais urgente
+  agora, com o botão de fechar ao lado. Uma informação, uma ação, um toque.</p>
+
+  <div class="tel" data-prop="C">
+    <div class="tel-cab">
+      <div class="logo"></div><span class="quem">Daniel</span><span class="liga">Ligado</span>
+    </div>
+    <div class="tel-corpo">
+      <button class="cta" data-nav>
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Registar avaria<span class="sub">Foto, voz ou texto</span></span>
+      </button>
+
+      <!-- a seguir: uma linha, a coisa mais urgente, com acao de 1 toque -->
+      <div class="cartao" style="margin-top:12px; border-color:#F3C9C9; background:var(--tint-red)" data-dado>
+        <div style="display:flex;align-items:center;gap:11px">
+          <button class="chk" style="border-color:#E5A9A9;background:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 5"/></svg></button>
+          <span class="tarefa-txt">
+            <span class="tarefa-meta" style="color:var(--color-danger-text);font-weight:800">A seguir · crítica</span>
+            <span class="tarefa-nome">Verificar níveis do depósito</span>
+            <span class="tarefa-meta">Sala de Bombas &amp; Caldeiras</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="grelha">
+        <button class="qdv alerta" data-dado>
+          <div class="topo">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <span class="num">7</span>
+          </div>
+          <span><span class="nm">Avarias</span><br><span class="mt">3 críticas</span></span>
+        </button>
+
+        <button class="qdv" data-dado>
+          <div class="topo">
+            <span class="ic" style="color:var(--color-brand-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+            <span class="num">4</span>
+          </div>
+          <span><span class="nm">Tarefas</span><br><span class="mt">hoje · 1 crítica</span></span>
+        </button>
+
+        <button class="qdv" data-dado>
+          <div class="topo">
+            <span class="ic" style="color:var(--sec-relvado)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+            <span class="num" style="color:var(--color-danger-text)">4</span>
+          </div>
+          <span><span class="nm">Estádio</span><br><span class="mt">setores com avaria</span></span>
+        </button>
+
+        <button class="qdv calmo" data-dado>
+          <div class="topo">
+            <span class="ic" style="color:var(--sec-tecnica)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+            <span class="num" style="color:var(--color-warning-text)">2</span>
+          </div>
+          <span><span class="nm">Ferramentas</span><br><span class="mt">em falta no stock</span></span>
+        </button>
+
+        <button class="qd qd-larga" data-nav style="min-height:76px;flex-direction:row;gap:12px">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
+          <span class="nm">Mais</span>
+          <span class="mt">Equipamento · Métricas · Notas · Definições</span>
+        </button>
+      </div>
+    </div>
+    <nav class="tel-nav">
+      <button class="on"><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rot">Hoje</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="rot">Avarias</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="rot">Tarefas</span></button>
+      <button><span class="gl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span class="rot">Mais</span></button>
+    </nav>
+  </div>
+
+  <div class="notas">
+    <h3><span class="tag tag-bom">Ganha</span></h3>
+    <ul>
+      <li>Alvos de 126–158 px. Mantém o ganho de luvas do Márcio.</li>
+      <li>Diz o estado do estádio sem um único toque: 7, 3 críticas, 2 em curso, 4 tarefas.</li>
+      <li>Marcar a tarefa mais urgente: 1 toque.</li>
+      <li>Um quadrado vermelho vê-se de longe. Não é preciso ler para saber que há um problema.</li>
+      <li>Cabe no primeiro ecrã, sem scroll.</li>
+      <li>O quadrado "Mais" deitado substitui os 3 que repetiam a barra de baixo.</li>
+    </ul>
+    <h3><span class="tag tag-mau">Perde</span></h3>
+    <ul>
+      <li>Mais complexo de escrever: os números têm de vir da base de dados a cada abertura.</li>
+      <li>Um número errado é pior que número nenhum — obriga a corrigir o bug C6.</li>
+      <li>A cor dos quadrados muda com o estado. Menos previsível para quem já decorou o ecrã.</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /palco -->
+
+<script>
+// medição: para cada proposta, quanto do primeiro ecrã é navegação e quantos factos mostra
+window.__medirPropostas = function () {
+  const out = {};
+  document.querySelectorAll('.tel[data-prop]').forEach(tel => {
+    const corpo = tel.querySelector('.tel-corpo');
+    const cr = corpo.getBoundingClientRect();
+    const area = (el) => {
+      const r = el.getBoundingClientRect();
+      const top = Math.max(r.top, cr.top), bot = Math.min(r.bottom, cr.bottom);
+      const left = Math.max(r.left, cr.left), right = Math.min(r.right, cr.right);
+      return (bot <= top || right <= left) ? 0 : (bot - top) * (right - left);
+    };
+    const total = cr.width * cr.height;
+    let nav = 0;
+    corpo.querySelectorAll('[data-nav]').forEach(e => nav += area(e));
+    const factos = [...corpo.querySelectorAll('[data-dado]')].filter(e => area(e) > 0).length;
+    const umToque = [...corpo.querySelectorAll('.chk')].filter(e => area(e) > 0).length;
+    out[tel.dataset.prop] = {
+      pctNavegacao: Math.round(100 * nav / total),
+      factosVisiveis: factos,
+      acoesDeUmToque: umToque,
+      ecransDeScroll: +(corpo.scrollHeight / cr.height).toFixed(2)
+    };
+  });
+  return out;
+};
+</script>
+</body>
+</html>
