@@ -17,7 +17,11 @@ export class HistoryComponent {
     this.allReports = [];
     this.filteredReports = [];
     this.searchQuery = '';
-    this.activeFilter = options.initialFilter || 'all'; // 'all' | 'critical' | 'pending' | 'in_progress' | 'resolved'
+    // 'all' | 'open' | 'critical' | 'pending' | 'in_progress' | 'resolved'
+    // 'open' = pendentes + em curso. É o que o quadrado Avarias do ecrã Hoje
+    // aponta: o número grande desse quadrado conta as abertas, e a lista que
+    // abre tem de mostrar exatamente essas.
+    this.activeFilter = options.initialFilter || 'all';
     this.sectorFilter = options.initialSector || null;
     // Temporizador da pesquisa: sem isto, cada tecla redesenhava a lista toda.
     this.searchTimer = null;
@@ -64,6 +68,7 @@ export class HistoryComponent {
         <!-- Filter Chips Carousel -->
         <div class="filter-chips-row">
           <button type="button" class="filter-chip ${this.activeFilter === 'all' ? 'active' : ''}" data-filter="all">Todos</button>
+          <button type="button" class="filter-chip ${this.activeFilter === 'open' ? 'active' : ''}" data-filter="open">Abertas</button>
           <button type="button" class="filter-chip crit ${this.activeFilter === 'critical' ? 'active' : ''}" data-filter="critical">Críticas</button>
           <button type="button" class="filter-chip ${this.activeFilter === 'pending' ? 'active' : ''}" data-filter="pending">Pendentes</button>
           <button type="button" class="filter-chip inprog ${this.activeFilter === 'in_progress' ? 'active' : ''}" data-filter="in_progress">Em Curso</button>
@@ -91,6 +96,7 @@ export class HistoryComponent {
       }
 
       // Status / Priority filter
+      if (this.activeFilter === 'open' && r.status === 'resolved') return false;
       if (this.activeFilter === 'critical' && r.priority !== 'critical') return false;
       if (this.activeFilter === 'pending' && (r.status !== 'pending' && r.status !== undefined)) return false;
       if (this.activeFilter === 'in_progress' && r.status !== 'in_progress') return false;

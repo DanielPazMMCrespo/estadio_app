@@ -136,7 +136,14 @@ export class App {
     }
   }
 
-  navigateTo(viewId) {
+  /**
+   * @param {string} viewId
+   * @param {{filter?: string, sector?: string}} [opts] estado inicial da vista.
+   *   Serve os atalhos do ecrã Hoje: tocar no número de um quadrado abre a
+   *   lista já filtrada, em vez de abrir tudo e obrigar a filtrar à mão.
+   *   Não é guardado: um refreshCurrentView() volta ao estado por omissão.
+   */
+  navigateTo(viewId, opts = {}) {
     // O véu só entra quando se muda mesmo de página. O refreshCurrentView()
     // volta a chamar navigateTo() com a mesma vista depois de gravar ou apagar,
     // e aí um logótipo a tapar o ecrã escondia a confirmação do que se gravou.
@@ -164,7 +171,7 @@ export class App {
         this.renderHome();
         break;
       case 'history':
-        this.renderHistory();
+        this.renderHistory(opts.sector || null, opts.filter || null);
         break;
       case 'tasks':
         this.renderTasks();
@@ -208,12 +215,13 @@ export class App {
         // Simple fallback to tasks view for now
         this.navigateTo('tasks');
       },
-      onViewAllReports: () => this.navigateTo('history'),
+      onViewAllReports: (opts) => this.navigateTo('history', opts || {}),
       onViewAllTasks: () => this.navigateTo('tasks'),
       onOpenReport: (id) => this.reportDetail.open(id),
       onOpenTask: (id) => this.navigateTo('tasks'),
-      // Os quadrados da página principal navegam para qualquer vista.
-      onNavigate: (viewId) => this.navigateTo(viewId)
+      // Os quadrados da página principal navegam para qualquer vista, e podem
+      // levar o filtro inicial da lista de destino.
+      onNavigate: (viewId, opts) => this.navigateTo(viewId, opts || {})
     });
     await this.home.render();
   }
@@ -295,11 +303,12 @@ export class App {
     await this.stadiumNavigator.render();
   }
 
-  async renderHistory(initialSector = null) {
+  async renderHistory(initialSector = null, initialFilter = null) {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
     this.history = new HistoryComponent(feed, {
       initialSector,
+      initialFilter: initialFilter || 'all',
       onReportClick: (id) => this.reportDetail.open(id),
       onEdit: (id) => this.openEditReport(id),
       onDelete: () => this.refreshCurrentView()

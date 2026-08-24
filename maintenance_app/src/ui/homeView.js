@@ -208,13 +208,19 @@ export class HomeViewComponent {
         </div>`;
   }
 
-  /** Quadrado vivo: glifo e número em cima, nome e detalhe em baixo. */
-  quadradoVivo({ target, iconKey, iconClass, nome, numero, detalhe, estado }) {
+  /**
+   * Quadrado vivo: glifo e número em cima, nome e detalhe em baixo.
+   *
+   * O `filtro` viaja no data-nav-filter e vai dar o estado inicial da lista de
+   * destino. Sem ele, o técnico tocava no 7 e recebia a lista toda, incluindo
+   * as resolvidas — tinha de filtrar à mão o número que já estava no quadrado.
+   */
+  quadradoVivo({ target, iconKey, iconClass, nome, numero, detalhe, estado, filtro }) {
     const classeEstado = estado ? ` ht-tile-${estado}` : '';
     const voz = `${nome}: ${numero}${detalhe ? ', ' + detalhe : ''}`;
 
     return `
-          <button type="button" class="ht-tile ht-tile-live${classeEstado} touch-target" data-target="${attr(target)}" aria-label="${attr(voz)}">
+          <button type="button" class="ht-tile ht-tile-live${classeEstado} touch-target" data-target="${attr(target)}"${filtro ? ` data-nav-filter="${attr(filtro)}"` : ''} aria-label="${attr(voz)}">
             <span class="ht-live-top">
               <span class="ht-icon ${iconClass}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_ICONS[iconKey]}</svg>
@@ -238,6 +244,7 @@ export class HomeViewComponent {
       iconClass: 'ht-icon-reports',
       nome: 'Avarias',
       numero: n.abertas,
+      filtro: 'open',
       detalhe: n.criticas > 0
         ? `${n.criticas} crítica${n.criticas === 1 ? '' : 's'}`
         : (n.emCurso > 0 ? `${n.emCurso} em curso` : 'nada aberto'),
@@ -426,10 +433,13 @@ ${this.quadradoMais()}
         if (!target) return;
         haptics.tap();
 
+        const filtro = btn.dataset.navFilter || null;
+        const opts = filtro ? { filter: filtro } : {};
+
         // Os callbacks antigos continuam a valer; o onNavigate é o caminho novo.
-        if (target === 'history' && this.onViewAllReports) return this.onViewAllReports();
+        if (target === 'history' && this.onViewAllReports) return this.onViewAllReports(opts);
         if (target === 'tasks' && this.onViewAllTasks) return this.onViewAllTasks();
-        if (this.onNavigate) this.onNavigate(target);
+        if (this.onNavigate) this.onNavigate(target, opts);
       });
     });
   }
