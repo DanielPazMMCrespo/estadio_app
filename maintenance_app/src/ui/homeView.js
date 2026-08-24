@@ -271,7 +271,7 @@ export class HomeViewComponent {
       numero: n.locaisComAvaria,
       // "locais com avaria" parte em duas linhas num quadrado de meia largura
       // e desalinha a grelha. O nome do quadrado já diz "Estádio".
-      detalhe: 'com avaria',
+      detalhe: n.locaisComAvaria > 0 ? 'com avaria' : 'sem avarias',
       estado: 'calm'
     });
 
