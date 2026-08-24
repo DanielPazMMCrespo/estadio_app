@@ -163,6 +163,79 @@
   background: var(--color-danger);
 }
 
+/* ---- Quadrado vivo ----
+   O mesmo quadrado, mas a dizer o seu número. Glifo e número em cima, nome e
+   detalhe em baixo. O número é o maior texto do ecrã depois do título: é o que
+   o técnico lê de relance, sem parar de andar. ---- */
+
+.ht-tile-live {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ht-live-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.ht-num {
+  font-size: var(--fs-kpi);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+  /* O número não parte nem encolhe: um "12" em duas linhas não se lê. */
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ht-live-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* O nome já não é empurrado para o fundo pelo margin-top: auto — quem separa
+   o topo do rodapé agora é o space-between do .ht-tile-live. */
+.ht-tile-live .ht-name,
+.ht-tile-lay .ht-live-foot .ht-name {
+  margin-top: 0;
+}
+
+/* ---- Os três estados de um quadrado vivo ----
+   O quadrado só grita quando há razão. Num dia sem avarias fica branco.
+   Nada de vermelho decorativo: se estiver sempre vermelho, deixa de avisar. */
+
+/* Crítico. */
+.ht-tile-alert {
+  background: var(--tint-red);
+  border-color: var(--color-danger);
+}
+
+.ht-tile-alert .ht-num,
+.ht-tile-alert .ht-meta {
+  color: var(--color-danger-text);
+}
+
+/* Atenção: há trabalho aberto, mas nada crítico. */
+.ht-tile-warn {
+  background: var(--tint-amber);
+  border-color: var(--color-gold);
+}
+
+.ht-tile-warn .ht-num,
+.ht-tile-warn .ht-meta {
+  color: var(--color-warning-text);
+}
+
+/* Em ordem: caixa branca, número em verde. */
+.ht-tile-calm .ht-num {
+  color: var(--color-success-text);
+}
+
 /* ---- O quadrado verde de registar ---- */
 
 .ht-tile-primary {

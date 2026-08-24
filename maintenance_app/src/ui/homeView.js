@@ -1,14 +1,29 @@
+import { reportsRepo } from '../db/reportsRepo.js';
+import { tasksRepo } from '../db/tasksRepo.js';
+import { toolsRepo } from '../db/toolsRepo.js';
 import { esc, attr } from '../utils/html.js';
 import { haptics } from '../services/haptics.js';
 
 /**
- * Página principal em quadrados (Opção B do mockup design-2026/MainQuadrados).
- * Um quadrado por destino, nada de listas. O técnico de luvas acerta num
- * quadrado de 148px sem falhar; uma linha de lista de 14px não.
+ * Página principal em quadrados — "quadrados vivos".
  *
- * Sem contadores nos quadrados. Um número no canto obriga a parar e a
- * interpretar; o técnico só quer saber onde toca para chegar à página. O
- * detalhe fica dentro de cada página.
+ * A grelha grande fica: um quadrado de 126px acerta-se de luvas, uma linha de
+ * lista de 14px não. Mas o quadrado passa a dizer o seu número.
+ *
+ * Porque mudou: com 7 avarias abertas e 3 críticas na base de dados, a versão
+ * anterior desta página mostrava zero dados. Só rótulos. Medido: 52% do
+ * primeiro ecrã gasto em botões que não abriam nenhum destino novo — três
+ * repetiam a barra de baixo e três estavam a dois toques no menu Mais.
+ * Ver REVISAO-DESIGN-2026.md na raiz.
+ *
+ * O que ficou:
+ *   - o botão verde de registar, intocado: é a ação mais usada;
+ *   - quatro quadrados vivos, com o número em grande;
+ *   - um quadrado deitado "Mais" no lugar dos três que se repetiam.
+ *
+ * Regra das cores: o quadrado só grita quando há razão. Num dia sem avarias
+ * fica branco. Vermelho é crítico, âmbar é atenção. Nada de vermelho
+ * decorativo — perde o significado.
  */
 const PLUS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`;
 
@@ -17,8 +32,19 @@ const TILE_ICONS = {
   tasks: `<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>`,
   stadium: `<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>`,
   tools: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>`,
-  equipment: `<rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>`,
   more: `<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>`
+};
+
+/** Números todos a zero — o que se mostra se a base de dados não abrir. */
+const NUMEROS_VAZIOS = {
+  abertas: 0,
+  criticas: 0,
+  emCurso: 0,
+  tarefasHoje: 0,
+  tarefasCriticas: 0,
+  tarefasAtrasadas: 0,
+  locaisComAvaria: 0,
+  stockBaixo: 0
 };
 
 export class HomeViewComponent {
@@ -32,6 +58,7 @@ export class HomeViewComponent {
     this.onNavigate = options.onNavigate || null;
     // Ouvinte de rede guardado para o poder retirar depois (ver destroy()).
     this.onNetworkChange = null;
+    this.numeros = { ...NUMEROS_VAZIOS };
   }
 
   saudacao() {
@@ -41,57 +68,140 @@ export class HomeViewComponent {
     return 'Boa noite';
   }
 
-  tile({ target, iconKey, iconClass, label }) {
+  /**
+   * Lê da base de dados só o que os quadrados precisam de dizer.
+   *
+   * Nunca lança: sem rede e sem base de dados é o caso NORMAL desta app, e um
+   * quadrado a zero é melhor que um ecrã em branco. Os erros ficam na consola.
+   */
+  async carregarNumeros() {
+    const n = { ...NUMEROS_VAZIOS };
+
+    try {
+      const [reports, hoje, atrasadas, baixas] = await Promise.all([
+        reportsRepo.getAll(),
+        tasksRepo.getToday(),
+        tasksRepo.getOverdue(),
+        toolsRepo.getLowStock()
+      ]);
+
+      const abertas = reports.filter(r => r.status !== 'resolved');
+      n.abertas = abertas.length;
+      n.criticas = abertas.filter(r => r.priority === 'critical').length;
+      n.emCurso = abertas.filter(r => r.status === 'in_progress').length;
+
+      // Locais distintos com avaria aberta. Conta-se pelo locationId, que é
+      // exato; não se compara nomes. Um registo sem local não conta.
+      n.locaisComAvaria = new Set(abertas.map(r => r.locationId).filter(Boolean)).size;
+
+      const porFazer = hoje.filter(t => !t.done);
+      n.tarefasHoje = porFazer.length;
+      n.tarefasCriticas = porFazer.filter(t => t.priority === 'critical').length;
+      n.tarefasAtrasadas = atrasadas.length;
+
+      n.stockBaixo = baixas.length;
+    } catch (e) {
+      console.error('[HomeView] Erro ao ler os números:', e);
+    }
+
+    return n;
+  }
+
+  /** Quadrado vivo: glifo e número em cima, nome e detalhe em baixo. */
+  quadradoVivo({ target, iconKey, iconClass, nome, numero, detalhe, estado }) {
+    const classeEstado = estado ? ` ht-tile-${estado}` : '';
+    const voz = `${nome}: ${numero}${detalhe ? ', ' + detalhe : ''}`;
+
     return `
-          <button type="button" class="ht-tile touch-target" data-target="${attr(target)}" aria-label="${attr(label)}">
-            <span class="ht-icon ${iconClass}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_ICONS[iconKey]}</svg>
+          <button type="button" class="ht-tile ht-tile-live${classeEstado} touch-target" data-target="${attr(target)}" aria-label="${attr(voz)}">
+            <span class="ht-live-top">
+              <span class="ht-icon ${iconClass}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_ICONS[iconKey]}</svg>
+              </span>
+              <span class="ht-num">${esc(String(numero))}</span>
             </span>
-            <span class="ht-name">${esc(label)}</span>
+            <span class="ht-live-foot">
+              <span class="ht-name">${esc(nome)}</span>
+              <span class="ht-meta">${esc(detalhe)}</span>
+            </span>
+          </button>`;
+  }
+
+  /** As quatro caixas, já com o estado de cor decidido. */
+  quadrados() {
+    const n = this.numeros;
+
+    const avarias = this.quadradoVivo({
+      target: 'history',
+      iconKey: 'reports',
+      iconClass: 'ht-icon-reports',
+      nome: 'Avarias',
+      numero: n.abertas,
+      detalhe: n.criticas > 0
+        ? `${n.criticas} crítica${n.criticas === 1 ? '' : 's'}`
+        : (n.emCurso > 0 ? `${n.emCurso} em curso` : 'nada aberto'),
+      estado: n.criticas > 0 ? 'alert' : (n.abertas > 0 ? 'warn' : 'calm')
+    });
+
+    const tarefas = this.quadradoVivo({
+      target: 'tasks',
+      iconKey: 'tasks',
+      iconClass: 'ht-icon-tasks',
+      nome: 'Tarefas',
+      numero: n.tarefasHoje,
+      detalhe: n.tarefasAtrasadas > 0
+        ? `${n.tarefasAtrasadas} em atraso`
+        : (n.tarefasCriticas > 0 ? `hoje · ${n.tarefasCriticas} crítica${n.tarefasCriticas === 1 ? '' : 's'}` : 'para hoje'),
+      estado: n.tarefasAtrasadas > 0 ? 'alert' : (n.tarefasHoje > 0 ? 'warn' : 'calm')
+    });
+
+    const estadio = this.quadradoVivo({
+      target: 'sectors',
+      iconKey: 'stadium',
+      iconClass: 'ht-icon-stadium',
+      nome: 'Estádio',
+      numero: n.locaisComAvaria,
+      // "locais com avaria" parte em duas linhas num quadrado de meia largura
+      // e desalinha a grelha. O nome do quadrado já diz "Estádio".
+      detalhe: 'com avaria',
+      estado: 'calm'
+    });
+
+    const ferramentas = this.quadradoVivo({
+      target: 'tools',
+      iconKey: 'tools',
+      iconClass: 'ht-icon-tools',
+      nome: 'Ferramentas',
+      numero: n.stockBaixo,
+      detalhe: n.stockBaixo > 0 ? 'abaixo do mínimo' : 'stock em ordem',
+      estado: n.stockBaixo > 0 ? 'warn' : 'calm'
+    });
+
+    return avarias + tarefas + estadio + ferramentas;
+  }
+
+  /**
+   * O quadrado deitado do fim. Substitui os três quadrados que repetiam a
+   * barra de baixo (Intervenções, Tarefas, Mais) e o Equipamento, que estava
+   * a dois toques de qualquer maneira.
+   */
+  quadradoMais() {
+    return `
+          <button type="button" class="ht-tile ht-tile-wide ht-tile-lay touch-target" data-target="more" aria-label="Mais: equipamento, métricas, notas, definições">
+            <span class="ht-icon ht-icon-more">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_ICONS.more}</svg>
+            </span>
+            <span class="ht-live-foot">
+              <span class="ht-name">Mais</span>
+              <span class="ht-meta">Equipamento · Métricas · Notas · Definições</span>
+            </span>
           </button>`;
   }
 
   async render() {
     if (!this.container) return;
 
-    const quadrados = [
-      this.tile({
-        target: 'history',
-        iconKey: 'reports',
-        iconClass: 'ht-icon-reports',
-        label: 'Intervenções'
-      }),
-      this.tile({
-        target: 'tasks',
-        iconKey: 'tasks',
-        iconClass: 'ht-icon-tasks',
-        label: 'Tarefas'
-      }),
-      this.tile({
-        target: 'sectors',
-        iconKey: 'stadium',
-        iconClass: 'ht-icon-stadium',
-        label: 'Estádio'
-      }),
-      this.tile({
-        target: 'tools',
-        iconKey: 'tools',
-        iconClass: 'ht-icon-tools',
-        label: 'Ferramentas'
-      }),
-      this.tile({
-        target: 'equipment',
-        iconKey: 'equipment',
-        iconClass: 'ht-icon-equipment',
-        label: 'Equipamento'
-      }),
-      this.tile({
-        target: 'more',
-        iconKey: 'more',
-        iconClass: 'ht-icon-more',
-        label: 'Mais'
-      })
-    ].join('');
+    this.numeros = await this.carregarNumeros();
 
     this.container.innerHTML = `
       <section class="home-tiles animate-fade-in">
@@ -108,7 +218,8 @@ export class HomeViewComponent {
             </span>
             <span class="ht-primary-hint">Foto, voz ou texto</span>
           </button>
-${quadrados}
+${this.quadrados()}
+${this.quadradoMais()}
         </div>
 
         <div id="home-offline-indicator" class="ht-offline">
@@ -168,7 +279,7 @@ ${quadrados}
       });
     }
 
-    // 2. Os restantes quadrados são só navegação
+    // 2. Os quadrados vivos navegam para a página respetiva
     this.container.querySelectorAll('.ht-tile[data-target]').forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.target;
