@@ -199,6 +199,8 @@ export class App {
   async renderHome() {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
+    // A vista anterior tem de largar os ouvintes de rede que pôs na window.
+    if (this.home && typeof this.home.destroy === 'function') this.home.destroy();
     this.home = new HomeViewComponent(feed, {
       onNewReport: () => this.openNewReport(),
       onOpenFullReport: (prefill) => this.openFullNewReport(prefill),

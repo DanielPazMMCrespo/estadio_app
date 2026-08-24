@@ -30,6 +30,8 @@ export class HomeViewComponent {
     this.onOpenReport = options.onOpenReport || null;
     this.onViewAllReports = options.onViewAllReports || null;
     this.onNavigate = options.onNavigate || null;
+    // Ouvinte de rede guardado para o poder retirar depois (ver destroy()).
+    this.onNetworkChange = null;
   }
 
   saudacao() {
@@ -119,18 +121,39 @@ ${quadrados}
     this.checkOfflineState();
   }
 
+  /**
+   * O aviso de "sem ligação" ouve a rede na window, não no container. Como a
+   * window sobrevive à vista, os ouvintes têm de ser retirados à mão: sem isto
+   * cada visita à página principal deixava dois ouvintes atrás de si.
+   */
   checkOfflineState() {
     const indicator = this.container.querySelector('#home-offline-indicator');
     if (!indicator) return;
 
-    const updateState = () => {
-      if (!indicator) return;
+    // Uma nova renderização substitui o indicador anterior: larga o ouvinte
+    // antigo antes de pôr o novo, senão ficam os dois a apontar para um nó
+    // que já não está no ecrã.
+    this.removeNetworkListeners();
+
+    this.onNetworkChange = () => {
       indicator.classList.toggle('is-visible', !navigator.onLine);
     };
 
-    window.addEventListener('online', updateState);
-    window.addEventListener('offline', updateState);
-    updateState();
+    window.addEventListener('online', this.onNetworkChange);
+    window.addEventListener('offline', this.onNetworkChange);
+    this.onNetworkChange();
+  }
+
+  removeNetworkListeners() {
+    if (!this.onNetworkChange) return;
+    window.removeEventListener('online', this.onNetworkChange);
+    window.removeEventListener('offline', this.onNetworkChange);
+    this.onNetworkChange = null;
+  }
+
+  /** Chamar antes de trocar de vista ou de criar outra HomeViewComponent. */
+  destroy() {
+    this.removeNetworkListeners();
   }
 
   bindEvents() {
