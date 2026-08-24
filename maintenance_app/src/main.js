@@ -209,7 +209,9 @@ export class App {
       onViewAllReports: () => this.navigateTo('history'),
       onViewAllTasks: () => this.navigateTo('tasks'),
       onOpenReport: (id) => this.reportDetail.open(id),
-      onOpenTask: (id) => this.navigateTo('tasks')
+      onOpenTask: (id) => this.navigateTo('tasks'),
+      // Os quadrados da página principal navegam para qualquer vista.
+      onNavigate: (viewId) => this.navigateTo(viewId)
     });
     await this.home.render();
   }

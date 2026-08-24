@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Mockup — Página principal com quadrados</title>
+<style>
+  :root{
+    --brand:#557D14; --gold:#B45309; --danger:#C81E1E; --blue:#0369A1;
+    --purple:#6D28D9; --teal:#047857; --slate:#475569;
+    --bg:#F4F6F8; --card:#FFFFFF; --text:#14181E; --muted:#4A5560;
+    --line:#E2E6EA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#EDF0F3;color:var(--text);
+    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;padding:28px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{font-size:15px;color:var(--muted);margin-bottom:24px}
+  .row{display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:10px}
+  .caption{font-size:16px;font-weight:700}
+  .capsub{font-size:14px;color:var(--muted);max-width:393px}
+
+  .phone{width:393px;background:var(--bg);border:10px solid #10141a;
+    border-radius:34px;overflow:hidden;box-shadow:0 18px 40px rgba(20,30,50,.22)}
+  .hdr{background:var(--card);padding:14px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--brand);
+    color:#fff;font-weight:800;font-size:15px;display:grid;place-items:center}
+  .hname{font-size:19px;font-weight:700}
+  .hsub{font-size:15px;color:var(--muted)}
+  .dot{margin-left:auto;font-size:14px;color:var(--teal);font-weight:700}
+
+  .body{padding:14px}
+  .strip{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;display:flex;gap:14px;margin-bottom:14px}
+  .strip > div{flex:1;text-align:center}
+  .num{font-size:30px;font-weight:800;line-height:1.1}
+  .lbl{font-size:15px;color:var(--muted)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px 14px;min-height:118px;display:flex;flex-direction:column;
+    gap:8px;box-shadow:0 2px 6px rgba(20,30,50,.06)}
+  .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    font-size:24px}
+  .tname{font-size:20px;font-weight:700;line-height:1.2}
+  .tmeta{font-size:15px;color:var(--muted);margin-top:auto}
+  .badge{align-self:flex-start;font-size:14px;font-weight:700;color:#fff;
+    background:var(--danger);border-radius:999px;padding:2px 9px}
+  .wide{grid-column:1/-1}
+
+  .cta{margin:14px 0 0;background:var(--brand);color:#fff;border-radius:14px;
+    height:56px;display:grid;place-items:center;font-size:21px;font-weight:800}
+
+  .nav{background:var(--card);border-top:1px solid var(--line);display:flex;
+    padding:8px 0 12px}
+  .nav > div{flex:1;text-align:center;font-size:16px;color:var(--muted)}
+  .nav .on{color:var(--brand);font-weight:700}
+
+  .tileB{min-height:150px;align-items:flex-start}
+  .tileB .ico{width:52px;height:52px;font-size:28px}
+  .tileB .tname{font-size:22px}
+</style>
+</head>
+<body>
+
+<h1>Página principal com quadrados</h1>
+<p class="sub">Duas opções. Escolhe uma e eu aplico na app.</p>
+
+<div class="row">
+
+  <div class="col">
+    <div class="caption">Opção A — 6 quadrados + números do dia</div>
+    <div class="capsub">Em cima vê o que interessa hoje. Em baixo os quadrados
+      levam a cada página. Botão verde grande para registar.</div>
+    <div class="phone">
+      <div class="hdr">
+        <div class="logo">MM</div>
+        <div><div class="hname">Estádio de Leiria</div>
+             <div class="hsub">Quinta, 21 ago</div></div>
+        <div class="dot">● Sincronizado</div>
+      </div>
+      <div class="body">
+        <div class="strip">
+          <div><div class="num" style="color:var(--danger)">3</div><div class="lbl">Críticas</div></div>
+          <div><div class="num" style="color:var(--gold)">7</div><div class="lbl">Abertas</div></div>
+          <div><div class="num" style="color:var(--teal)">5</div><div class="lbl">Tarefas</div></div>
+        </div>
+
+        <div class="grid">
+          <div class="tile">
+            <div class="ico" style="background:#FDECEC;color:var(--danger)">&#128295;</div>
+            <div class="tname">Intervenções</div>
+            <div class="tmeta">7 abertas</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:#ECF6EC;color:var(--teal)">&#9989;</div>
+            <div class="tname">Tarefas</div>
+            <div class="tmeta">5 para hoje</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:#EAF3FA;color:var(--blue)">&#127967;</div>
+            <div class="tname">Áreas do Estádio</div>
+            <div class="tmeta">7 setores</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:#FDF3E7;color:var(--gold)">&#129520;</div>
+            <div class="tname">Ferramentas</div>
+            <div class="tmeta">2 em falta</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:#F1EDFB;color:var(--purple)">&#9881;</div>
+            <div class="tname">Equipamento</div>
+            <div class="tmeta">1 avariado</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:#EEF1F4;color:var(--slate)">&#128221;</div>
+            <div class="tname">Notas</div>
+            <div class="tmeta">4 notas</div>
+          </div>
+        </div>
+
+        <div class="cta">＋ Registar</div>
+      </div>
+      <div class="nav">
+        <div class="on">Início</div><div>Intervenções</div>
+        <div>Tarefas</div><div>Mais</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="caption">Opção B — só quadrados, bem grandes</div>
+    <div class="capsub">Mais simples ainda. Sem números em cima. Quadrados
+      enormes, para luvas e sol. O primeiro é o de registar.</div>
+    <div class="phone">
+      <div class="hdr">
+        <div class="logo">MM</div>
+        <div><div class="hname">Estádio de Leiria</div>
+             <div class="hsub">Quinta, 21 ago</div></div>
+        <div class="dot">● Sincronizado</div>
+      </div>
+      <div class="body">
+        <div class="grid">
+          <div class="tile wide" style="background:var(--brand);border-color:var(--brand);
+              min-height:96px;justify-content:center">
+            <div class="tname" style="font-size:26px;color:#fff">＋ Registar avaria</div>
+            <div class="tmeta" style="color:#E6F0D6;margin-top:0">Foto, local e prioridade</div>
+          </div>
+
+          <div class="tile tileB">
+            <div class="ico" style="background:#FDECEC;color:var(--danger)">&#128295;</div>
+            <div class="tname">Intervenções</div>
+            <div class="badge">7</div>
+          </div>
+          <div class="tile tileB">
+            <div class="ico" style="background:#ECF6EC;color:var(--teal)">&#9989;</div>
+            <div class="tname">Tarefas</div>
+            <div class="badge" style="background:var(--teal)">5</div>
+          </div>
+          <div class="tile tileB">
+            <div class="ico" style="background:#EAF3FA;color:var(--blue)">&#127967;</div>
+            <div class="tname">Estádio</div>
+          </div>
+          <div class="tile tileB">
+            <div class="ico" style="background:#FDF3E7;color:var(--gold)">&#129520;</div>
+            <div class="tname">Ferramentas</div>
+            <div class="badge" style="background:var(--gold)">2</div>
+          </div>
+          <div class="tile tileB">
+            <div class="ico" style="background:#F1EDFB;color:var(--purple)">&#9881;</div>
+            <div class="tname">Equipamento</div>
+          </div>
+          <div class="tile tileB">
+            <div class="ico" style="background:#EEF1F4;color:var(--slate)">&#9776;</div>
+            <div class="tname">Mais</div>
+            <div class="tmeta">Notas, PDF, métricas</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="on">Início</div><div>Intervenções</div>
+        <div>Tarefas</div><div>Mais</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
