@@ -65,6 +65,14 @@
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* Âncora do número no canto (.ht-flag). */
+  position: relative;
+  /* Um <button> herda o tipo de letra do agente, que dá 13.3px. Sem isto,
+     qualquer texto novo posto dentro de um quadrado sem classe própria nasce
+     ilegível. O mínimo da app é 18px e é aqui que se garante. */
+  font-family: inherit;
+  font-size: var(--fs-label);
+  line-height: var(--lh-tight);
 }
 
 .ht-tile:active {
@@ -74,6 +82,20 @@
 .ht-tile:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus-ring);
+}
+
+/* Caixa deitada: glifo à esquerda, nome à direita. Para quando o nome é
+   comprido e não se pode cortar — salas do estádio — e para o quadrado
+   sozinho que sobra numa grelha de dois. */
+.ht-tile-lay {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-height: 88px;
+}
+
+.ht-tile-lay .ht-name {
+  margin-top: 0;
 }
 
 /* ---- Glifo dentro do quadrado ---- */
@@ -109,6 +131,31 @@
   color: var(--color-text);
   line-height: var(--lh-tight);
   margin-top: auto;
+}
+
+/* Metadado por baixo do nome: "6 salas". */
+.ht-meta {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-tight);
+}
+
+/* Número de avarias abertas, no canto do quadrado. Só aparece quando há
+   mesmo algo a contar: um "0" enche o ecrã e não diz nada. */
+.ht-flag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  color: var(--color-on-accent);
+  background: var(--color-gold);
+}
+
+.ht-flag-crit {
+  background: var(--color-danger);
 }
 
 /* ---- O quadrado verde de registar ---- */
