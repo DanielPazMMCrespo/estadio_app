@@ -1,7 +1,7 @@
 # Revisão de design — App de Manutenção do Estádio Municipal de Leiria
 
-Data: 2026-08-24 · Estado: passos 1–5 do plano **feitos** (5 commits em `main`).
-O design da proposta C (passos 6–8) espera aprovação.
+Data: 2026-08-24 · Estado: **plano completo**, passos 1 a 11 feitos.
+A proposta C está no ecrã. Tudo em `main`, um commit por passo.
 
 Ficheiros desta revisão:
 
@@ -218,24 +218,52 @@ Só arranca depois de aprovação. Cada passo acaba com `npm test` a dar
 | 3 | `chore: apaga o css do acordeao de setores que ja nao existe` (`1d80871`) | **feito** para o CSS: 41 regras órfãs, `components.css` 3135 → 2877 linhas. `stadiumMap.js` **não** foi apagado (ver C2). |
 | 4 | `fix: pesquisa de salas com debounce de 200ms` (`afe8d53`) | **feito.** A escrever "caldeira": 8 redesenhos → 1. |
 | 5 | `style: font-size minimo no proprio .ht-tile` (`b730e82`) | **feito.** 13,3px → 18px, layout intacto. |
-| 6 | `feat: quadrados vivos no ecra Hoje` | O centro da proposta C: números dentro dos 4 quadrados + quadrado "Mais" deitado. |
-| 7 | `feat: linha "A seguir" com marcar-feita de um toque` | A linha urgente no topo do ecrã Hoje. |
-| 8 | `feat: cada numero abre a lista ja filtrada` | Tocar em Avarias → lista de abertas; em Tarefas → hoje. |
+| 6 | `feat: quadrados vivos no ecra Hoje` (`3f37682`) | **feito.** Números a 34px nos 4 quadrados + quadrado "Mais" deitado. |
+| 7 | `feat: linha "A seguir" com marcar-feita de um toque` (`6ae3c79`) | **feito.** Botão de 48×48; um toque marcou a tarefa e a linha avançou sozinha. |
+| 8 | `feat: o numero do quadrado abre a lista ja filtrada` (`987297c`) | **feito.** Quadrado diz 7 → lista abre em "Abertas", 7 filtradas. |
 | 9 | `refactor: um so cabecalho de vista (.v-header)` (`cb9a97b`) | **feito.** Três blocos iguais → um. Margem 16px nos três ecrãs. |
 | 10 | `docs: CLAUDE.md a par do codigo real` (`785964c`) | **feito.** Testes, verde da marca, contagens de linhas, ordem dos CSS, pendentes. |
 | 11 | `chore: apaga 19 ficheiros-lixo de 0 bytes` (`0838c7a`) | **feito.** Todos com 0 bytes; ícones a sério intactos. |
 
-Passos 1 a 5 **estão feitos** (5 commits em `main`). Depois de cada um:
-`npm test` → `175 passed`, `npm run verificar:estilos` → `OK: nada piorou`.
-
-Os passos 6 a 8 são a proposta C e esperam aprovação. Todos os outros estão
-feitos.
+**Os 11 passos estão feitos.** Depois de cada um: `npm test` → `175 passed`,
+`npm run verificar:estilos` → `OK: nada piorou`.
 
 Além do plano, o commit `4acedb2` fechou o trabalho de desenho que estava por
 commitar no diretório (ecrã Estádio em quadrados, sétimo quadrado do Mais
 deitado). Nota honesta: os commits `d4304fe` e `b730e82` levaram atrás partes
 desse trabalho, porque os ficheiros estavam alterados no diretório quando as
 correções entraram — as mensagens desses dois commits descrevem só a correção.
+
+---
+
+## 7.1. O que a proposta C deu, medido no ecrã
+
+Medido depois de implementar, no mesmo dispositivo e com os mesmos dados
+(7 avarias abertas, 3 críticas, 4 tarefas para hoje).
+
+| Ecrã Hoje | Antes (quadrados vazios) | Depois (quadrados vivos) |
+|---|---|---|
+| Área gasta só em navegação | 52 % | **20 %** |
+| Factos à vista sem scroll | 0 | **4** |
+| Ações de 1 toque | 0 | **1** |
+| Ecrãs de scroll | 1,08 | **0,86** |
+| Alvo de toque mais pequeno | 124 px | 48 px (grelha 149 px) |
+
+O que a página diz agora, sem um único toque:
+
+```
+A seguir · crítica → Verificar níveis do depósito · Sala de Bombas & Caldeiras
+7  Avarias      3 críticas          (caixa vermelha)
+4  Tarefas      hoje · 1 crítica    (caixa âmbar)
+7  Estádio      com avaria
+0  Ferramentas  stock em ordem
+```
+
+### O dia calmo também foi testado
+
+Com tudo resolvido e todas as tarefas feitas, a página fica **toda branca**, os
+quatro números a zero em verde, e a linha "A seguir" **desaparece**. O quadrado
+só grita quando há razão — um vermelho permanente deixaria de avisar.
 
 ---
 

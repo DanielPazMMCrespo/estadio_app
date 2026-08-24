@@ -473,11 +473,15 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
 1. `public/icons/` tem 13 variantes do logotipo mmcrespo sem nenhuma a marcar
    qual é a canónica.
 2. `design-2026/` tem 6 mockups ainda não aplicados à app.
-3. **Revisão de design 2026** — ver `REVISAO-DESIGN-2026.md` e
-   `FASE1-MEDICOES.md` na raiz. O ecrã "Hoje" em quadrados mostra zero dados
-   com 7 avarias abertas na base de dados; a proposta aprovada pelo júri é a
-   "C — Quadrados vivos" (números dentro dos quadrados). Passos 1–5 e 9–11 do
-   plano estão feitos; 6–8 esperam decisão.
+3. **Revisão de design 2026 — feita.** Ver `REVISAO-DESIGN-2026.md` e
+   `FASE1-MEDICOES.md` na raiz. O ecrã "Hoje" passou a "quadrados vivos": cada
+   quadrado diz o seu número e a cor muda com o estado (vermelho só com
+   críticas, âmbar com trabalho aberto, branco quando está tudo em ordem).
+   Acima da grelha há a linha "A seguir", com a coisa mais urgente e um botão
+   de 48px para marcar a tarefa feita. Tocar num quadrado abre a lista já
+   filtrada. Os 11 passos do plano estão feitos.
+   **Não voltes a pôr rótulos sem número nesta página**: media-se 52% do
+   primeiro ecrã gasto em botões e zero dados à vista.
 4. `src/ui/stadiumMap.js` não é importado por nenhum ecrã, só pelo teste
    `field_tools.test.js`. Ver §10.
 5. `src/main.js` concentra 53 `style="` e 24 `font-size` inline — é o pior
