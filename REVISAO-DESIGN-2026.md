@@ -221,14 +221,21 @@ Só arranca depois de aprovação. Cada passo acaba com `npm test` a dar
 | 6 | `feat: quadrados vivos no ecra Hoje` | O centro da proposta C: números dentro dos 4 quadrados + quadrado "Mais" deitado. |
 | 7 | `feat: linha "A seguir" com marcar-feita de um toque` | A linha urgente no topo do ecrã Hoje. |
 | 8 | `feat: cada numero abre a lista ja filtrada` | Tocar em Avarias → lista de abertas; em Tarefas → hoje. |
-| 9 | `refactor: um so cabecalho de vista (.v-header)` | C5. Junta os três cabeçalhos. |
-| 10 | `docs: corrige CLAUDE.md (175 testes, verde #557D14)` | C8. |
-| 11 | `chore: apaga ficheiros-lixo da raiz` | C10. Apaga ficheiros — precisa de confirmação. |
+| 9 | `refactor: um so cabecalho de vista (.v-header)` (`cb9a97b`) | **feito.** Três blocos iguais → um. Margem 16px nos três ecrãs. |
+| 10 | `docs: CLAUDE.md a par do codigo real` (`785964c`) | **feito.** Testes, verde da marca, contagens de linhas, ordem dos CSS, pendentes. |
+| 11 | `chore: apaga 19 ficheiros-lixo de 0 bytes` (`0838c7a`) | **feito.** Todos com 0 bytes; ícones a sério intactos. |
 
 Passos 1 a 5 **estão feitos** (5 commits em `main`). Depois de cada um:
 `npm test` → `175 passed`, `npm run verificar:estilos` → `OK: nada piorou`.
 
-Os passos 6 a 8 são a proposta C e esperam aprovação.
+Os passos 6 a 8 são a proposta C e esperam aprovação. Todos os outros estão
+feitos.
+
+Além do plano, o commit `4acedb2` fechou o trabalho de desenho que estava por
+commitar no diretório (ecrã Estádio em quadrados, sétimo quadrado do Mais
+deitado). Nota honesta: os commits `d4304fe` e `b730e82` levaram atrás partes
+desse trabalho, porque os ficheiros estavam alterados no diretório quando as
+correções entraram — as mensagens desses dois commits descrevem só a correção.
 
 ---
 
