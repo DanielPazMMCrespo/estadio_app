@@ -3,6 +3,7 @@ import { tasksRepo } from '../db/tasksRepo.js';
 import { toolsRepo } from '../db/toolsRepo.js';
 import { esc, attr } from '../utils/html.js';
 import { haptics } from '../services/haptics.js';
+import { toast } from './toast.js';
 
 /**
  * Página principal em quadrados — "quadrados vivos".
@@ -26,6 +27,8 @@ import { haptics } from '../services/haptics.js';
  * decorativo — perde o significado.
  */
 const PLUS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`;
+
+const CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l6 6L20 5"></path></svg>`;
 
 const TILE_ICONS = {
   reports: `<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>`,
@@ -59,6 +62,8 @@ export class HomeViewComponent {
     // Ouvinte de rede guardado para o poder retirar depois (ver destroy()).
     this.onNetworkChange = null;
     this.numeros = { ...NUMEROS_VAZIOS };
+    // A coisa mais urgente agora, ou null se não houver nada urgente.
+    this.aSeguir = null;
   }
 
   saudacao() {
@@ -100,11 +105,107 @@ export class HomeViewComponent {
       n.tarefasAtrasadas = atrasadas.length;
 
       n.stockBaixo = baixas.length;
+
+      this.aSeguir = this.escolherASeguir({
+        tarefasHoje: hoje,
+        tarefasAtrasadas: atrasadas,
+        avariasAbertas: abertas
+      });
     } catch (e) {
       console.error('[HomeView] Erro ao ler os números:', e);
+      this.aSeguir = null;
     }
 
     return n;
+  }
+
+  /**
+   * Escolhe a única coisa que vai no topo do ecrã, por esta ordem:
+   *
+   *   1. tarefa em atraso (crítica primeiro) — já falhou o prazo;
+   *   2. tarefa crítica de hoje;
+   *   3. avaria aberta crítica mais antiga;
+   *   4. tarefa de hoje, qualquer.
+   *
+   * Uma avaria crítica passa à frente de uma tarefa não-crítica de propósito:
+   * uma caldeira a perder água não espera pela rega do relvado.
+   *
+   * Se não houver nada disto, devolve null e a linha não aparece. Uma caixa a
+   * dizer "nada urgente" ocupa espaço para não dizer nada.
+   */
+  escolherASeguir({ tarefasHoje, tarefasAtrasadas, avariasAbertas }) {
+    const critica = t => t.priority === 'critical';
+    const tarefa = t => ({
+      tipo: 'tarefa',
+      id: t.id,
+      titulo: t.title || 'Tarefa sem nome',
+      local: t.locationName || '',
+      etiqueta: critica(t) ? 'A seguir · crítica' : 'A seguir',
+      alerta: critica(t)
+    });
+
+    const atrasadas = tarefasAtrasadas.filter(t => !t.done);
+    const atrasadaCritica = atrasadas.find(critica);
+    if (atrasadaCritica) {
+      return { ...tarefa(atrasadaCritica), etiqueta: 'Em atraso · crítica', alerta: true };
+    }
+    if (atrasadas.length) {
+      return { ...tarefa(atrasadas[0]), etiqueta: 'Em atraso', alerta: true };
+    }
+
+    const porFazer = tarefasHoje.filter(t => !t.done);
+    const hojeCritica = porFazer.find(critica);
+    if (hojeCritica) return tarefa(hojeCritica);
+
+    // getAll() vem da mais recente para a mais antiga; a mais antiga é a última.
+    const criticasAbertas = avariasAbertas.filter(r => r.priority === 'critical');
+    if (criticasAbertas.length) {
+      const r = criticasAbertas[criticasAbertas.length - 1];
+      return {
+        tipo: 'avaria',
+        id: r.id,
+        titulo: r.description || 'Avaria sem descrição',
+        local: r.locationName || '',
+        etiqueta: 'Avaria crítica aberta',
+        alerta: true
+      };
+    }
+
+    if (porFazer.length) return tarefa(porFazer[0]);
+
+    return null;
+  }
+
+  /**
+   * A linha do topo. Uma informação, uma ação.
+   *
+   * Só as tarefas levam o botão redondo de marcar feita. Uma avaria não se
+   * fecha num toque sem confirmação — o técnico tem de dizer o que fez, e isso
+   * é a ficha da avaria. Tocar na linha abre-a.
+   */
+  linhaASeguir() {
+    const a = this.aSeguir;
+    if (!a) return '';
+
+    const botao = a.tipo === 'tarefa'
+      ? `
+            <button type="button" class="hs-check touch-target" data-done-task="${attr(a.id)}" aria-label="Marcar &quot;${attr(a.titulo)}&quot; como feita">
+              ${CHECK_ICON}
+            </button>`
+      : `
+            <span class="hs-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </span>`;
+
+    return `
+        <div class="hs-next${a.alerta ? ' hs-next-alert' : ''}">
+          ${botao}
+          <button type="button" class="hs-open touch-target" data-open-${a.tipo}="${attr(a.id)}">
+            <span class="hs-tag">${esc(a.etiqueta)}</span>
+            <span class="hs-title">${esc(a.titulo)}</span>
+            ${a.local ? `<span class="hs-place">${esc(a.local)}</span>` : ''}
+          </button>
+        </div>`;
   }
 
   /** Quadrado vivo: glifo e número em cima, nome e detalhe em baixo. */
@@ -218,6 +319,7 @@ export class HomeViewComponent {
             </span>
             <span class="ht-primary-hint">Foto, voz ou texto</span>
           </button>
+${this.linhaASeguir()}
 ${this.quadrados()}
 ${this.quadradoMais()}
         </div>
@@ -279,7 +381,45 @@ ${this.quadradoMais()}
       });
     }
 
-    // 2. Os quadrados vivos navegam para a página respetiva
+    // 2. Linha "A seguir": marcar a tarefa feita, sem sair da página
+    const btnFeita = this.container.querySelector('[data-done-task]');
+    if (btnFeita) {
+      btnFeita.addEventListener('click', async () => {
+        const id = btnFeita.dataset.doneTask;
+        // Trava o botão: dois toques seguidos alternavam o feito duas vezes.
+        if (btnFeita.disabled) return;
+        btnFeita.disabled = true;
+        try {
+          await tasksRepo.toggleDone(id);
+          haptics.success();
+          toast.show('Tarefa feita.', 'success');
+          await this.render();
+        } catch (e) {
+          console.error('[HomeView] Erro ao marcar a tarefa:', e);
+          btnFeita.disabled = false;
+          toast.show('Não foi possível marcar a tarefa.', 'error');
+        }
+      });
+    }
+
+    // 3. Abrir o que está na linha "A seguir"
+    const abrirTarefa = this.container.querySelector('[data-open-tarefa]');
+    if (abrirTarefa) {
+      abrirTarefa.addEventListener('click', () => {
+        haptics.tap();
+        if (this.onOpenTask) this.onOpenTask(abrirTarefa.dataset.openTarefa);
+      });
+    }
+
+    const abrirAvaria = this.container.querySelector('[data-open-avaria]');
+    if (abrirAvaria) {
+      abrirAvaria.addEventListener('click', () => {
+        haptics.tap();
+        if (this.onOpenReport) this.onOpenReport(abrirAvaria.dataset.openAvaria);
+      });
+    }
+
+    // 4. Os quadrados vivos navegam para a página respetiva
     this.container.querySelectorAll('.ht-tile[data-target]').forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.target;

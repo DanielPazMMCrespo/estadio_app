@@ -163,6 +163,143 @@
   background: var(--color-danger);
 }
 
+/* ---- Linha "A seguir" ----
+   Uma informação e uma ação, no topo do ecrã. Não é um cartão de resumo: é a
+   única coisa que o técnico tem de fazer a seguir. Se não houver nada urgente,
+   esta linha não é desenhada — uma caixa a dizer "nada urgente" ocupa espaço
+   para não dizer nada. ---- */
+
+.hs-next {
+  /* Vive dentro da .ht-grid, logo abaixo do botão de registar: registar é a
+     ação mais usada e fica sempre no topo. */
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.hs-next-alert {
+  background: var(--tint-red);
+  border-color: var(--color-danger);
+}
+
+/* Botão de marcar feita. 48px é o mínimo da app e aqui é o valor exato:
+   é o alvo mais pequeno deste ecrã, de propósito — fecha uma tarefa. */
+.hs-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-success);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hs-check svg {
+  width: 24px;
+  height: 24px;
+  opacity: 0.3;
+}
+
+.hs-check:active {
+  background: var(--tint-green);
+  border-color: var(--color-success);
+}
+
+.hs-check:active svg {
+  opacity: 1;
+}
+
+.hs-check:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+.hs-check:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Glifo em vez de botão: as avarias não se fecham num toque. */
+.hs-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-danger-text);
+}
+
+.hs-glyph svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* O texto é ele próprio o botão de abrir: ocupa a linha toda menos o glifo,
+   por isso o alvo é grande mesmo com uma mão só. */
+.hs-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--fs-label);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hs-open:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.hs-tag {
+  font-size: var(--fs-label);
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  line-height: var(--lh-tight);
+}
+
+.hs-next-alert .hs-tag {
+  color: var(--color-danger-text);
+}
+
+.hs-title {
+  font-size: var(--fs-body-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: var(--lh-tight);
+}
+
+.hs-place {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ---- Quadrado vivo ----
    O mesmo quadrado, mas a dizer o seu número. Glifo e número em cima, nome e
    detalhe em baixo. O número é o maior texto do ecrã depois do título: é o que
