@@ -3,30 +3,12 @@
    A grelha e a caixa vêm de styles/quadrados.css, iguais à página principal
    e ao menu Mais. Aqui fica só o que é próprio deste ecrã: o cabeçalho, o
    botão de voltar, a cor do glifo de cada setor e o botão "Ver".
+   O cabeçalho (.v-header) também vem de quadrados.css.
    Regras: nenhum texto abaixo de 18px, nenhuma cor literal, nenhum rem
    em font-size, cada alvo de toque folgado.
    ========================================================================= */
 
-/* ---- Cabeçalho do ecrã ---- */
-
-.ev-header {
-  margin-bottom: 14px;
-}
-
-.ev-title {
-  font-size: var(--fs-display);
-  font-weight: 800;
-  color: var(--color-text);
-  margin: 0 0 4px 0;
-  line-height: var(--lh-tight);
-}
-
-.ev-subtitle {
-  font-size: var(--fs-body);
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: var(--lh-tight);
-}
+/* O cabeçalho deste ecrã é o .v-header partilhado, em quadrados.css. */
 
 /* ---- Voltar aos setores ----
    Fica em cima e com a largura toda. Uma seta pequena no canto não se

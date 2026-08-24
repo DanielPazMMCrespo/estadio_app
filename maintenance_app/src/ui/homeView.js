@@ -95,9 +95,9 @@ export class HomeViewComponent {
 
     this.container.innerHTML = `
       <section class="home-tiles animate-fade-in">
-        <div class="ht-header">
-          <h2 class="ht-greeting">${this.saudacao()}!</h2>
-          <p class="ht-place">Estádio Municipal de Leiria</p>
+        <div class="v-header">
+          <h2 class="v-title">${this.saudacao()}!</h2>
+          <p class="v-subtitle">Estádio Municipal de Leiria</p>
         </div>
 
         <div class="ht-grid">

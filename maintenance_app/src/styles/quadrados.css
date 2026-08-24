@@ -15,13 +15,18 @@
   height: 100%;
 }
 
-/* ---- Cabeçalho do turno ---- */
+/* ---- Cabeçalho de vista ----
+   Um só cabeçalho para os três ecrãs de quadrados: página principal
+   ("Bom dia!" / "Estádio Municipal de Leiria"), menu Mais e ecrã Estádio.
+   Antes havia três blocos iguais com nomes diferentes (.ht-header,
+   .ev-header, .mv-header) em três ficheiros; só a margem de baixo variava
+   (16/14/20px) e ninguém tinha decidido isso. Ficou 16px. ---- */
 
-.ht-header {
+.v-header {
   margin-bottom: 16px;
 }
 
-.ht-greeting {
+.v-title {
   font-size: var(--fs-display);
   font-weight: 800;
   color: var(--color-text);
@@ -29,7 +34,7 @@
   line-height: var(--lh-tight);
 }
 
-.ht-place {
+.v-subtitle {
   font-size: var(--fs-body);
   color: var(--color-text-secondary);
   margin: 0;

@@ -75,9 +75,9 @@ export class MoreViewComponent {
 
     this.container.innerHTML = `
       <section class="more-view animate-fade-in">
-        <div class="mv-header">
-          <h2 class="mv-title">Mais</h2>
-          <p class="mv-subtitle">Toque num quadrado</p>
+        <div class="v-header">
+          <h2 class="v-title">Mais</h2>
+          <p class="v-subtitle">Toque num quadrado</p>
         </div>
 
         <div class="ht-grid">${rows}

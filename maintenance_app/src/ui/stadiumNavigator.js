@@ -136,9 +136,9 @@ export class StadiumNavigatorComponent {
     }).join('');
 
     return `
-        <div class="ev-header">
-          <h2 class="ev-title">Estádio</h2>
-          <p class="ev-subtitle">Toque num setor</p>
+        <div class="v-header">
+          <h2 class="v-title">Estádio</h2>
+          <p class="v-subtitle">Toque num setor</p>
         </div>
         ${this.searchBar()}
         <div class="ht-grid">${quadrados}
@@ -154,9 +154,9 @@ export class StadiumNavigatorComponent {
           <span class="ev-back-icon">${BACK_ICON}</span>
           <span class="ev-back-label">Todos os setores</span>
         </button>
-        <div class="ev-header">
-          <h2 class="ev-title">${esc(this.sectorShortName(sector))}</h2>
-          <p class="ev-subtitle">${rooms.length} sala${rooms.length === 1 ? '' : 's'}</p>
+        <div class="v-header">
+          <h2 class="v-title">${esc(this.sectorShortName(sector))}</h2>
+          <p class="v-subtitle">${rooms.length} sala${rooms.length === 1 ? '' : 's'}</p>
         </div>
         ${this.searchBar()}
         <div class="ht-grid">
@@ -180,9 +180,9 @@ export class StadiumNavigatorComponent {
     });
 
     return `
-        <div class="ev-header">
-          <h2 class="ev-title">Estádio</h2>
-          <p class="ev-subtitle">${encontradas.length} sala${encontradas.length === 1 ? '' : 's'} encontrada${encontradas.length === 1 ? '' : 's'}</p>
+        <div class="v-header">
+          <h2 class="v-title">Estádio</h2>
+          <p class="v-subtitle">${encontradas.length} sala${encontradas.length === 1 ? '' : 's'} encontrada${encontradas.length === 1 ? '' : 's'}</p>
         </div>
         ${this.searchBar()}
         <div class="ht-grid">

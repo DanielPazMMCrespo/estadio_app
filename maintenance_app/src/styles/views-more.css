@@ -2,7 +2,8 @@
    views-more.css — o ecrã "Mais".
    É o ecrã mais simples da app: sete quadrados grandes e nada mais.
    O estilo do quadrado vem de styles/quadrados.css, igual à página
-   principal. Aqui fica o cabeçalho e a cor do glifo de cada destino.
+   principal, e o cabeçalho é o .v-header de lá. Aqui fica só a cor do
+   glifo de cada destino.
    Regras: nenhum texto abaixo de 18px, nenhuma cor literal, nenhum rem
    em font-size, cada quadrado com alvo de toque folgado.
    ========================================================================= */
@@ -14,26 +15,7 @@
   height: 100%;
 }
 
-/* ---- Cabeçalho do ecrã ---- */
-
-.mv-header {
-  margin-bottom: 20px;
-}
-
-.mv-title {
-  font-size: var(--fs-display);
-  font-weight: 800;
-  color: var(--color-text);
-  margin: 0 0 4px 0;
-  line-height: 1.2;
-}
-
-.mv-subtitle {
-  font-size: var(--fs-body);
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.35;
-}
+/* O cabeçalho deste ecrã é o .v-header partilhado, em quadrados.css. */
 
 /* ---- Cor do glifo de cada destino ----
    A grelha e o quadrado vivem em styles/quadrados.css, partilhados com a
