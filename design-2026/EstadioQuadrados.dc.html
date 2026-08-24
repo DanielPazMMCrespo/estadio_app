@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Mockup — Página Estádio com quadrados</title>
+<style>
+  :root{
+    --brand:#557D14; --gold:#B45309; --danger:#C81E1E;
+    --poente:#B45309; --nascente:#0369A1; --norte:#6D28D9; --sul:#BE123C;
+    --relvado:#047857; --tecnica:#92400E; --exterior:#475569;
+    --bg:#F4F6F8; --card:#FFFFFF; --surface:#F8FAFB;
+    --text:#14181E; --muted:#4A5560; --line:#E2E6EA;
+    --t-red:#FDECEC; --t-green:#ECF6EC; --t-blue:#EAF3FA;
+    --t-amber:#FDF3E7; --t-neutral:#EEF1F4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#EDF0F3;color:var(--text);
+    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;padding:28px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{font-size:15px;color:var(--muted);margin-bottom:24px;max-width:760px;line-height:1.5}
+  .row{display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:10px}
+  .caption{font-size:16px;font-weight:700}
+  .capsub{font-size:14px;color:var(--muted);max-width:393px;line-height:1.45}
+
+  .phone{width:393px;background:var(--bg);border:10px solid #10141a;
+    border-radius:34px;overflow:hidden;box-shadow:0 18px 40px rgba(20,30,50,.22)}
+  .hdr{background:var(--card);padding:14px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--brand);
+    color:#fff;font-weight:800;font-size:15px;display:grid;place-items:center}
+  .hname{font-size:19px;font-weight:700}
+  .hsub{font-size:15px;color:var(--muted)}
+  .dot{margin-left:auto;font-size:14px;color:var(--relvado);font-weight:700}
+
+  .body{padding:16px}
+  .title{font-size:30px;font-weight:800;line-height:1.2;margin-bottom:2px}
+  .subtitle{font-size:19px;color:var(--muted);margin-bottom:16px}
+
+  /* Voltar — só no segundo nível */
+  .back{display:flex;align-items:center;gap:10px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    font-size:19px;font-weight:700;margin-bottom:14px}
+  .back span:first-child{color:var(--muted);font-size:22px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px 14px;min-height:124px;display:flex;flex-direction:column;
+    align-items:flex-start;gap:10px;box-shadow:0 2px 6px rgba(20,30,50,.06)}
+  .ico{width:52px;height:52px;border-radius:10px;display:grid;place-items:center;
+    font-size:24px;font-weight:800}
+  .tname{font-size:21px;font-weight:800;line-height:1.2;margin-top:auto}
+  .tmeta{font-size:18px;color:var(--muted);line-height:1.2}
+  .wide{grid-column:1/-1}
+
+  /* quadrado deitado — para nomes compridos */
+  .lay{flex-direction:row;align-items:center;gap:16px;min-height:88px}
+  .lay .tname{margin-top:0;flex:1;font-size:19px}
+
+  /* etiqueta de avaria no canto */
+  .flag{position:absolute;top:12px;right:12px;background:var(--danger);color:#fff;
+    font-size:16px;font-weight:800;border-radius:999px;padding:2px 10px}
+  .rel{position:relative}
+
+  .nav{background:var(--card);border-top:1px solid var(--line);display:flex;
+    padding:8px 0 12px;margin-top:14px}
+  .nav > div{flex:1;text-align:center;font-size:16px;color:var(--muted)}
+  .nav .on{color:var(--brand);font-weight:700}
+</style>
+</head>
+<body>
+
+<h1>Página Estádio com quadrados</h1>
+<p class="sub">Hoje a página Estádio tem uma barra de números, uma pesquisa, três
+filtros e sete linhas que abrem para dentro. São quatro coisas antes de chegar
+ao que interessa. Aqui só há quadrados: toca no setor, aparecem as salas.</p>
+
+<div class="row">
+
+  <!-- ============ ECRÃ 1: SETORES ============ -->
+  <div class="col">
+    <div class="caption">1 — Os 7 setores</div>
+    <div class="capsub">Um quadrado por setor. Cada um diz quantas salas tem.
+      O número vermelho no canto só aparece quando há avarias abertas ali.</div>
+    <div class="phone">
+      <div class="hdr">
+        <div class="logo">MM</div>
+        <div><div class="hname">Estádio de Leiria</div>
+             <div class="hsub">Áreas do estádio</div></div>
+        <div class="dot">● Online</div>
+      </div>
+      <div class="body">
+        <div class="title">Estádio</div>
+        <div class="subtitle">Toque num setor</div>
+
+        <div class="grid">
+          <div class="tile rel">
+            <div class="flag">3</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--poente)">▮</div>
+            <div class="tname">Bancada Poente</div>
+            <div class="tmeta">6 salas</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-blue);color:var(--nascente)">▮</div>
+            <div class="tname">Bancada Nascente</div>
+            <div class="tmeta">4 salas</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-neutral);color:var(--norte)">▲</div>
+            <div class="tname">Topo Norte</div>
+            <div class="tmeta">4 salas</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-red);color:var(--sul)">▼</div>
+            <div class="tname">Topo Sul</div>
+            <div class="tmeta">3 salas</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-green);color:var(--relvado)">◉</div>
+            <div class="tname">Relvado e Pista</div>
+            <div class="tmeta">5 salas</div>
+          </div>
+          <div class="tile rel">
+            <div class="flag">2</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⚙</div>
+            <div class="tname">Balneários e Técnicas</div>
+            <div class="tmeta">7 salas</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-neutral);color:var(--exterior)">⛭</div>
+            <div class="tname">Exterior e Portões</div>
+            <div class="tmeta">4 salas</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div>Hoje</div><div>Intervenções</div><div>Tarefas</div><div class="on">Mais</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ECRÃ 2: SALAS EM QUADRADOS ============ -->
+  <div class="col">
+    <div class="caption">2 — As salas do setor (quadrados)</div>
+    <div class="capsub">Igual à página principal. O problema: os nomes das
+      salas são compridos ("Sala de Bombas e Caldeiras") e partem em três
+      linhas. Tive de os encurtar para caberem.</div>
+    <div class="phone">
+      <div class="hdr">
+        <div class="logo">MM</div>
+        <div><div class="hname">Estádio de Leiria</div>
+             <div class="hsub">Balneários e Técnicas</div></div>
+        <div class="dot">● Online</div>
+      </div>
+      <div class="body">
+        <div class="back"><span>‹</span><span>Todos os setores</span></div>
+        <div class="title">Técnicas</div>
+        <div class="subtitle">7 salas</div>
+
+        <div class="grid">
+          <div class="tile rel">
+            <div class="flag">1</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Balneário Casa</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Balneário Visitante</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Árbitros</div>
+          </div>
+          <div class="tile rel">
+            <div class="flag">1</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">♨</div>
+            <div class="tname">Bombas e Caldeiras</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⚡</div>
+            <div class="tname">Quadro Elétrico</div>
+          </div>
+          <div class="tile">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">▤</div>
+            <div class="tname">Bastidor IT</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">✚</div>
+            <div class="tname">Controlo Antidoping</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div>Hoje</div><div>Intervenções</div><div>Tarefas</div><div class="on">Mais</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ECRÃ 3: SALAS DEITADAS ============ -->
+  <div class="col">
+    <div class="caption">3 — As salas deitadas (alternativa)</div>
+    <div class="capsub">Mesmo estilo de caixa, mas uma por linha. Cabe o nome
+      inteiro, sem cortes. Os setores continuam em quadrados; só as salas
+      mudam. É o que eu escolhia.</div>
+    <div class="phone">
+      <div class="hdr">
+        <div class="logo">MM</div>
+        <div><div class="hname">Estádio de Leiria</div>
+             <div class="hsub">Balneários e Técnicas</div></div>
+        <div class="dot">● Online</div>
+      </div>
+      <div class="body">
+        <div class="back"><span>‹</span><span>Todos os setores</span></div>
+        <div class="title">Técnicas</div>
+        <div class="subtitle">7 salas</div>
+
+        <div class="grid">
+          <div class="tile wide lay rel">
+            <div class="flag">1</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Balneário Principal (Casa)</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Balneário Visitante</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⌂</div>
+            <div class="tname">Árbitros e Delegados</div>
+          </div>
+          <div class="tile wide lay rel">
+            <div class="flag">1</div>
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">♨</div>
+            <div class="tname">Sala de Bombas e Caldeiras</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">⚡</div>
+            <div class="tname">Quadro Elétrico Geral</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">▤</div>
+            <div class="tname">Bastidor IT e Servidores</div>
+          </div>
+          <div class="tile wide lay">
+            <div class="ico" style="background:var(--t-amber);color:var(--tecnica)">✚</div>
+            <div class="tname">Controlo Antidoping</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div>Hoje</div><div>Intervenções</div><div>Tarefas</div><div class="on">Mais</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

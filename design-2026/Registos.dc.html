@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #F4F6F8; color: #14181E; -webkit-font-smoothing: antialiased; }
+    a { color: #0B5245; text-decoration: none; } a:hover { color: #0F6E5C; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #F4F6F8; display: flex; flex-direction: column;">
+
+  <!-- CABEÇALHO -->
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #FFFFFF; border-bottom: 1px solid #D8DEE4;">
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #14181E;">mmcrespo</span>
+      <span style="font-size: 18px; color: #4A5560; line-height: 1.15;">Estádio de Leiria</span>
+    </div>
+    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 48px; border-radius: 8px; background: #FCF3E7; border: 1px solid #D8DEE4; font-size: 18px; font-weight: 700; color: #B45309;">
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: #B45309; display: block;"></span>
+      Sem rede
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px 16px 24px;">
+
+    <!-- TÍTULO -->
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h1 style="font-size: 30px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; margin: 0; color: #14181E;">Registos</h1>
+      <p style="font-size: 18px; color: #4A5560; margin: 0; line-height: 1.4; text-wrap: pretty;">Tudo o que já foi escrito. Escolhe o tipo em baixo.</p>
+    </div>
+
+    <!-- AVISO DE OFFLINE — EXPLICA, NÃO ASSUSTA -->
+    <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #FCF3E7; border: 1px solid #D8DEE4;">
+      <span style="color: #B45309; flex: 0 0 auto; display: flex;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"></path><path d="M2 8.82a15 15 0 0 1 20 0"></path><path d="M5 12.86a10 10 0 0 1 14 0"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 19px; font-weight: 800; color: #B45309; line-height: 1.25;">3 registos à espera</span>
+        <span style="font-size: 18px; color: #4A5560; line-height: 1.3; text-wrap: pretty;">Continua a trabalhar. Sobem sozinhos quando houver rede.</span>
+      </span>
+    </div>
+
+    <!-- PESQUISA -->
+    <div style="position: relative;">
+      <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #4A5560; display: flex;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </span>
+      <input type="text" placeholder="Procurar por palavra ou local" style="width: 100%; min-height: 56px; padding: 14px 14px 14px 46px; border: 1px solid #D8DEE4; border-radius: 10px; background: #FFFFFF; font-size: 19px; font-family: inherit; color: #14181E;" />
+    </div>
+
+    <!-- TIPO DE REGISTO — QUATRO CAIXAS COM NOME E NÚMERO -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 12px; border: 2px solid #0F6E5C; border-radius: 10px; background: #E8F6F0; color: #0B5245; font-size: 19px; font-weight: 800; cursor: pointer; text-align: left;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span style="flex-grow: 1;">Avarias</span>
+        <span>12</span>
+      </button>
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 12px; border: 1px solid #D8DEE4; border-radius: 10px; background: #FFFFFF; color: #14181E; font-size: 19px; font-weight: 700; cursor: pointer; text-align: left;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        <span style="flex-grow: 1;">Tarefas</span>
+        <span style="color: #4A5560;">8</span>
+      </button>
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 12px; border: 1px solid #D8DEE4; border-radius: 10px; background: #FFFFFF; color: #14181E; font-size: 19px; font-weight: 700; cursor: pointer; text-align: left;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span style="flex-grow: 1;">Notas</span>
+        <span style="color: #4A5560;">4</span>
+      </button>
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 12px; border: 1px solid #D8DEE4; border-radius: 10px; background: #FFFFFF; color: #14181E; font-size: 19px; font-weight: 700; cursor: pointer; text-align: left;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><polyline points="15 2 15 7 20 7"></polyline><line x1="9" y1="17" x2="15" y2="17"></line><line x1="9" y1="13" x2="12" y2="13"></line></svg>
+        <span style="flex-grow: 1;">Relatórios</span>
+        <span style="color: #4A5560;">2</span>
+      </button>
+    </div>
+
+    <!-- ESTADO -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 18px; font-weight: 700; color: #4A5560;">Mostrar só:</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button style="min-height: 48px; padding: 10px 16px; border: 1px solid #14181E; border-radius: 24px; background: #14181E; color: #FFFFFF; font-size: 18px; font-weight: 700; cursor: pointer;">Todas</button>
+        <button style="min-height: 48px; padding: 10px 16px; border: 1px solid #D8DEE4; border-radius: 24px; background: #FFFFFF; color: #14181E; font-size: 18px; font-weight: 700; cursor: pointer;">Abertas</button>
+        <button style="min-height: 48px; padding: 10px 16px; border: 1px solid #D8DEE4; border-radius: 24px; background: #FFFFFF; color: #14181E; font-size: 18px; font-weight: 700; cursor: pointer;">Urgentes</button>
+        <button style="min-height: 48px; padding: 10px 16px; border: 1px solid #D8DEE4; border-radius: 24px; background: #FFFFFF; color: #14181E; font-size: 18px; font-weight: 700; cursor: pointer;">Resolvidas</button>
+      </div>
+    </div>
+
+    <!-- LISTA -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid #D8DEE4; border-radius: 12px; background: #FFFFFF;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px; background: #FCECEC; color: #B01717; font-size: 18px; font-weight: 800;">Urgente</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 18px; color: #B45309; font-weight: 700;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            À espera de rede
+          </span>
+        </div>
+        <p style="font-size: 19px; font-weight: 700; margin: 0; line-height: 1.35; color: #14181E; text-wrap: pretty;">Projetor da torre norte fundido — bancada às escuras.</p>
+        <div style="display: flex; align-items: center; gap: 12px; color: #4A5560; flex-wrap: wrap;">
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 18px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Torre norte
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 18px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            2 fotos
+          </span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid #D8DEE4; border-radius: 12px; background: #FFFFFF;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px; background: #FCF3E7; color: #B45309; font-size: 18px; font-weight: 800;">Começada</span>
+          <span style="font-size: 18px; color: #4A5560;">ontem, 16:20</span>
+        </div>
+        <p style="font-size: 19px; font-weight: 700; margin: 0; line-height: 1.35; color: #14181E; text-wrap: pretty;">Torneira do balneário 2 a pingar.</p>
+        <div style="display: flex; align-items: center; gap: 6px; color: #4A5560;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span style="font-size: 18px;">Balneário 2 · Nascente</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid #D8DEE4; border-radius: 12px; background: #FFFFFF;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px; background: #E8F6F0; color: #047857; font-size: 18px; font-weight: 800;">Resolvida</span>
+          <span style="font-size: 18px; color: #4A5560;">17 ago</span>
+        </div>
+        <p style="font-size: 19px; font-weight: 700; margin: 0; line-height: 1.35; color: #14181E; text-wrap: pretty;">Fechadura do portão 4 substituída.</p>
+        <div style="display: flex; align-items: center; gap: 12px; color: #4A5560; flex-wrap: wrap;">
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 18px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Portão 4 · Exterior
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 18px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            1 h 30
+          </span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid #D8DEE4; border-radius: 12px; background: #FFFFFF;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px; background: #EFF2F6; color: #4A5560; font-size: 18px; font-weight: 800;">Normal</span>
+          <span style="font-size: 18px; color: #4A5560;">16 ago</span>
+        </div>
+        <p style="font-size: 19px; font-weight: 700; margin: 0; line-height: 1.35; color: #14181E; text-wrap: pretty;">Cadeira 14-B da bancada sul solta.</p>
+        <div style="display: flex; align-items: center; gap: 6px; color: #4A5560;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span style="font-size: 18px;">Bancada sul</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SAÍDA PARA RELATÓRIO — FIM DA LISTA, NÃO ESCONDIDO -->
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid #D8DEE4; border-radius: 12px; background: #FFFFFF;">
+      <span style="font-size: 21px; font-weight: 800; color: #14181E; line-height: 1.25;">Precisas de entregar isto a alguém?</span>
+      <span style="font-size: 18px; color: #4A5560; line-height: 1.4; text-wrap: pretty;">Junta o trabalho de um período num PDF com as fotos.</span>
+      <button style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 14px; border: none; border-radius: 10px; background: #0F6E5C; color: #FFFFFF; font-size: 19px; font-weight: 800; cursor: pointer;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Fazer relatório em PDF
+      </button>
+    </div>
+
+  </div>
+
+  <!-- BARRA DE BAIXO -->
+  <div style="display: flex; align-items: stretch; gap: 4px; padding: 6px 8px; background: #FFFFFF; border-top: 1px solid #D8DEE4;">
+    <button style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex-grow: 1; min-height: 72px; padding: 8px 4px; border: none; border-radius: 8px; background: transparent; color: #4A5560; cursor: pointer;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em;">Hoje</span>
+    </button>
+    <button style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex-grow: 1; min-height: 72px; padding: 8px 4px; border: none; border-radius: 8px; background: #E8F6F0; color: #0B5245; cursor: pointer;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      <span style="font-size: 18px; font-weight: 800; letter-spacing: -0.02em;">Registos</span>
+    </button>
+    <button style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex-grow: 1; min-height: 72px; padding: 8px 4px; border: none; border-radius: 8px; background: transparent; color: #4A5560; cursor: pointer;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"></path><path d="M3 13h18"></path><path d="M9 21v-6h6v6"></path></svg>
+      <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em;">Estádio</span>
+    </button>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":390,"height":1720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

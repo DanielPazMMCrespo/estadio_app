@@ -1,0 +1,26 @@
+{
+  "pages": [
+    { "id": "mapa", "name": "1 · O que a app faz" },
+    { "id": "ecras", "name": "2 · Os ecrãs" },
+    { "id": "sistema", "name": "3 · Peças e cores" }
+  ],
+  "artboards": [
+    { "file": "MapaApp.dc.html", "title": "O que a app faz", "page": "mapa", "x": 0, "y": 0, "w": 1240, "h": 1560 },
+    { "file": "Main.dc.html", "title": "Hoje", "page": "ecras", "x": 0, "y": 0, "w": 390, "h": 1620 },
+    { "file": "Registos.dc.html", "title": "Registos", "page": "ecras", "x": 470, "y": 0, "w": 390, "h": 1720 },
+    { "file": "Estadio.dc.html", "title": "Estádio", "page": "ecras", "x": 940, "y": 0, "w": 390, "h": 1900 },
+    { "file": "NovaAvaria.dc.html", "title": "Registar avaria", "page": "ecras", "x": 1410, "y": 0, "w": 390, "h": 1780 },
+    { "file": "Detalhe.dc.html", "title": "Uma avaria por dentro", "page": "ecras", "x": 1880, "y": 0, "w": 390, "h": 1400 },
+    { "file": "Componentes.dc.html", "title": "Peças e cores", "page": "sistema", "x": 0, "y": 0, "w": 1240, "h": 1440 }
+  ],
+  "annotations": [
+    { "id": "nota-mapa", "page": "mapa", "x": 0, "y": -150, "w": 620, "text": "COMEÇA AQUI.\nEsta página responde à tua pergunta: olhar para a app e perceber tudo o que ela faz." },
+    { "id": "nota-ecras", "page": "ecras", "x": 0, "y": -180, "w": 560, "text": "Os cinco ecrãs, na ordem em que o técnico os usa.\nOs três primeiros são os separadores da barra de baixo.\nOs dois últimos abrem por cima." },
+    { "id": "nota-hoje", "page": "ecras", "x": 0, "y": 1680, "w": 390, "text": "Um botão verde e mais nada a competir com ele. As Métricas viraram estes quatro números." },
+    { "id": "nota-registos", "page": "ecras", "x": 470, "y": 1780, "w": 390, "text": "Junta o que estava em quatro ecrãs diferentes: Intervenções, Tarefas, Notas e Relatórios." },
+    { "id": "nota-estadio", "page": "ecras", "x": 940, "y": 1960, "w": 390, "text": "Junta Áreas do Estádio, Equipamento Instalado e Ferramentas e Stock. Tudo à vista, sem menu." },
+    { "id": "nota-nova", "page": "ecras", "x": 1410, "y": 1840, "w": 390, "text": "Três perguntas numeradas. Só a primeira é obrigatória. Os extras estão abertos, não escondidos." },
+    { "id": "nota-sistema", "page": "sistema", "x": 0, "y": -150, "w": 620, "text": "Nada aqui é cor nova. São os valores que já existem no theme.css da app." }
+  ],
+  "launch": { "view": "canvas", "page": "mapa" }
+}
