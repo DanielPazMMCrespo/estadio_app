@@ -2,6 +2,7 @@ import { db } from './db/db.js';
 import { locationsRepo, locationLabel } from './db/locationsRepo.js';
 import { reportsRepo } from './db/reportsRepo.js';
 import { materialsRepo } from './db/materialsRepo.js';
+import { doorsRepo } from './db/doorsRepo.js';
 import { HeaderComponent } from './ui/header.js';
 import { StadiumNavigatorComponent } from './ui/stadiumNavigator.js';
 import { DashboardComponent } from './ui/dashboard.js';
@@ -15,6 +16,7 @@ import { TasksViewComponent } from './ui/tasksView.js';
 import { NotesViewComponent } from './ui/notesView.js';
 import { ToolsViewComponent } from './ui/toolsView.js';
 import { EquipmentViewComponent } from './ui/equipmentView.js';
+import { DoorsViewComponent } from './ui/doorsView.js';
 import { ReportsViewComponent } from './ui/reportsView.js';
 import { QuickCaptureComponent } from './ui/quickCapture.js';
 import { speechService } from './services/speechService.js';
@@ -22,6 +24,7 @@ import { photoEditor } from './services/photoEditor.js';
 import { compressPhoto } from './services/photoCompressor.js';
 import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
+import { esc as escUtil } from './utils/html.js';
 
 export class App {
   constructor() {
@@ -33,6 +36,7 @@ export class App {
     this.notes = null;
     this.tools = null;
     this.equipment = null;
+    this.doors = null;
     this.reports = null;
     this.quickCapture = null;
     this.stadiumNavigator = null;
@@ -40,7 +44,7 @@ export class App {
     this.dashboard = null;
     this.reportDetail = null;
     this.locationModal = null;
-    this.currentView = 'home'; // 'home' | 'history' | 'tasks' | 'more' | 'tools' | 'equipment' | 'sectors' | 'notes' | 'settings' | 'reports'
+    this.currentView = 'home'; // 'home' | 'history' | 'tasks' | 'more' | 'tools' | 'equipment' | 'doors' | 'sectors' | 'notes' | 'settings' | 'reports'
     this.editingReportId = null;
     this.pageTransition = null;  // véu com o logótipo, criado uma só vez
     this.hasRendered = false;    // a primeira vista não leva véu: o splash ainda está no ecrã
@@ -54,6 +58,7 @@ export class App {
     try { await db.open(); } catch (err) { console.error('[App] DB error:', err); }
     try { await locationsRepo.seedDefaults(); } catch (err) { console.error('[App] Seed locations error:', err); }
     try { await materialsRepo.seedDefaults(); } catch (err) { console.error('[App] Seed materials error:', err); }
+    try { await doorsRepo.seedDefaults(); } catch (err) { console.error('[App] Seed doors error:', err); }
 
     // Remove splash screen smoothly
     const splash = document.getElementById('splash-screen');
@@ -102,7 +107,8 @@ export class App {
     });
 
     this.quickCapture = new QuickCaptureComponent({
-      onSave: () => this.refreshCurrentView()
+      onSave: () => this.refreshCurrentView(),
+      onExpand: (carried) => this.openFullNewReport(carried || {})
     });
 
     const appContainer = document.getElementById('app');
@@ -174,7 +180,7 @@ export class App {
         this.renderHistory(opts.sector || null, opts.filter || null);
         break;
       case 'tasks':
-        this.renderTasks();
+        this.renderTasks(opts || {});
         break;
       case 'more':
         this.renderMore();
@@ -184,6 +190,9 @@ export class App {
         break;
       case 'equipment':
         this.renderEquipment();
+        break;
+      case 'doors':
+        this.renderDoors();
         break;
       case 'reports':
         this.renderReports();
@@ -210,7 +219,9 @@ export class App {
     if (this.home && typeof this.home.destroy === 'function') this.home.destroy();
     this.home = new HomeViewComponent(feed, {
       onNewReport: () => this.openNewReport(),
-      onOpenFullReport: (prefill) => this.openFullNewReport(prefill),
+      // O botão verde abre a captura rápida (descrição + foto em ≤3 toques).
+      // Os campos todos continuam a um toque dentro dela ("Mais campos").
+      onOpenFullReport: (prefill) => this.openNewReport(prefill || {}),
       onNewTask: () => {
         // Simple fallback to tasks view for now
         this.navigateTo('tasks');
@@ -218,7 +229,9 @@ export class App {
       onViewAllReports: (opts) => this.navigateTo('history', opts || {}),
       onViewAllTasks: () => this.navigateTo('tasks'),
       onOpenReport: (id) => this.reportDetail.open(id),
-      onOpenTask: (id) => this.navigateTo('tasks'),
+      // Abrir a tarefa é abrir a FICHA, não a lista: a linha "A seguir"
+      // promete a tarefa e tem de a entregar.
+      onOpenTask: (id) => this.navigateTo('tasks', { taskId: id }),
       // Os quadrados da página principal navegam para qualquer vista, e podem
       // levar o filtro inicial da lista de destino.
       onNavigate: (viewId, opts) => this.navigateTo(viewId, opts || {})
@@ -235,22 +248,63 @@ export class App {
     await this.more.render();
   }
 
-  async renderTasks() {
+  async renderTasks(opts = {}) {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
     this.tasks = new TasksViewComponent(feed, {
-      onNewTaskForLocation: () => {},
+      onNewTaskForLocation: (apply) => this.openLocationPickerForTasks(apply),
       onOpenReport: (id) => this.reportDetail.open(id)
     });
     await this.tasks.render();
+    // Deep-link da página principal: abrir a ficha da tarefa pedida.
+    if (opts && opts.taskId) {
+      try { await this.tasks.openTaskDetailSheet(opts.taskId); } catch (err) {
+        console.error('[App] Não foi possível abrir a tarefa:', err);
+      }
+    }
+    // Conversão de nota em tarefa: abrir a folha nova já preenchida.
+    if (this.pendingTaskPrefill) {
+      const prefill = this.pendingTaskPrefill;
+      this.pendingTaskPrefill = null;
+      try { this.tasks.openNewTaskSheet(prefill); } catch (err) {
+        console.error('[App] Não foi possível pré-preencher a tarefa:', err);
+      }
+    }
+  }
+
+  /** Seletor de local para a folha de nova tarefa (via modal partilhado). */
+  openLocationPickerForTasks(apply) {
+    if (!this.locationModal) {
+      if (typeof apply === 'function') apply({});
+      return;
+    }
+    this.locationModal.open({
+      onSelect: (loc) => {
+        if (typeof apply === 'function') {
+          apply({ locationId: loc && loc.id ? loc.id : '', locationName: loc && loc.name ? loc.name : '' });
+        }
+      }
+    });
   }
 
   async renderNotes() {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
     this.notes = new NotesViewComponent(feed, {
-      onConvertToReport: (txt) => this.openNewReport({ description: txt }),
-      onConvertToTask: () => {}
+      // A nota é um objeto: o texto vai no body e o local viaja junto.
+      onConvertToReport: (note) => this.openNewReport({
+        description: (note && note.body) || '',
+        locationId: (note && note.locationId) || '',
+        locationName: (note && note.locationName) || ''
+      }),
+      onConvertToTask: (note) => {
+        this.pendingTaskPrefill = {
+          title: (note && note.body) || '',
+          locationId: (note && note.locationId) || '',
+          locationName: (note && note.locationName) || ''
+        };
+        this.navigateTo('tasks');
+      }
     });
     await this.notes.render();
   }
@@ -259,7 +313,11 @@ export class App {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
     this.tools = new ToolsViewComponent(feed, {
-      onNewReportForTool: () => this.openNewReport()
+      // A ferramenta viaja para a captura: ao gravar, desconta do stock
+      // com o id da avaria ligada. Sem contexto, abre a captura simples.
+      onNewReportForTool: (tool) => this.openNewReport(tool && tool.id
+        ? { toolId: tool.id, toolName: tool.name || '' }
+        : {})
     });
     await this.tools.render();
   }
@@ -268,12 +326,51 @@ export class App {
     const feed = document.getElementById('dashboard-feed');
     if (!feed) return;
     this.equipment = new EquipmentViewComponent(feed, {
-      onNewReportForEquipment: (eqId, name, locId, locName) => {
-        this.openNewReport({ locationId: locId, locationName: locName });
-      },
-      onViewEquipmentReports: () => this.navigateTo('history')
+      // A vista passa o equipamento inteiro: o id estruturado viaja para o
+      // registo e alimenta o "Ver intervenções" da ficha.
+      onNewReportForEquipment: (eq) => this.openNewReport({
+        locationId: (eq && eq.locationId) || '',
+        locationName: (eq && eq.locationName) || '',
+        equipmentId: (eq && eq.id) || '',
+        equipmentName: (eq && eq.name) || ''
+      }),
+      onOpenReport: (id) => this.reportDetail.open(id)
     });
     await this.equipment.render();
+  }
+
+  async renderDoors() {
+    const feed = document.getElementById('dashboard-feed');
+    if (!feed) return;
+    this.doors = new DoorsViewComponent(feed, {
+      // A porta NÃO é um local da hierarquia: é um ponto dentro de um
+      // setor. A captura rápida já aceita descrição pré-preenchida e
+      // guarda doorId/doorNumero estruturados, por isso é o caminho rápido.
+      // Só os códigos de setor que existam como sala são usados como local;
+      // o Poente (sem sala própria) fica em branco para o técnico escolher.
+      onNewReportForDoor: async (door) => {
+        let locationId = '';
+        let locationName = '';
+        try {
+          const loc = await locationsRepo.getById(door.sectorCode);
+          if (loc && !loc.deleted) {
+            locationId = loc.id;
+            locationName = loc.name;
+          }
+        } catch (err) {
+          console.error('[App] Local da porta nao resolvido:', err);
+        }
+        this.openNewReport({
+          locationId,
+          locationName,
+          doorId: door.id,
+          doorNumero: door.numero || '',
+          description: `Porta ${door.numero}${door.descricao ? ' (' + door.descricao + ')' : ''}: `
+        });
+      },
+      onOpenReport: (id) => this.reportDetail.open(id)
+    });
+    await this.doors.render();
   }
 
   async renderReports() {
@@ -349,6 +446,15 @@ export class App {
           </div>
         </div>
 
+        <!-- Estado da sincronização: quantas faltam e há quanto tempo -->
+        <div class="analytics-card">
+          <div class="analytics-card-header">
+            <h3 class="analytics-card-title">Sincronização</h3>
+          </div>
+          <p id="settings-sync-text" style="font-size: var(--fs-label); color: var(--color-text-secondary); margin: 0 0 10px 0;">A carregar…</p>
+          <button type="button" id="btn-manual-sync" class="btn-secondary touch-target" style="width: 100%;">Sincronizar agora</button>
+        </div>
+
         <!-- Sectors & Rooms Database Management -->
         <div class="analytics-card">
           <div class="analytics-card-header" style="margin-bottom: 12px;">
@@ -384,7 +490,7 @@ export class App {
             ${materials.map(m => `
               <span style="display:inline-flex; align-items:center; gap:6px; background:var(--color-surface); border:1px solid var(--color-border); padding:4px 10px; border-radius:var(--radius-xs); font-size:0.8rem;">
                 ${this.esc(m.name)}
-                <button type="button" class="btn-del-mat" data-id="${m.id}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:0.9rem;">&times;</button>
+                <button type="button" class="btn-del-mat" data-id="${this.esc(m.id)}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:0.9rem;">&times;</button>
               </span>
             `).join('')}
           </div>
@@ -433,8 +539,8 @@ export class App {
             <div style="font-size:0.7rem; color:var(--color-text-muted); margin-top:2px;">${this.esc(room.sectorName)} ${room.description ? '— ' + this.esc(room.description) : ''}</div>
           </div>
           <div style="display:flex; gap:12px;">
-            <button type="button" class="btn-edit-room touch-target" data-id="${room.id}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:1.1rem;" title="Editar">✎</button>
-            <button type="button" class="btn-del-room touch-target" data-id="${room.id}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.3rem;" title="Eliminar">&times;</button>
+            <button type="button" class="btn-edit-room touch-target" data-id="${this.esc(room.id)}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:1.1rem;" title="Editar">✎</button>
+            <button type="button" class="btn-del-room touch-target" data-id="${this.esc(room.id)}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.3rem;" title="Eliminar">&times;</button>
           </div>
         </div>
       `).join('');
@@ -523,6 +629,49 @@ export class App {
         this.renderSettings();
       });
     });
+
+    // Cartão de sincronização: estado honesto da fila.
+    this.refreshSyncCard();
+    feed.querySelector('#btn-manual-sync')?.addEventListener('click', () => {
+      if (window.syncEngine) window.syncEngine.sync({ showToast: true });
+      setTimeout(() => this.refreshSyncCard(), 1000);
+    });
+  }
+
+  /** Preenche o cartão de sincronização das Definições (conta + idade). */
+  async refreshSyncCard() {
+    const el = document.getElementById('settings-sync-text');
+    if (!el) return;
+    try {
+      const engine = window.syncEngine;
+      if (!engine || typeof engine.pendingInfo !== 'function') {
+        el.textContent = 'Sincronização indisponível neste ecrã.';
+        return;
+      }
+      const info = await engine.pendingInfo();
+      if (!info.pending) {
+        el.textContent = 'Tudo sincronizado. Nada à espera de subir.';
+        return;
+      }
+      const age = info.oldest ? Date.now() - info.oldest : 0;
+      el.textContent =
+        `${info.pending} à espera de subir` +
+        (age > 0 ? ` · o mais antigo há ${this.formatAge(age)}` : '') + '.';
+    } catch (err) {
+      console.error('[Settings] estado do sync:', err);
+      el.textContent = 'Não foi possível ler o estado da fila.';
+    }
+  }
+
+  /** 90s -> "2 min", 3h -> "3 h", 5d -> "5 dias". */
+  formatAge(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    if (s < 60) return `${s} s`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 48) return `${h} h`;
+    return `${Math.floor(h / 24)} dias`;
   }
 
   openRoomModal(options = {}) {
@@ -757,7 +906,11 @@ export class App {
       modal.onclick = (e) => {
         if (e.target === modal) {
           modal.style.display = 'none';
-          this.editingReportId = null;
+    this.editingReportId = null;
+    // Nota a virar tarefa: consumida pelo renderTasks a seguir.
+    this.pendingTaskPrefill = null;
+    // Contexto equipamento/porta do formulário completo (ver openFullNewReport).
+    this.fullReportContext = null;
           this.cleanupFormTempData();
         }
       };
@@ -884,7 +1037,7 @@ export class App {
       card.className = 'detail-photo-card';
       card.dataset.index = idx;
       card.innerHTML = `
-        <img src="${photo.dataUrl}" alt="Foto" class="detail-photo-img" />
+        <img src="${this.esc(photo.dataUrl)}" alt="Foto" class="detail-photo-img" />
         <span class="detail-photo-tag">${photo.type === 'before' ? 'Antes' : 'Depois'} ✎ Anotar</span>
         <button type="button" class="btn-remove-photo" style="position:absolute; top:2px; right:2px; background:var(--color-danger); color:#FFFFFF; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:12px;">&times;</button>
       `;
@@ -913,6 +1066,7 @@ export class App {
 
   cleanupFormTempData() {
     this.tempPhotos = [];
+    this.fullReportContext = null;
     speechService.stopListening();
     const micBtn = document.getElementById('btn-toggle-mic');
     if (micBtn) {
@@ -933,6 +1087,14 @@ export class App {
   openFullNewReport(prefill = {}) {
     this.editingReportId = null;
     this.cleanupFormTempData();
+    // Contexto estruturado (da captura rápida ou da ficha): guardado aqui
+    // porque o saveReport lê o DOM, não o prefill.
+    this.fullReportContext = {
+      equipmentId: prefill.equipmentId || '',
+      equipmentName: prefill.equipmentName || '',
+      doorId: prefill.doorId || '',
+      doorNumero: prefill.doorNumero || '',
+    };
     this.ensureReportFormDOM();
 
     const modal = document.getElementById('modal-report-form');
@@ -1084,8 +1246,12 @@ export class App {
         const parsed = new Date(dateInput.value);
         if (!Number.isNaN(parsed.getTime())) {
           isoDate = parsed.toISOString();
+        } else {
+          console.warn('[App] Data inválida no formulário, a usar agora:', dateInput.value);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[App] Data inválida no formulário, a usar agora:', e);
+      }
     }
 
     // Gather materials
@@ -1114,7 +1280,13 @@ export class App {
       materials: materialsList,
       photos: photosToSave,
       audioBlob: null,
-      audioDuration: 0
+      audioDuration: 0,
+      // Contexto vindo da captura rápida ou do equipamento/porta: só viaja
+      // se existir, para nunca apagar ligações ao editar um registo antigo.
+      ...(this.fullReportContext?.equipmentId ? { equipmentId: this.fullReportContext.equipmentId } : {}),
+      ...(this.fullReportContext?.equipmentName ? { equipmentName: this.fullReportContext.equipmentName } : {}),
+      ...(this.fullReportContext?.doorId ? { doorId: this.fullReportContext.doorId } : {}),
+      ...(this.fullReportContext?.doorNumero ? { doorNumero: this.fullReportContext.doorNumero } : {}),
     };
     
     try {
@@ -1261,11 +1433,11 @@ export class App {
     }
   }
 
-  esc(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+  // Uma só implementação de escape (utils/html.js): a variante antiga criava
+  // um elemento DOM por chamada, lenta em listas longas. Mantém-se o método
+  // para os 15+ usos internos não mudarem.
+  esc(value) {
+    return escUtil(value);
   }
 }
 

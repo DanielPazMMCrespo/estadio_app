@@ -136,8 +136,8 @@ export class HistoryComponent {
     const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
     const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 
-    const priority = report.priority || 'medium';
-    const status = report.status || 'pending';
+    const priority = ['critical', 'medium', 'low'].includes(report.priority) ? report.priority : 'medium';
+    const status = ['pending', 'in_progress', 'resolved'].includes(report.status) ? report.status : 'pending';
 
     const priorityLabels = {
       critical: { label: 'CRÍTICO', cls: 'crit' },
@@ -158,7 +158,7 @@ export class HistoryComponent {
 
     return `
       <div class="issue-card animate-fade-in priority-${priority} status-${status}" 
-           data-report-id="${report.id}" 
+           data-report-id="${esc(report.id)}" 
            style="--stagger-index:${index}">
         
         <div class="issue-card-header">
@@ -199,10 +199,10 @@ export class HistoryComponent {
           </div>
 
           <div class="issue-card-actions" style="display:flex; align-items:center; gap:8px;">
-            <button type="button" class="btn-card-edit" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:0.9rem; padding:4px 6px;" title="Editar Intervenção">✎</button>
-            <button type="button" class="btn-card-del" data-id="${report.id}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.1rem; padding:4px 6px;" title="Eliminar Intervenção">&times;</button>
+            <button type="button" class="btn-card-edit" data-id="${esc(report.id)}" style="background:transparent; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:0.9rem; padding:4px 6px;" title="Editar Intervenção">✎</button>
+            <button type="button" class="btn-card-del" data-id="${esc(report.id)}" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:1.1rem; padding:4px 6px;" title="Eliminar Intervenção">&times;</button>
             ${sInfo.next ? `
-              <button type="button" class="btn-fast-advance" data-action="advance" data-next="${sInfo.next}" data-id="${report.id}">
+              <button type="button" class="btn-fast-advance" data-action="advance" data-next="${esc(sInfo.next)}" data-id="${esc(report.id)}">
                 ${sInfo.nextLabel} ➔
               </button>
             ` : `

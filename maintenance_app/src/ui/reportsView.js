@@ -158,8 +158,10 @@ export class ReportsViewComponent {
       const date = new Date(r.date || Date.now());
       const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
       const hasPhotos = Array.isArray(r.photos) && r.photos.length > 0;
+      const priority = ['critical', 'medium', 'low'].includes(r.priority) ? r.priority : 'medium';
+      const status = ['pending', 'in_progress', 'resolved'].includes(r.status) ? r.status : 'pending';
       return `
-        <div class="issue-card priority-${r.priority || 'medium'} status-${r.status || 'pending'}">
+        <div class="issue-card priority-${priority} status-${status}">
           <div class="issue-card-header">
             <div class="issue-location-wrap">
               <span class="issue-sector-badge">${esc(r.locationName || 'Estádio')}</span>

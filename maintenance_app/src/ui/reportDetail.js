@@ -1,5 +1,5 @@
 import { reportsRepo } from '../db/reportsRepo.js';
-import { getPhotoDataUrl } from '../db/db.js';
+import { getPhotoDataUrl, isSafePhotoUrl } from '../db/db.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
@@ -67,11 +67,12 @@ export class ReportDetailComponent {
     if (Array.isArray(r.photos) && r.photos.length > 0) {
       const items = r.photos.map((p, idx) => {
         const url = getPhotoDataUrl(p);
-        if (!url) return '';
+        // Fail closed: data:text/html vindo do sync nunca chega ao DOM.
+        if (!isSafePhotoUrl(url)) return '';
         const typeLabel = p.type === 'before' ? 'Antes' : (p.type === 'after' ? 'Depois' : `Foto #${idx + 1}`);
         return `
-          <div class="detail-photo-card" data-url="${url}">
-            <img src="${url}" alt="Foto ${idx + 1}" class="detail-photo-img" />
+          <div class="detail-photo-card" data-url="${esc(url)}">
+            <img src="${esc(url)}" alt="Foto ${idx + 1}" class="detail-photo-img" />
             <span class="detail-photo-tag">${typeLabel}</span>
           </div>
         `;
@@ -241,11 +242,11 @@ export class ReportDetailComponent {
       }
     });
 
-    // Photo Click Lightbox
+    // Photo Click Lightbox (só abre URLs de imagem validados acima)
     this.modalEl.querySelectorAll('.detail-photo-card').forEach(card => {
       card.addEventListener('click', () => {
         const url = card.dataset.url;
-        if (url) {
+        if (isSafePhotoUrl(url)) {
           window.open(url, '_blank');
         }
       });

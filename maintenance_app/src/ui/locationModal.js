@@ -11,6 +11,7 @@ export class LocationModalComponent {
     this.container = container || document.body;
     this.locationsRepo = options.locationsRepo || defaultLocationsRepo;
     this.onSelect = options.onSelect || null;
+    this.sessionSelect = null;
     this.selectedLocationId = options.selectedLocationId || '';
 
     this.modalEl = null;
@@ -126,7 +127,10 @@ export class LocationModalComponent {
       };
     }
 
-    // Listen for global clicks on any #btn-add-location-trigger outside modal
+    // Listen for global clicks on any #btn-add-location-trigger outside modal.
+    // Ligado uma vez no singleton: não acumula. O closest() por clique é
+    // barato; o modal abre-se a partir de botões fora dele, por isso este
+    // ouvinte tem mesmo de correr com o modal fechado.
     document.addEventListener('click', (e) => {
       const trigger = e.target.closest('#btn-add-location-trigger');
       if (trigger && !this.modalEl.contains(trigger)) {
@@ -138,6 +142,11 @@ export class LocationModalComponent {
 
   async open(options = {}) {
     await this.loadLocations();
+    // Seleção de sessão (ex.: folha de nova tarefa): usa-se uma vez e
+    // limpa-se, sem mexer no onSelect permanente do formulário completo.
+    if (typeof options.onSelect === 'function') {
+      this.sessionSelect = options.onSelect;
+    }
     if (this.modalEl) {
       this.modalEl.style.display = 'flex';
 
@@ -201,7 +210,7 @@ export class LocationModalComponent {
     listEl.innerHTML = this.filteredList.map(loc => {
       const isSelected = loc.id === this.selectedLocationId;
       return `
-        <div class="location-card" data-id="${loc.id}" style="
+        <div class="location-card" data-id="${esc(loc.id)}" style="
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -272,7 +281,11 @@ export class LocationModalComponent {
       selectEl.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    if (typeof this.onSelect === 'function') {
+    if (typeof this.sessionSelect === 'function') {
+      const fn = this.sessionSelect;
+      this.sessionSelect = null;
+      fn(location);
+    } else if (typeof this.onSelect === 'function') {
       this.onSelect(location);
     }
 

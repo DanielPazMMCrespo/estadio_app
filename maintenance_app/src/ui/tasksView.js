@@ -48,6 +48,7 @@ export class TasksViewComponent {
     this.doneToday = [];
     this.doneOpen = false;
     this.sheetLocation = { locationId: '', locationName: '' };
+    this.sheetPrefillTitle = '';
     this.dictationCleanup = null;
   }
 
@@ -321,9 +322,15 @@ export class TasksViewComponent {
 
   /* ===================== folha de nova tarefa ===================== */
 
-  openNewTaskSheet() {
+  openNewTaskSheet(prefill = {}) {
     this.closeNewTaskSheet();
-    this.sheetLocation = { locationId: '', locationName: '' };
+    // Pré-preenchimento (ex.: nota virada tarefa): o local viaja em
+    // sheetLocation e o título entra direto no campo.
+    this.sheetLocation = {
+      locationId: prefill.locationId || '',
+      locationName: prefill.locationName || ''
+    };
+    this.sheetPrefillTitle = prefill.title || '';
 
     const overlay = document.createElement('div');
     overlay.id = 'tv-sheet-new-task';
@@ -368,6 +375,14 @@ export class TasksViewComponent {
             <input type="text" id="tv-new-loc" class="form-input" placeholder="Ex: Bancada norte" />
             ${this.onNewTaskForLocation ? '<button type="button" class="tv-pick-loc" id="tv-pick-loc">Escolher local do estádio</button>' : ''}
 
+            <label class="form-label">Repete</label>
+            <div class="tv-priority-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;" id="tv-new-recur-group">
+              <button type="button" class="btn-secondary tv-prio-btn active" data-recur="">Única</button>
+              <button type="button" class="btn-secondary tv-prio-btn" data-recur="daily">Diária</button>
+              <button type="button" class="btn-secondary tv-prio-btn" data-recur="weekly">Semanal</button>
+              <button type="button" class="btn-secondary tv-prio-btn" data-recur="monthly">Mensal</button>
+            </div>
+
             <label class="form-label" for="tv-new-notes">Notas</label>
             <textarea id="tv-new-notes" class="form-textarea" rows="2" placeholder="O que for útil lembrar"></textarea>
           </div>
@@ -384,6 +399,35 @@ export class TasksViewComponent {
     `;
 
     document.body.appendChild(overlay);
+
+    // Pré-preenchimento: título e local vindos da nota de origem.
+    if (this.sheetPrefillTitle) {
+      const preTitle = overlay.querySelector('#tv-new-title');
+      if (preTitle) preTitle.value = this.sheetPrefillTitle;
+      this.sheetPrefillTitle = '';
+    }
+    if (this.sheetLocation.locationName) {
+      const preLoc = overlay.querySelector('#tv-new-loc');
+      if (preLoc) preLoc.value = this.sheetLocation.locationName;
+      const moreSec = overlay.querySelector('#tv-more');
+      if (moreSec) {
+        moreSec.hidden = false;
+        const tgl = overlay.querySelector('#tv-more-toggle');
+        if (tgl) tgl.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    let selectedRecurring = '';
+    const recurGroup = overlay.querySelector('#tv-new-recur-group');
+    if (recurGroup) {
+      recurGroup.querySelectorAll('[data-recur]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          recurGroup.querySelectorAll('[data-recur]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedRecurring = btn.dataset.recur || '';
+        });
+      });
+    }
 
     const micBtn = overlay.querySelector('#tv-mic-new');
     const titleField = overlay.querySelector('#tv-new-title');
@@ -454,8 +498,8 @@ export class TasksViewComponent {
       });
     }
 
-    overlay.querySelector('#tv-save-today').addEventListener('click', () => this.saveNewTask(todayISO(), selectedPriority));
-    overlay.querySelector('#tv-save-tomorrow').addEventListener('click', () => this.saveNewTask(tomorrowISO(), selectedPriority));
+    overlay.querySelector('#tv-save-today').addEventListener('click', () => this.saveNewTask(todayISO(), selectedPriority, selectedRecurring));
+    overlay.querySelector('#tv-save-tomorrow').addEventListener('click', () => this.saveNewTask(tomorrowISO(), selectedPriority, selectedRecurring));
 
     if (titleField) setTimeout(() => { try { titleField.focus(); } catch (e) {} }, 60);
   }
@@ -693,7 +737,7 @@ export class TasksViewComponent {
     if (existing) existing.remove();
   }
 
-  async saveNewTask(dueDate, priority = 'medium') {
+  async saveNewTask(dueDate, priority = 'medium', recurring = '') {
     const overlay = document.getElementById('tv-sheet-new-task');
     if (!overlay) return;
     const title = (overlay.querySelector('#tv-new-title')?.value || '').trim();
@@ -711,6 +755,7 @@ export class TasksViewComponent {
         title,
         dueDate,
         priority,
+        recurring: recurring || null,
         notes,
         locationId: this.sheetLocation.locationId || '',
         locationName: typedLoc || this.sheetLocation.locationName || ''

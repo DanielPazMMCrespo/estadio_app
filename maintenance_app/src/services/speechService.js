@@ -172,6 +172,17 @@ export class SpeechService {
         return;
       }
 
+      // O ditado é transcrição na nuvem: sem ligação não há milagres e o
+      // técnico ficava a falar para um botão mudo. Dito de frente, uma vez.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        if (window.toast) {
+          window.toast.warning('Sem ligação: o ditado por voz precisa de internet. Escreva ou fotografe.');
+        } else {
+          alert('Sem ligação: o ditado por voz precisa de internet.');
+        }
+        return;
+      }
+
       initialText = (inputEl.value || '').trim();
       this.activeButton = btnEl;
       this.activeInput = inputEl;

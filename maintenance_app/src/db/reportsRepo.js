@@ -137,7 +137,13 @@ export class ReportsRepository {
       createdAt: now,
       updatedAt: now,
       synced: 0,
-      deleted: 0
+      deleted: 0,
+      // Ligações estruturadas (opcionais): permitem "ver intervenções" na
+      // ficha do equipamento/porta sem adivinhar por texto livre.
+      ...(reportData.equipmentId ? { equipmentId: String(reportData.equipmentId) } : {}),
+      ...(reportData.equipmentName ? { equipmentName: String(reportData.equipmentName) } : {}),
+      ...(reportData.doorId ? { doorId: String(reportData.doorId) } : {}),
+      ...(reportData.doorNumero ? { doorNumero: String(reportData.doorNumero) } : {}),
     };
 
     const syncQueueItem = {
@@ -261,6 +267,35 @@ export class ReportsRepository {
   async getUnsyncedCount() {
     const items = await this.db.reports.where('synced').equals(0).toArray();
     return items.filter(r => !r.deleted || r.deleted === 0).length;
+  }
+
+  /**
+   * Intervenções ligadas a um equipamento (as mais recentes primeiro).
+   * Inclui as antigas sem equipmentId que partilhem o local, para não
+   * esconder histórico anterior aos IDs estruturados.
+   */
+  async getByEquipmentId(equipmentId, locationId = '') {
+    if (!equipmentId && !locationId) return [];
+    const items = await this.db.reports.toArray();
+    return items
+      .filter(r => !r.deleted || r.deleted === 0)
+      .filter(r => (equipmentId && r.equipmentId === equipmentId) ||
+        (locationId && !r.equipmentId && r.locationId === locationId))
+      .sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+  }
+
+  /**
+   * Intervenções ligadas a uma porta (as mais recentes primeiro).
+   * Tal como no equipamento, inclui as antigas do mesmo local sem doorId.
+   */
+  async getByDoorId(doorId, locationId = '') {
+    if (!doorId && !locationId) return [];
+    const items = await this.db.reports.toArray();
+    return items
+      .filter(r => !r.deleted || r.deleted === 0)
+      .filter(r => (doorId && r.doorId === doorId) ||
+        (locationId && !r.doorId && r.locationId === locationId))
+      .sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
   }
 
   /**

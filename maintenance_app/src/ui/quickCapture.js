@@ -1,18 +1,38 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo, locationLabel } from '../db/locationsRepo.js';
 import { speechService } from '../services/speechService.js';
+import { compressPhoto } from '../services/photoCompressor.js';
+import { toolsRepo } from '../db/toolsRepo.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
 
 import { esc } from '../utils/html.js';
+
+/** Gera um id local único para fotos (crypto.randomUUID nem sempre existe). */
+function photoId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `qc-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
 export class QuickCaptureComponent {
   constructor(options = {}) {
     this.onSave = options.onSave || null;
+    // Chamado quando o técnico quer os campos todos (tempo, materiais):
+    // recebe o que já escreveu para o formulário completo continuar.
+    this.onExpand = options.onExpand || null;
     this.modal = null;
     this.locations = [];
     this.selectedLocId = null;
     this.selectedLocName = null;
     this.priority = 'medium';
+    // Fotos desta captura, no mesmo formato do formulário completo
+    // ({id, blobData, dataUrl, type, mimeType}) para o reportsRepo tratar.
+    this.photos = [];
+    // Contexto opcional: equipamento, porta ou ferramenta em consumo.
+    this.context = {};
+    this.consumeTool = null;
     this.dictationCleanup = null;
     // Referência ao ouvinte de cliques na página, removido no close().
     this.outsideClickHandler = null;
@@ -24,7 +44,12 @@ export class QuickCaptureComponent {
     // Load locations
     try {
       this.locations = await locationsRepo.getAll();
-    } catch(e) {}
+    } catch (e) {
+      // Sem locais a folha continua (texto livre), mas o técnico escolhe
+      // às cegas: regista-se o porquê em vez de falhar em silêncio.
+      console.warn('[Captura] Lista de locais indisponível:', e);
+      this.locations = [];
+    }
 
     // Default location (last used or fallback)
     const lastUsedLocId = localStorage.getItem('last_used_loc_id');
@@ -32,7 +57,21 @@ export class QuickCaptureComponent {
     
     this.selectedLocId = prefill.locationId || lastUsedLocId || null;
     this.selectedLocName = prefill.locationName || lastUsedLocName || 'Estádio — local não indicado';
-    this.priority = 'medium';
+    this.priority = prefill.priority || 'medium';
+    // Contexto estruturado (equipamento/porta) viaja para o registo em vez
+    // de ficar só em texto livre na descrição.
+    this.context = {
+      equipmentId: prefill.equipmentId || '',
+      equipmentName: prefill.equipmentName || '',
+      doorId: prefill.doorId || '',
+      doorNumero: prefill.doorNumero || '',
+    };
+    // Ferramenta a descontar do stock ao gravar (vinda do ecrã Ferramentas).
+    this.consumeTool = prefill.toolId
+      ? { toolId: prefill.toolId, toolName: prefill.toolName || '', qty: 1 }
+      : null;
+    this.photos = [];
+    this.prefillDescription = prefill.description || '';
 
     this.modal = document.createElement('div');
     this.modal.id = 'modal-quick-capture';
@@ -61,14 +100,25 @@ export class QuickCaptureComponent {
                 <span>Escrita por voz</span>
               </button>
             </div>
-            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do filtro ou reparação..." style="height: 110px; font-size: 1.1rem; padding: 12px;"></textarea>
+            <textarea id="qc-description" class="form-textarea" placeholder="Ex: Substituição do filtro ou reparação..." style="height: 110px; font-size: 1.1rem; padding: 12px;">${esc(this.prefillDescription || '')}</textarea>
+          </div>
+
+          <!-- FOTO (OPCIONAL, COMPRIMIDA) -->
+          <div class="form-group" style="margin-bottom: 16px;">
+            <span class="form-label">Foto</span>
+            <div id="qc-context-line">${this.renderContextLine()}</div>
+            <button type="button" id="qc-btn-photo" class="btn-secondary touch-target" style="width: 100%;">
+              Fotografar avaria
+            </button>
+            <input type="file" id="qc-photo-input" accept="image/*" capture="environment" hidden />
+            <div id="qc-photo-list" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
           </div>
 
           <!-- LOCALIZAÇÃO -->
           <div class="form-group" style="margin-bottom: 16px;">
             <label class="form-label" style="font-size: 0.9rem;">Onde?</label>
             <div style="position: relative;">
-              <input type="text" id="qc-loc-search" class="form-input touch-target" value="${this.selectedLocName}" autocomplete="off" placeholder="Pesquisar local..." style="padding-right: 40px;" />
+              <input type="text" id="qc-loc-search" class="form-input touch-target" value="${esc(this.selectedLocName)}" autocomplete="off" placeholder="Pesquisar local..." style="padding-right: 40px;" />
               <svg style="position: absolute; right: 12px; top: 18px; color: var(--color-text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
               <div id="qc-loc-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface); border: 1px solid var(--color-border); max-height: 250px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
             </div>
@@ -90,6 +140,9 @@ export class QuickCaptureComponent {
           <button type="button" id="btn-save-capture" class="btn-primary-cta touch-target" style="width: 100%; height: 56px; font-size: 1.15rem; font-weight: 800; border-radius: var(--radius-md);">
             Gravar Intervenção
           </button>
+          <button type="button" id="btn-expand-capture" class="btn-secondary" style="width: 100%; margin-top: 8px;">
+            Mais campos (tempo, materiais)
+          </button>
         </div>
       </div>
     `;
@@ -102,6 +155,43 @@ export class QuickCaptureComponent {
       const descEl = document.getElementById('qc-description');
       if (descEl) descEl.focus();
     }, 100);
+  }
+
+  /** Linha de contexto: equipamento, porta ou ferramenta em consumo. */
+  renderContextLine() {
+    const parts = [];
+    if (this.context.equipmentName || this.context.equipmentId) {
+      parts.push(`Equipamento: ${this.context.equipmentName || this.context.equipmentId}`);
+    }
+    if (this.context.doorNumero || this.context.doorId) {
+      parts.push(`Porta ${this.context.doorNumero || this.context.doorId}`);
+    }
+    if (this.consumeTool) {
+      parts.push(`Desconta do stock: ${this.consumeTool.toolName || 'ferramenta'}`);
+    }
+    if (!parts.length) return '';
+    return `<p class="qc-context" style="margin: 0 0 8px 0; font-size: var(--fs-label); font-weight: 700; color: var(--color-text);">${esc(parts.join(' · '))}</p>
+      ${this.consumeTool ? `<label class="form-label" for="qc-consume-qty">Quantidade a descontar</label>
+      <input type="number" id="qc-consume-qty" class="form-input touch-target" value="1" min="1" inputmode="numeric" style="max-width: 120px;" />` : ''}`;
+  }
+
+  /** Miniaturas das fotos desta captura, com botão de tirar. */
+  renderPhotoList() {
+    const list = this.modal ? this.modal.querySelector('#qc-photo-list') : null;
+    if (!list) return;
+    list.innerHTML = this.photos.map((p, idx) => `
+      <div style="position: relative; width: 72px; height: 72px;">
+        <img src="${esc(p.dataUrl)}" alt="Foto ${idx + 1}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border);" />
+        <button type="button" data-qc-photo-del="${idx}" aria-label="Tirar foto ${idx + 1}"
+                style="position: absolute; top: -8px; right: -8px; width: 32px; height: 32px; border-radius: 50%; background: var(--color-danger); color: #FFFFFF; border: none; font-size: 18px; line-height: 1;">×</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-qc-photo-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.photos.splice(Number(btn.dataset.qcPhotoDel), 1);
+        this.renderPhotoList();
+      });
+    });
   }
 
   bindEvents() {
@@ -142,6 +232,37 @@ export class QuickCaptureComponent {
       });
     }
 
+    // Foto da câmara, comprimida antes de entrar na base de dados.
+    const photoBtn = this.modal.querySelector('#qc-btn-photo');
+    const photoInput = this.modal.querySelector('#qc-photo-input');
+    if (photoBtn && photoInput) {
+      photoBtn.addEventListener('click', () => photoInput.click());
+      photoInput.addEventListener('change', async () => {
+        const file = photoInput.files && photoInput.files[0];
+        photoInput.value = '';
+        if (!file) return;
+        if (file.type && !String(file.type).startsWith('image/')) {
+          toast.error('Só fotografias (imagens).');
+          return;
+        }
+        try {
+          const result = await compressPhoto(file);
+          this.photos.push({
+            id: photoId(),
+            blobData: result.blob,
+            dataUrl: result.dataUrl,
+            type: 'before',
+            mimeType: result.mimeType
+          });
+          this.renderPhotoList();
+          haptics.tap();
+        } catch (err) {
+          console.error('[Captura] Erro na foto:', err);
+          toast.error('Não foi possível juntar a foto.');
+        }
+      });
+    }
+
     // Location search
     const locInput = this.modal.querySelector('#qc-loc-search');
     const locDropdown = this.modal.querySelector('#qc-loc-dropdown');
@@ -166,7 +287,7 @@ export class QuickCaptureComponent {
         } else {
           locDropdown.style.display = 'block';
           locDropdown.innerHTML = matches.map(l => `
-            <div class="loc-option touch-target" data-id="${l.id}" data-name="${esc(locationLabel(l))}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
+            <div class="loc-option touch-target" data-id="${esc(l.id)}" data-name="${esc(locationLabel(l))}" style="padding: 16px; border-bottom: 1px solid var(--color-border); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 56px;">
               <div style="font-weight: 700; color: var(--color-text); font-size: 1.05rem;">${esc(locationLabel(l))}</div>
               <div style="font-size: 0.8rem; color: var(--color-text-secondary);">${esc(l.sectorName)}</div>
             </div>
@@ -236,14 +357,29 @@ export class QuickCaptureComponent {
           description: desc,
           date: new Date().toISOString(),
           timeSpent: 0,
-          photos: [],
+          photos: this.photos,
           audioBlob: null,
           audioDuration: 0,
-          materials: ''
+          materials: '',
+          ...(this.context.equipmentId ? { equipmentId: this.context.equipmentId } : {}),
+          ...(this.context.equipmentName ? { equipmentName: this.context.equipmentName } : {}),
+          ...(this.context.doorId ? { doorId: this.context.doorId } : {}),
+          ...(this.context.doorNumero ? { doorNumero: this.context.doorNumero } : {}),
         };
 
         try {
-          await reportsRepo.create(newReport);
+          const saved = await reportsRepo.create(newReport);
+          // Desconto de stock pedido no ecrã Ferramentas: depois da avaria
+          // gravada, nunca antes — a avaria nunca se perde por falta de stock.
+          if (this.consumeTool) {
+            const qtyInput = this.modal.querySelector('#qc-consume-qty');
+            const qty = Math.max(1, Number(qtyInput && qtyInput.value) || 1);
+            try {
+              await toolsRepo.take(this.consumeTool.toolId, qty, 'uso em obra', saved.id);
+            } catch (takeErr) {
+              toast.warning(takeErr && takeErr.message ? takeErr.message : 'Não foi possível descontar do stock.');
+            }
+          }
           haptics.success();
           this.close();
           toast.success('Intervenção registada no telemóvel');
@@ -251,16 +387,42 @@ export class QuickCaptureComponent {
             this.onSave();
           }
         } catch (e) {
-          toast.error('Erro ao guardar intervenção.');
+          // Telemóvel cheio: dizê-lo de frente em vez de "erro ao guardar".
+          if (e && (e.name === 'QuotaExceededError' || /quota/i.test(e.message || ''))) {
+            toast.error('Armazenamento do telemóvel cheio. Apague fotos antigas e tente de novo.');
+          } else {
+            toast.error('Erro ao guardar intervenção.');
+          }
           console.error(e);
         }
       };
+    }
+    // Mais campos: leva o já escrito para o formulário completo.
+    const expandBtn = this.modal.querySelector('#btn-expand-capture');
+    if (expandBtn && typeof this.onExpand === 'function') {
+      expandBtn.addEventListener('click', () => {
+        const desc = (this.modal.querySelector('#qc-description').value || '').trim();
+        const carried = {
+          description: desc,
+          locationId: this.selectedLocId,
+          locationName: this.selectedLocName,
+          priority: this.priority,
+          ...this.context,
+        };
+        this.close();
+        this.onExpand(carried);
+      });
+    } else if (expandBtn) {
+      expandBtn.style.display = 'none';
     }
   }
 
 
   close() {
     speechService.stopListening();
+    this.photos = [];
+    this.consumeTool = null;
+    this.context = {};
     if (this.outsideClickHandler) {
       document.removeEventListener('click', this.outsideClickHandler);
       this.outsideClickHandler = null;

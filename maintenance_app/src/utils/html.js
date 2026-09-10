@@ -41,3 +41,29 @@ export function esc(value) {
 export function attr(value) {
   return esc(value);
 }
+
+/**
+ * Linha de histórico de intervenções para as fichas de equipamento e porta.
+ * Só texto escapado e o id em data-attribute: quem chama liga o clique.
+ *
+ * @param {Array} rows - intervenções (as mais recentes primeiro)
+ * @param {number} [max=5]
+ * @returns {string}
+ */
+export function reportListHtml(rows, max = 5) {
+  const list = Array.isArray(rows) ? rows.slice(0, max) : [];
+  if (!list.length) return '<p class="d-sheet-sub">Sem intervenções registadas.</p>';
+  return `<ul class="d-rep-list">` + list.map((r) => {
+    let when = '';
+    try {
+      const d = new Date(r.date || r.createdAt || Date.now());
+      when = d.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
+    } catch { when = ''; }
+    const desc = String(r.description || '').trim();
+    const snippet = desc.length > 80 ? desc.slice(0, 80) + '…' : desc;
+    return `<li><button type="button" class="d-rep-row" data-report-id="${attr(r.id)}">` +
+      `<span class="d-rep-when">${esc(when)}</span>` +
+      `<span class="d-rep-what">${esc(snippet || 'Intervenção')}</span>` +
+      `</button></li>`;
+  }).join('') + `</ul>`;
+}

@@ -1,0 +1,168 @@
+/* ==========================================================================
+   PORTAS — o chaveiro do estádio (464 portas)
+
+   Só o que este ecrã precisa de novo. Os cartões, as pastilhas de filtro, o
+   painel de baixo e as cores de estado vêm de components.css e de
+   views-tools-equipment.css: as portas usam o mesmo vocabulário visual do
+   Equipamento de propósito.
+
+   A linha da porta é um botão de 56px com o número à esquerda, grande. O
+   técnico tem a chave na mão e lê o número gravado nela: o número é o dado,
+   tudo o resto é contexto.
+   ========================================================================== */
+
+.pt-filter-label {
+  margin: 14px 0 6px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.pt-count {
+  margin: 12px 0 6px;
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+}
+
+.pt-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+
+.pt-row:active {
+  background: var(--color-bg-alt);
+}
+
+.pt-row:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+/* O número da chave. Tabular para as colunas ficarem alinhadas na vertical. */
+.pt-num {
+  flex: 0 0 auto;
+  min-width: 56px;
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.pt-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pt-desc {
+  font-size: var(--fs-body);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-meta {
+  font-size: var(--fs-label);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Etiqueta de estado. Só aparece quando a porta NÃO está em serviço: 464
+   etiquetas a dizer "Em serviço" é ruído que esconde as três que importam. */
+.pt-flag {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  border-radius: 999px;
+  background: var(--tint-neutral);
+  color: var(--color-text-secondary);
+}
+
+.pt-row.is-broken {
+  border-left-color: var(--color-danger);
+}
+
+.pt-row.is-maint {
+  border-left-color: var(--color-gold);
+}
+
+.pt-row.is-retired {
+  border-left-color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.pt-flag.is-broken {
+  background: var(--tint-red);
+  color: var(--color-danger-text);
+}
+
+.pt-flag.is-maint {
+  background: var(--tint-amber);
+  color: var(--color-gold);
+}
+
+.pt-flag.is-retired {
+  background: var(--tint-neutral);
+  color: var(--color-text-muted);
+}
+
+/* Histórico de intervenções dentro das fichas (portas e equipamento).
+   Partilhado: as duas fichas usam reportListHtml() do utils/html.js. */
+.d-rep-list {
+  list-style: none;
+  margin: 8px 0 12px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.d-rep-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: var(--fs-label);
+  color: var(--color-text);
+}
+
+.d-rep-when {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.d-rep-what {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -37,7 +37,7 @@ class LegacyV3DB extends Dexie {
   }
 }
 
-describe('Camada de dados v4', () => {
+describe('Camada de dados v5', () => {
   let db;
 
   beforeEach(async () => {
@@ -55,17 +55,17 @@ describe('Camada de dados v4', () => {
 
   // ---------------------------------------------------------------- A) schema
 
-  describe('Schema v4', () => {
+  describe('Schema v5', () => {
     it('cria as novas tabelas sem perder as antigas', async () => {
       const names = db.tables.map(t => t.name);
       expect(names).toEqual(expect.arrayContaining([
         'reports', 'locations', 'materials', 'sync_queue',
-        'tasks', 'notes', 'tools', 'tool_moves', 'equipment'
+        'tasks', 'notes', 'tools', 'tool_moves', 'equipment', 'doors'
       ]));
-      expect(db.verno).toBe(4);
+      expect(db.verno).toBe(5);
     });
 
-    it('a migração v3 -> v4 não perde dados existentes', async () => {
+    it('a migração v3 -> v5 não perde dados existentes', async () => {
       const dbName = uniqueName('migration');
 
       // 1. Instalação antiga na v3, com dados em todas as tabelas.
@@ -94,11 +94,11 @@ describe('Camada de dados v4', () => {
       });
       await legacy.close();
 
-      // 2. Reabrir com a v4 — Dexie corre a migração.
+      // 2. Reabrir com a v5 — Dexie corre a migração.
       const upgraded = new EstadioMaintenanceDB(dbName);
       await upgraded.open();
 
-      expect(upgraded.verno).toBe(4);
+      expect(upgraded.verno).toBe(5);
 
       const report = await upgraded.reports.get('rep-legacy');
       expect(report).toBeDefined();
@@ -115,6 +115,7 @@ describe('Camada de dados v4', () => {
       expect(await upgraded.tools.count()).toBe(0);
       expect(await upgraded.tool_moves.count()).toBe(0);
       expect(await upgraded.equipment.count()).toBe(0);
+      expect(await upgraded.doors.count()).toBe(0);
 
       await upgraded.delete();
       await upgraded.close();

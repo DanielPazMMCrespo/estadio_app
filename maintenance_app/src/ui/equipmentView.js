@@ -2,7 +2,7 @@ import { equipmentRepo, EQUIPMENT_CATEGORIES } from '../db/equipmentRepo.js';
 import { reportsRepo } from '../db/reportsRepo.js';
 import { toast } from './toast.js';
 
-import { esc } from '../utils/html.js';
+import { esc, reportListHtml } from '../utils/html.js';
 /** Rótulos em português das categorias do repositório. */
 const CATEGORY_LABELS = {
   iluminacao: 'Iluminação',
@@ -37,6 +37,7 @@ export class EquipmentViewComponent {
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
     this.onNewReportForEquipment = options.onNewReportForEquipment || null;
     this.onViewEquipmentReports = options.onViewEquipmentReports || null;
+    this.onOpenReport = options.onOpenReport || null;
 
     this.allEquipment = [];
     this.filtered = [];
@@ -231,7 +232,12 @@ export class EquipmentViewComponent {
     if (search) {
       search.addEventListener('input', (e) => {
         this.searchQuery = e.target.value;
-        this.refreshList();
+        // Espera 250 ms sem escrever antes de redesenhar (igual ao histórico).
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.searchTimer = null;
+          this.refreshList();
+        }, 250);
       });
     }
 
@@ -339,7 +345,8 @@ export class EquipmentViewComponent {
         </div>
 
         <button type="button" class="d-btn-primary-wide" id="d-sheet-fault">Registar intervenção</button>
-        ${nReports > 0 ? `<button type="button" class="d-btn-quiet-wide" id="d-sheet-reports">Ver intervenções (${nReports})</button>` : ''}
+        ${nReports > 0 ? `<button type="button" class="d-btn-quiet-wide" id="d-sheet-reports">Ver intervenções (${nReports})</button>
+        <div id="d-sheet-replist" hidden></div>` : ''}
         <button type="button" class="d-btn-quiet-wide" data-close="1">Fechar</button>
       </div>
     `;
@@ -403,10 +410,29 @@ export class EquipmentViewComponent {
     });
 
     const reps = overlay.querySelector('#d-sheet-reports');
-    if (reps) reps.addEventListener('click', () => {
-      this.closeSheet();
-      if (this.onViewEquipmentReports) this.onViewEquipmentReports(eq);
-      else toast.info('Lista de intervenções ainda não ligada neste ecrã');
+    const replist = overlay.querySelector('#d-sheet-replist');
+    if (reps && replist) reps.addEventListener('click', async () => {
+      if (!replist.hidden) {
+        replist.hidden = true;
+        return;
+      }
+      replist.hidden = false;
+      replist.innerHTML = '<p class="d-sheet-sub">A carregar…</p>';
+      try {
+        const rows = await reportsRepo.getByEquipmentId(eq.id, eq.locationId || '');
+        replist.innerHTML = reportListHtml(rows);
+        replist.querySelectorAll('[data-report-id]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (this.onOpenReport) {
+              this.closeSheet();
+              this.onOpenReport(btn.dataset.reportId);
+            }
+          });
+        });
+      } catch (err) {
+        console.error('[Equipamento] histórico:', err);
+        replist.innerHTML = '<p class="d-sheet-sub">Não foi possível carregar.</p>';
+      }
     });
   }
 

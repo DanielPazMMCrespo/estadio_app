@@ -267,6 +267,19 @@ export function getPhotoDataUrl(photo) {
 }
 
 /**
+ * Diz se um URL de foto pode ir para um <img> ou window.open sem risco.
+ * Só passam image/* em data: ou blob: — um `data:text/html` vindo do sync
+ * (outro técnico ou ataque) cai aqui e nunca chega ao DOM. Fail closed.
+ *
+ * @param {*} url
+ * @returns {boolean}
+ */
+export function isSafePhotoUrl(url) {
+  return typeof url === 'string' &&
+    (url.startsWith('data:image/') || url.startsWith('blob:'));
+}
+
+/**
  * Safely extracts an ArrayBuffer from a PhotoItem.
  *
  * @param {PhotoItem} photo
@@ -344,6 +357,24 @@ export class EstadioMaintenanceDB extends Dexie {
       equipment: 'id, name, category, locationId, status, serial, createdAt, updatedAt, synced, deleted'
     });
 
+    // Schema Version 5 — adds doors (o chaveiro do estádio: 464 portas).
+    // As tabelas da v4 são redeclaradas sem alteração para o Dexie manter
+    // intactos os dados que o técnico já tem no telemóvel.
+    this.version(5).stores({
+      reports: 'id, date, locationId, locationName, priority, status, sectorCode, createdAt, updatedAt, synced, deleted',
+      locations: 'id, name, isCustom, createdAt, synced',
+      materials: 'id, name, createdAt, synced',
+      sync_queue: '++id, entityType, entityId, action, timestamp, retryCount',
+      tasks: 'id, dueDate, locationId, equipmentId, done, priority, recurring, createdAt, updatedAt, synced, deleted, [done+dueDate]',
+      notes: 'id, pinned, locationId, createdAt, updatedAt, synced, deleted',
+      tools: 'id, name, locationId, qty, minQty, createdAt, updatedAt, synced, deleted',
+      tool_moves: '++id, toolId, reportId, at, synced',
+      equipment: 'id, name, category, locationId, status, serial, createdAt, updatedAt, synced, deleted',
+      // Portas do estádio. Indexamos numero e numeroAntigo porque a procura
+      // do técnico começa quase sempre por um número de chave.
+      doors: 'id, numero, numeroAntigo, lado, piso, tipo, sectorId, status, createdAt, updatedAt, synced, deleted'
+    });
+
     // Object store table handles
     this.reports = this.table('reports');
     this.locations = this.table('locations');
@@ -354,6 +385,7 @@ export class EstadioMaintenanceDB extends Dexie {
     this.tools = this.table('tools');
     this.tool_moves = this.table('tool_moves');
     this.equipment = this.table('equipment');
+    this.doors = this.table('doors');
 
     // Dexie table hooks for photo normalization
     this.reports.hook('creating', (primKey, obj, trans) => {

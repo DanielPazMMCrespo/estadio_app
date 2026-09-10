@@ -28,6 +28,7 @@
 .mv-ico-metrics    { background: var(--tint-green);   color: var(--color-success-text); }
 .mv-ico-tools      { background: var(--tint-amber);   color: var(--color-warning-text); }
 .mv-ico-equipment  { background: var(--tint-neutral); color: var(--sec-norte); }
+.mv-ico-doors      { background: var(--tint-neutral); color: var(--sec-tecnica); }
 .mv-ico-sectors    { background: var(--tint-blue);    color: var(--sec-nascente); }
 .mv-ico-notes      { background: var(--tint-amber);   color: var(--sec-poente); }
 .mv-ico-settings   { background: var(--tint-neutral); color: var(--color-text-secondary); }

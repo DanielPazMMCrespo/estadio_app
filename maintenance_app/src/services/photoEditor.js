@@ -181,6 +181,10 @@ export class PhotoEditor {
 
     // Discard / Cancel
     const closeEditor = (result = null) => {
+      // Os mouseup/touchend vivem na window (o dedo pode largar fora do
+      // canvas): sem esta remoção, cada edição deixava dois para trás.
+      window.removeEventListener('mouseup', endDraw);
+      window.removeEventListener('touchend', endDraw);
       modal.remove();
       this.history = [];
       this.historyStep = -1;

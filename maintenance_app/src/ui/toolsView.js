@@ -185,12 +185,18 @@ export class ToolsViewComponent {
     if (search) {
       search.addEventListener('input', (e) => {
         this.searchQuery = e.target.value;
-        this.applyFilter();
-        const list = this.container.querySelector('#tools-list');
-        if (list) {
-          list.innerHTML = this.renderList();
-          this.bindCardEvents();
-        }
+        // Espera 250 ms sem escrever antes de redesenhar (igual ao histórico):
+        // cada letra redesenhava a lista toda e religava os botões.
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.searchTimer = null;
+          this.applyFilter();
+          const list = this.container.querySelector('#tools-list');
+          if (list) {
+            list.innerHTML = this.renderList();
+            this.bindCardEvents();
+          }
+        }, 250);
       });
     }
 
