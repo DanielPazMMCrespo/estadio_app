@@ -24,8 +24,8 @@ describe('PWA Core Shell & Manifest Asset Verification', () => {
     expect(manifest.short_name).toBe('Estádio');
     expect(manifest.start_url).toBe('/');
     expect(manifest.display).toBe('standalone');
-    expect(manifest.theme_color.toUpperCase()).toBe('#0B132B');
-    expect(manifest.background_color.toUpperCase()).toBe('#0B132B');
+    expect(manifest.theme_color.toUpperCase()).toBe('#FFFFFF');
+    expect(manifest.background_color.toUpperCase()).toBe('#FFFFFF');
 
     expect(Array.isArray(manifest.icons)).toBe(true);
     expect(manifest.icons.length).toBeGreaterThanOrEqual(2);

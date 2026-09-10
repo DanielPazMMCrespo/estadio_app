@@ -197,8 +197,8 @@ describe('Empirical Challenger Stress & Boundary Test Suite', () => {
       const content = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
       expect(content.display).toBe('standalone');
       expect(content.orientation).toBe('portrait-primary');
-      expect(content.theme_color.toUpperCase()).toBe('#0B132B');
-      expect(content.background_color.toUpperCase()).toBe('#0B132B');
+      expect(content.theme_color.toUpperCase()).toBe('#FFFFFF');
+      expect(content.background_color.toUpperCase()).toBe('#FFFFFF');
       expect(content.icons.length).toBeGreaterThanOrEqual(2);
     });
 

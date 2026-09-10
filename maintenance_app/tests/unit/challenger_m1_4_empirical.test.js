@@ -34,7 +34,7 @@ describe('Challenger 2 (m1_4) — Empirical Service Worker & Storage Stress Test
       expect(fs.existsSync(swPath)).toBe(true);
       const content = fs.readFileSync(swPath, 'utf8');
 
-      expect(content).toContain("CACHE_NAME = 'estadio-shell-v1'");
+      expect(content).toContain("CACHE_NAME = 'estadio-shell-v2'");
       expect(content).toContain("'/index.html'");
       expect(content).toContain("'/manifest.webmanifest'");
       expect(content).toContain("'/favicon.ico'");
@@ -75,7 +75,7 @@ describe('Challenger 2 (m1_4) — Empirical Service Worker & Storage Stress Test
           try {
             const res = await mockFetch(asset);
             if (res.ok) {
-              const cache = await mockCaches.open('estadio-shell-v1');
+              const cache = await mockCaches.open('estadio-shell-v2');
               await cache.put(asset, res);
             }
           } catch (e) {
@@ -91,6 +91,7 @@ describe('Challenger 2 (m1_4) — Empirical Service Worker & Storage Stress Test
 
     it('simulates SW activate event cache cleanup for obsolete caches', async () => {
       const existingCaches = new Map([
+        ['estadio-shell-v2', {}],
         ['estadio-shell-v1', {}],
         ['estadio-shell-v0', {}],
         ['legacy-cache-2025', {}]
@@ -106,7 +107,7 @@ describe('Challenger 2 (m1_4) — Empirical Service Worker & Storage Stress Test
         })
       };
 
-      const currentCacheName = 'estadio-shell-v1';
+      const currentCacheName = 'estadio-shell-v2';
       const cacheNames = await mockCaches.keys();
       await Promise.all(
         cacheNames.map((cacheName) => {
@@ -116,8 +117,8 @@ describe('Challenger 2 (m1_4) — Empirical Service Worker & Storage Stress Test
         })
       );
 
-      expect(deletedCaches).toEqual(['estadio-shell-v0', 'legacy-cache-2025']);
-      expect(existingCaches.has('estadio-shell-v1')).toBe(true);
+      expect(deletedCaches).toEqual(['estadio-shell-v1', 'estadio-shell-v0', 'legacy-cache-2025']);
+      expect(existingCaches.has('estadio-shell-v2')).toBe(true);
     });
 
     it('simulates SW fetch event SWR behavior and navigation fallback', async () => {
