@@ -25,6 +25,8 @@ import { compressPhoto } from './services/photoCompressor.js';
 import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
 import { esc as escUtil } from './utils/html.js';
+import { LockScreenComponent } from './ui/lockScreen.js';
+import { hasProfile, profileName, clearProfile } from './services/profile.js';
 
 export class App {
   constructor() {
@@ -71,6 +73,42 @@ export class App {
     this.registerServiceWorker();
     this.setupConnectivity();
     syncEngine.init();
+
+    // Perfil local com PIN: cobre o ecrã até entrar. A app carrega por
+    // baixo (dados, sync), mas não se mexe em nada sem o PIN.
+    await this.requireUnlock();
+  }
+
+  /**
+   * Mostra a configuração (primeira vez) ou o desbloqueio e só resolve
+   * quando o técnico entra. Migração honesta: quem já usava a app sem
+   * perfil vê o nome antigo (operator_name) já preenchido.
+   */
+  requireUnlock() {
+    return new Promise((resolve) => {
+      const known = hasProfile();
+      let presetName = '';
+      try {
+        presetName = known ? profileName() : (localStorage.getItem('operator_name') || '');
+      } catch { presetName = ''; }
+      const lock = new LockScreenComponent(document.body, {
+        mode: known ? 'unlock' : 'setup',
+        name: presetName,
+        onDone: () => resolve()
+      });
+      lock.open();
+    });
+  }
+
+  /** Volta a pedir o PIN agora (botão "Bloquear" das definições). */
+  lockNow() {
+    if (!hasProfile()) return;
+    const lock = new LockScreenComponent(document.body, {
+      mode: 'unlock',
+      name: profileName(),
+      onDone: () => {}
+    });
+    lock.open();
   }
 
   initShell() {
@@ -457,6 +495,18 @@ export class App {
 
         <!-- Sectors & Rooms Database Management -->
         <div class="analytics-card">
+          <div class="analytics-card-header">
+            <h3 class="analytics-card-title">Utilizador deste aparelho</h3>
+          </div>
+          <p id="settings-user-text" style="font-size: var(--fs-label); color: var(--color-text-secondary); margin: 0 0 10px 0;">A carregar…</p>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-lock-now" class="btn-secondary touch-target" style="flex: 1;">Bloquear agora</button>
+            <button type="button" id="btn-switch-user" class="btn-secondary touch-target" style="flex: 1;">Trocar de utilizador</button>
+          </div>
+        </div>
+
+        <!-- Sectors & Rooms Database Management -->
+        <div class="analytics-card">
           <div class="analytics-card-header" style="margin-bottom: 12px;">
             <div>
               <h3 class="analytics-card-title">Divisões do Estádio (${totalRooms})</h3>
@@ -635,6 +685,20 @@ export class App {
     feed.querySelector('#btn-manual-sync')?.addEventListener('click', () => {
       if (window.syncEngine) window.syncEngine.sync({ showToast: true });
       setTimeout(() => this.refreshSyncCard(), 1000);
+    });
+
+    // Cartão de utilizador: quem está a usar + bloquear + trocar.
+    const userText = feed.querySelector('#settings-user-text');
+    if (userText) {
+      const who = profileName();
+      userText.textContent = who ? `A usar como ${who}.` : 'Sem perfil neste aparelho.';
+    }
+    feed.querySelector('#btn-lock-now')?.addEventListener('click', () => this.lockNow());
+    feed.querySelector('#btn-switch-user')?.addEventListener('click', () => {
+      if (confirm('Trocar de utilizador? O perfil atual sai deste aparelho (os dados ficam).')) {
+        clearProfile();
+        window.location.reload();
+      }
     });
   }
 

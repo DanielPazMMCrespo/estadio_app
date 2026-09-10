@@ -15,7 +15,9 @@ Não traduzas comentários existentes — são decisões documentadas.
 PWA (Progressive Web App = site que se instala como app) **offline-first** para
 os técnicos de manutenção do Estádio Municipal de Leiria registarem no
 telemóvel: intervenções/avarias com fotos, tarefas do dia, notas, stock de
-ferramentas, equipamento instalado e as 464 portas do chaveiro.
+ferramentas, equipamento instalado e as 464 portas do chaveiro. A entrada é
+um perfil local com PIN de 4 dígitos (sem servidor, sem rede): identifica o
+autor de cada avaria e evita uso acidental por outra pessoa.
 
 Restrições reais que explicam quase todas as decisões do código:
 
@@ -171,6 +173,7 @@ Todos escrevem na `sync_queue` a cada mutação.
 | `photoEditor.js` (299) | anotar fotos em canvas (setas, círculos, pincel) |
 | `pdfService.js` (403) | relatórios em PDF, com rótulos de prioridade/estado |
 | `speechService.js` (229) | ditado por voz (Web Speech API, pt-PT) |
+| `profile.js` | perfil local (PIN com hash, nome do autor) — sem servidor |
 | `audioService.js` (160) | memos de voz (MediaRecorder) |
 | `haptics.js` (29) | vibração. Nunca lança (iOS não tem `navigator.vibrate`) |
 
@@ -178,7 +181,8 @@ Todos escrevem na `sync_queue` a cada mutação.
 
 `header.js`, `bottomNav.js`, `homeView.js`, `history.js`, `tasksView.js` (752),
 `toolsView.js` (526), `equipmentView.js` (464), `notesView.js`,
-`reportsView.js`, `reportDetail.js`, `quickCapture.js`, `doorsView.js`, `dashboard.js`
+`reportsView.js`, `reportDetail.js`, `quickCapture.js`, `doorsView.js`, `lockScreen.js`
+(perfil + PIN de entrada), `dashboard.js`
 (métricas), `stadiumNavigator.js`, `stadiumMap.js`, `locationModal.js`,
 `toast.js`.
 
@@ -427,7 +431,6 @@ Estados notificados aos listeners: `idle` | `syncing` | `synced` | `offline` |
 `error`.
 
 ### Captura de avaria (o caminho rápido)
-
 O botão verde abre a **captura rápida** (`quickCapture.js`): descrição, foto
 (comprimida no momento), local e prioridade — ≤3 toques. "Mais campos" leva o
 já escrito para o formulário completo (`openFullNewReport`). Contexto
@@ -435,6 +438,16 @@ estruturado viaja junto: `equipmentId/equipmentName`, `doorId/doorNumero`, ou
 desconto de stock (`toolId` + quantidade, descontado **depois** de gravar —
 a avaria nunca se perde por falta de stock). O ditado avisa sem rede (é
 transcrição na nuvem) em vez de ficar mudo.
+
+### Entrada com PIN (perfil local)
+
+Sem contas no servidor: à primeira abertura, nome + PIN de 4 dígitos
+(`lockScreen.js`, `services/profile.js`); depois, só o PIN. O PIN nunca é
+guardado em claro (hash SHA-256) e tudo funciona sem rede. Cada intervenção
+nasce assinada (`reports.author`, imutável, sincronizado e visível na ficha).
+Definições tem "Bloquear agora" e "Trocar de utilizador" (apaga o perfil, os
+dados ficam; recarrega para o setup). Quem já usava a app vê o nome antigo
+(`operator_name`) já preenchido.
 
 ---
 
@@ -555,6 +568,7 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
 - _Turno_: captura rápida com foto (botão verde), contexto estruturado
   (equipamento/porta/stock), históricos nas fichas, "A seguir" abre a ficha,
   notas→intervenção/tarefa, recorrências criáveis, ditado honesto sem rede.
+- _Entrada_: perfil local com PIN (sem servidor), avarias assinadas.
 - _Segurança_: token opcional (`SYNC_TOKEN`/`VITE_SYNC_TOKEN`), rate-limit,
   limites de corpo em bytes, CSP, SW sem `/api`, XSS fail-closed nas fotos,
   `esc()`/whitelists, sourcemaps só em dev.

@@ -1,5 +1,6 @@
 import { db as defaultDb } from './db.js';
 import { normalizePhotosAsync, getPhotoDataUrl } from './db.js';
+import { currentAuthor } from '../services/profile.js';
 
 /**
  * Converte fotos (Blob/Uint8Array locais) para um formato simples que sobrevive
@@ -138,6 +139,9 @@ export class ReportsRepository {
       updatedAt: now,
       synced: 0,
       deleted: 0,
+      // Quem registou (perfil local). Imutável: o update nunca o toca, por
+      // isso a autoria sobrevive a edições e sincronizações.
+      author: reportData.author !== undefined ? String(reportData.author) : currentAuthor(),
       // Ligações estruturadas (opcionais): permitem "ver intervenções" na
       // ficha do equipamento/porta sem adivinhar por texto livre.
       ...(reportData.equipmentId ? { equipmentId: String(reportData.equipmentId) } : {}),

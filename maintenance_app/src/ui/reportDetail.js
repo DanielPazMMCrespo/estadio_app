@@ -100,6 +100,7 @@ export class ReportDetailComponent {
             <span class="detail-ref">REF: EML-${(r.id || '').substring(0, 6).toUpperCase()}</span>
             <h3 class="detail-location-title">${esc(r.locationName || 'Estádio')}</h3>
             <p class="detail-timestamp">${dateStr} · ${timeStr}</p>
+            ${r.author ? `<p class="detail-author">Registado por ${esc(r.author)}</p>` : ''}
           </div>
           <button type="button" class="btn-close-detail" id="btn-close-detail">&times;</button>
         </div>

@@ -167,6 +167,7 @@ export async function initDatabase() {
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS resolution_notes TEXT;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS equipment_id VARCHAR(100);
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS door_id VARCHAR(100);
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS author VARCHAR(255) DEFAULT '';
         ALTER TABLE tools ADD COLUMN IF NOT EXISTS unit VARCHAR(10) DEFAULT 'un';
         ALTER TABLE tools ADD COLUMN IF NOT EXISTS location_name VARCHAR(255) DEFAULT '';
         ALTER TABLE tools ADD COLUMN IF NOT EXISTS notes TEXT;
@@ -252,8 +253,8 @@ const PUSH_ENTITIES = {
     timeSpentMinutes: ['time_spent_minutes', 'int'], photos: ['photos', 'json'],
     materials: ['materials', 'str'], resolutionNotes: ['resolution_notes', 'str'],
     resolvedAt: ['resolved_at', 'nullstr'], equipmentId: ['equipment_id', 'nullstr'],
-    doorId: ['door_id', 'nullstr'], deleted: ['deleted', 'int01'],
-  }, defaults: { priority: 'medium', status: 'pending', description: '', time_spent_minutes: 0, photos: '[]', location_name: '', sector_code: '', materials: '', deleted: 0, created_at: (now) => now } },
+    doorId: ['door_id', 'nullstr'], author: ['author', 'str'], deleted: ['deleted', 'int01'],
+  }, defaults: { priority: 'medium', status: 'pending', description: '', time_spent_minutes: 0, photos: '[]', location_name: '', sector_code: '', materials: '', author: '', deleted: 0, created_at: (now) => now } },
   tasks: { table: 'tasks', fields: {
     title: ['title', 'str'], description: ['description', 'str'],
     dueDate: ['due_date', 'str'], locationId: ['location_id', 'nullstr'],
@@ -513,6 +514,7 @@ export async function getSyncPull(sinceTimestamp) {
     materials: r.materials,
     equipmentId: r.equipment_id || '',
     doorId: r.door_id || '',
+    author: r.author || '',
     resolutionNotes: r.resolution_notes || '',
     resolvedAt: r.resolved_at ? (r.resolved_at.toISOString ? r.resolved_at.toISOString() : r.resolved_at) : null,
     createdAt: r.created_at?.toISOString ? r.created_at.toISOString() : r.created_at,
