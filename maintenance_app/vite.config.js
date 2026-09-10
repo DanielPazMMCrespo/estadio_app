@@ -7,7 +7,9 @@ export default defineConfig({
     outDir: 'dist',
     target: 'es2022',
     emptyOutDir: true,
-    sourcemap: true,
+    // Sourcemaps só em desenvolvimento: em produção expunham o fonte
+    // original (mapa dos sinks para quem lesse o bundle).
+    sourcemap: process.env.NODE_ENV !== 'production',
   },
   server: {
     port: 5173,

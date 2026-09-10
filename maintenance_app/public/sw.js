@@ -58,6 +58,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!url.protocol.startsWith('http')) return;
 
+  // A API nunca passa pela cache: servir um pull antigo como "fresco"
+  // escondia trabalho dos outros técnicos, e cada ?since= distinto criava
+  // entradas sem fim no CacheStorage.
+  if (url.pathname.startsWith('/api/')) return;
+
   const isAppShell = event.request.mode === 'navigate' || url.pathname === '/index.html';
 
   if (isAppShell) {

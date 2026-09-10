@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/src/styles/views-tools-equipment.css" />
   <link rel="stylesheet" href="/src/styles/views-more.css" />
   <link rel="stylesheet" href="/src/styles/views-estadio.css" />
+  <link rel="stylesheet" href="/src/styles/views-portas.css" />
   <link rel="stylesheet" href="/src/styles/quadrados.css" />
 </head>
 <body>
@@ -46,8 +47,8 @@
   </div>
 
   <!-- Rede de segurança: tira o ecrã de arranque mesmo que o módulo falhe.
-       1,5s é folga suficiente — a animação normal já saiu aos 900ms. -->
-  <script>setTimeout(function(){var s=document.getElementById('splash-screen');if(s)s.remove();},1500);</script>
+       Ficheiro externo (não inline) para a CSP poder proibir scripts em linha. -->
+  <script src="/splash-failsafe.js"></script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
