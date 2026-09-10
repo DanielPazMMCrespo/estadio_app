@@ -1,5 +1,13 @@
 # Como retomar este trabalho
 
+> **Adenda 2026-09-10 — este ficheiro em baixo está desatualizado** (descreve
+> um estado em que o sync "não começou" e a captura "não gravava"). Estado
+> real: ver `CLAUDE.md` §12. Resumo: sync sem perdas (push parcial seguro,
+> `tool_move`/`material`, pull paginado, auth opcional por token), captura
+> rápida com foto, contexto equipamento/porta/stock, 175 testes verdes, E2E
+> obsoleto (specs da UI antiga), piloto no terreno por fazer. O resto do
+> ficheiro é arquivo histórico, não instruções.
+
 Cola isto numa sessão nova, dentro de `C:\dev\estadio`:
 
 > Continua o trabalho na app de manutenção do Estádio de Leiria.

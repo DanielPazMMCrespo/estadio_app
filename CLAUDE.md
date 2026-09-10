@@ -15,7 +15,7 @@ Não traduzas comentários existentes — são decisões documentadas.
 PWA (Progressive Web App = site que se instala como app) **offline-first** para
 os técnicos de manutenção do Estádio Municipal de Leiria registarem no
 telemóvel: intervenções/avarias com fotos, tarefas do dia, notas, stock de
-ferramentas e equipamento instalado.
+ferramentas, equipamento instalado e as 464 portas do chaveiro.
 
 Restrições reais que explicam quase todas as decisões do código:
 
@@ -109,6 +109,13 @@ Servidor de produção (serve `dist/` + API, porta `PORT` ou 3000):
 npm start
 ```
 
+Cópia de segurança da base partilhada (JSON datado em `backups/`, ignorado
+pelo git — nunca commitar dumps):
+
+```bash
+API_URL=https://<host> SYNC_TOKEN=<token> node scripts/backup.mjs
+```
+
 Outros: `npm run test:watch`, `npm run preview`.
 
 ### Pré-visualizar no browser
@@ -149,6 +156,7 @@ na 3000) e `npm run dev` (Vite na 5173, com proxy `/api` → 3000).
 | `equipmentRepo.js` (357) | equipamento instalado |
 | `locationsRepo.js` (385) | hierarquia do estádio (7 setores, 33 salas) |
 | `materialsRepo.js` (131) | materiais consumíveis |
+| `doorsRepo.js` (417) | portas do estádio (o chaveiro: 464 portas) |
 
 Cada repositório exporta a classe **e** uma instância única (`reportsRepo`,
 `tasksRepo`, …). Todos aceitam `dbInstance` no construtor para os testes.
@@ -170,7 +178,7 @@ Todos escrevem na `sync_queue` a cada mutação.
 
 `header.js`, `bottomNav.js`, `homeView.js`, `history.js`, `tasksView.js` (752),
 `toolsView.js` (526), `equipmentView.js` (464), `notesView.js`,
-`reportsView.js`, `reportDetail.js`, `quickCapture.js`, `dashboard.js`
+`reportsView.js`, `reportDetail.js`, `quickCapture.js`, `doorsView.js`, `dashboard.js`
 (métricas), `stadiumNavigator.js`, `stadiumMap.js`, `locationModal.js`,
 `toast.js`.
 
@@ -180,18 +188,20 @@ sempre por `options` (`onSave`, `onNavigate`, `onSelect`, …).
 ### `utils/html.js`
 
 `esc(value)` e `attr(value)` — **usa sempre estes** ao construir HTML com
-`innerHTML`. Havia 16 cópias locais de `esc()`; foram centralizadas aqui.
+`innerHTML`. `reportListHtml(rows)` desenha o histórico das fichas de
+equipamento e porta (texto escapado, id em `data-attribute`).
 
-### `main.js` (1268) — o controlador
+### `main.js` (~1450) — o controlador
 
 `class App` com `init()` → `initShell()` → `navigateTo(viewId)`.
 
 Vistas: `home` (Hoje), `history` (Intervenções), `tasks`, `more`, `tools`,
-`equipment`, `reports`, `notes`, `sectors`, `settings`, `metrics`.
+`equipment`, `doors`, `reports`, `notes`, `sectors`, `settings`, `metrics`.
 
 Barra inferior: **Hoje · Intervenções · Tarefas · Mais** (+ botão central de
 nova intervenção). O menu "Mais" abre: Relatórios, Métricas, Ferramentas e
-Stock, Equipamento Instalado, Áreas do Estádio, Notas Soltas, Definições.
+Stock, Equipamento Instalado, Portas, Áreas do Estádio, Notas Soltas,
+Definições.
 
 ### `styles/`
 
@@ -199,7 +209,7 @@ Ordem de carregamento, tal como está no `index.html`:
 
 `main.css` (reset) → `theme.css` (tokens) → `components.css` →
 `views-tasks-notes.css` → `views-tools-equipment.css` → `views-more.css` →
-`views-estadio.css` → `quadrados.css`.
+`views-estadio.css` → `views-portas.css` → `quadrados.css`.
 
 Os `views-*` carregam depois do `components.css`, por isso ganham empates de
 especificidade. Um ficheiro por área para vários autores não se atropelarem.
@@ -212,7 +222,7 @@ Mexer lá mexe nos três ecrãs.
 
 ## 6. Base de dados local (Dexie, `EstadioMaintenanceDB`)
 
-Esquema atual: **versão 4**. Ao adicionar uma tabela, **cria uma versão nova e
+Esquema atual: **versão 5**. Ao adicionar uma tabela, **cria uma versão nova e
 volta a declarar as tabelas antigas sem alterações** — é assim que o Dexie
 mantém os dados do técnico.
 
@@ -226,6 +236,7 @@ mantém os dados do técnico.
 | `tools` | `id, name, locationId, qty, minQty, createdAt, updatedAt, synced, deleted` |
 | `tool_moves` | `++id, toolId, reportId, at, synced` |
 | `equipment` | `id, name, category, locationId, status, serial, createdAt, updatedAt, synced, deleted` |
+| `doors` | `id, numero, numeroAntigo, lado, piso, tipo, sectorId, status, createdAt, updatedAt, synced, deleted` |
 | `sync_queue` | `++id, entityType, entityId, action, timestamp, retryCount` |
 
 Convenções em todas as tabelas:
@@ -246,6 +257,12 @@ Convenções em todas as tabelas:
 - `equipment.status`: `ok` | `avariado` | `manutencao` | `abatido`
 - `tools` unidades: `un` | `m` | `kg` | `L` | `cx`
 - `tasks.recurring`: `null` | `daily` | `weekly` | `monthly`
+- `doors.status`: `ok` | `avariado` | `manutencao` | `abatido` (os mesmos do
+  equipamento de propósito — o técnico já conhece as palavras)
+- `doors.lado`: `nascente` | `poente` | `sul` (**não há norte no chaveiro**)
+- `doors.piso`: `-1` a `4`
+- `doors.tipo`: `tecnica` | `wc` | `arrecadacao` | `passagem` | `persiana` |
+  `camarote` | `posto_medico` | `gabinete` | `desportiva` | `bar` | `geral`
 
 ### Fotos — a parte delicada
 
@@ -280,6 +297,29 @@ semeados no arranque.
 **Não renomeies estes IDs.** O técnico pode criar locais novos offline
 (`isCustom: true`).
 
+### Portas (o chaveiro)
+
+As 464 portas vêm de `Chaveiro.xlsx` e vivem em `src/data/portas.js`
+(`DEFAULT_DOORS`). **Ficheiro gerado — não editar à mão**: corrigir o Excel e
+voltar a gerar.
+
+- `id` é fixo (`DOOR_<numero>`) e **não** é UUID. As portas são as mesmas em
+  todos os telemóveis; um UUID por telemóvel criava 464 duplicados por técnico
+  ao sincronizar.
+- `numero` é único (1 a 577, com saltos e sufixos como `13a`). `numeroAntigo`
+  é o número de chave antigo (50 portas não o têm) — os técnicos com mais anos
+  de casa ainda procuram por ele, por isso a pesquisa aceita os dois.
+- `areaOriginal` guarda o texto tal como estava no Excel. `tipo` é a versão
+  normalizada usada nos filtros. No Excel havia `BAR` e `Bar`: foram juntos.
+  As 198 portas sem Área ficaram em `tipo: 'geral'`.
+- Distribuição: nascente 211, poente 190, sul 63.
+- `compareDoorNumbers()` ordena como uma pessoa: a 9 antes da 10, a `13a` logo
+  a seguir à 13. Ordenar por texto punha a 10 antes da 9.
+
+O ecrã (`doorsView.js`) abre com filtros de Lado, Piso e Tipo porque uma lista
+corrida de 464 linhas não se usa no telemóvel. A etiqueta de estado só aparece
+quando a porta **não** está em serviço.
+
 ---
 
 ## 7. Servidor e API
@@ -289,24 +329,49 @@ PostgreSQL.
 
 | Rota | Método | O que faz |
 |---|---|---|
-| `/api/health` | GET | `{status, database: 'connected'\|'offline_mode', timestamp}` |
-| `/api/sync/push` | POST | recebe `{mutations: [...]}`, devolve `{success, processedCount, processedIds}` |
-| `/api/sync/pull?since=<ts>` | GET | devolve `{timestamp, reports, tasks, notes, tools, equipment, locations}` |
+| `/api/health` | GET | `{status, database: 'connected'\|'offline_mode', timestamp}` — aberto de propósito (sondas) |
+| `/api/sync/push` | POST | recebe `{mutations: [...max 500]}`, devolve `{success, processedCount, processedIds, unprocessedCount, unprocessedIds}` |
+| `/api/sync/pull?since=<ts>` | GET | devolve `{timestamp, hasMore, reports, tasks, notes, tools, equipment, locations, doors, materials}` — lotes de 1000 por tabela |
 
 Detalhes que importam:
 
 - Sem `DATABASE_URL`, o servidor **arranca mesmo assim** em modo PWA local; as
   rotas de sync devolvem **503**. Isto é comportamento correto.
+- Autenticação: com `SYNC_TOKEN` definido, push/pull exigem
+  `Authorization: Bearer <token>` (comparação em tempo constante) e devolvem
+  **401** sem ele. Sem `SYNC_TOKEN`, fica aberto como antes (desenvolvimento)
+  e avisa no arranque. O cliente envia o token de `VITE_SYNC_TOKEN` (build) ou
+  `localStorage['sync.token']` (por aparelho); 401 se vê como aviso, nunca
+  como erro — a app continua a gravar local.
+- `CORS_ORIGIN` restringe a origem (por omissão `*`, desenvolvimento).
+  Rate-limit artesanal: 120 pedidos `/api`/min por IP → **429**.
 - `initDatabase()` cria as tabelas e índices com `CREATE TABLE IF NOT EXISTS` a
-  cada arranque. Tabelas PostgreSQL em **snake_case**; a conversão para
-  camelCase é feita no `getSyncPull`.
-- `processSyncPush` corre numa transação (`BEGIN`/`COMMIT`/`ROLLBACK`) e usa
-  `ON CONFLICT (id) DO UPDATE … WHERE EXCLUDED.updated_at >= x.updated_at` —
-  **Last-Write-Wins** por timestamp.
-- Limite do corpo do pedido: **50 MB** (lotes com fotos).
-- CORS aberto (`*`). Não há autenticação — assumido rede interna.
-- Cache: `sw.js` com `no-store`; `/assets/*` com `max-age=31536000, immutable`;
-  o resto 1 hora. Fallback SPA para caminhos sem extensão.
+  cada arranque, mais `ADD COLUMN IF NOT EXISTS` para as colunas do sync
+  (`reports.equipment_id/door_id/resolved_at/resolution_notes`,
+  `tools.unit/location_name/notes`, `equipment.brand/model/location_name/notes/installed_at/warranty_until`,
+  `notes.location_name/photo_ids/audio_duration`,
+  `tool_moves.client_ref/reason/qty_after`) e `qty/min_qty/delta` em NUMERIC
+  (o cliente usa decimais em m/kg/L). Tabelas PostgreSQL em **snake_case**; a
+  conversão para camelCase é feita no `getSyncPull`.
+- `processSyncPush` corre numa transação (`BEGIN`/`COMMIT`/`ROLLBACK`) com
+  UPSERT genérico por entidade (`PUSH_ENTITIES`): **UPDATE parcial só toca nas
+  colunas que o payload traz** — um toggle de estado nunca apaga nome/descrição.
+  `updated_at` é cortado pelo relógio do servidor (`clampUpdatedAt`: aceita o
+  passado do offline, corta o futuro). `tool_move` é ledger append-only
+  idempotente por `client_ref` (id do item na fila) e atualiza `tools.qty`;
+  `material` tem ramo próprio. Entidade desconhecida ou sem `entityId` **nunca
+  é confirmada**: fica na fila e sai em `unprocessedIds`.
+- `getSyncPull` pagina (1000/tabela, cursor = maior `updated_at` do lote,
+  `hasMore` para o lote seguinte). `tool_moves` **não** entra no pull de
+  propósito: os ids locais `++id` colidiriam com os SERIAL do servidor.
+- Corpo medido em **bytes** (não UTF-16): excesso → **413** com resposta (antes
+  pendurava a ligação). `%` malformado → **400**. `since` inválido → **400**.
+  Erros 500 são genéricos; o detalhe fica no log do servidor.
+- HTML servido com CSP (`script-src 'self'` — o failsafe do splash é ficheiro
+  externo, `public/splash-failsafe.js`, por isso não há inline), mais
+  `X-Frame-Options: DENY`, `nosniff` e `Referrer-Policy`. Estáticos: `sw.js`
+  com `no-store`; `/assets/*` com `max-age=31536000, immutable`; o resto
+  1 hora. Fallback SPA para caminhos sem extensão.
 - Proteção de path traversal: recusa caminhos fora de `dist/`.
 
 ### Deploy (Railway)
@@ -331,22 +396,45 @@ Ciclo:
 1. `init()` — ouve `online`/`offline`, timer de **30 s**, primeira tentativa 2 s
    após arranque.
 2. Sonda `/api/health` antes de mexer na fila.
-3. **PUSH**: envia toda a `sync_queue`. Se falhar, **a fila fica intacta**.
-   Só apaga os `id` que vêm em `processedIds`, e marca `synced: 1` **antes** de
-   apagar da fila.
-4. **PULL**: `?since=` guardado em `localStorage['last_sync_timestamp']`; faz
-   `table.put(row)` em cada tabela.
+3. **PUSH**: drena a `sync_queue` em lotes de 100 (`PUSH_CHUNK_SIZE`; o servidor
+   recusa acima de 500). Se um lote falhar, apaga só o confirmado antes da
+   falha — **a fila nunca se apaga por inteiro sem confirmação**. Marcar
+   (`synced: 1`) e apagar correm **na mesma transação Dexie** (`markConfirmed`).
+   `SYNCED_TABLES` inclui `tool_move`/`material`; a chave de `tool_moves` é
+   convertida para número (viaja como string e falhava em silêncio).
+4. **PULL**: cursor `?since=` guardado em `localStorage['last_sync_timestamp']`,
+   em loop enquanto `hasMore` (trava de 50 lotes); o cursor avança e grava por
+   lote, por isso cair a meio retoma em vez de recomeçar. Faz `table.put(row)`
+   em cada tabela (`reports`, `tasks`, `notes`, `tools`, `equipment`, `doors`,
+   `locations`, `materials`). Quota cheia a meio do pull para com aviso
+   honesto em vez de fingir que correu.
 5. Falhas → backoff crescente: **1 min → 5 min → 15 min → 30 min**. Voltar a ter
    rede limpa o backoff.
 
 `request()` nunca lança e **verifica o `content-type` antes do `JSON.parse`** —
-sem isto o `index.html` do Vite (`<!DOCTYPE`) rebentava o parser.
+sem isto o `index.html` do Vite (`<!DOCTYPE`) rebentava o parser. Envia
+`Authorization` nos pedidos de sync quando há token configurado; 401 aparece
+como aviso na consola, não como erro.
 
 Desligar a sync só para testes:
 `localStorage.setItem('sync.backend.enabled','0')` ou `VITE_SYNC_ENABLED=false`.
 
+`pendingInfo()` (conta + idade da mais antiga + último sync) alimenta o cartão
+de sincronização das Definições — é o que distingue "offline há 1h" de
+"backend em baixo há 3 semanas".
+
 Estados notificados aos listeners: `idle` | `syncing` | `synced` | `offline` |
 `error`.
+
+### Captura de avaria (o caminho rápido)
+
+O botão verde abre a **captura rápida** (`quickCapture.js`): descrição, foto
+(comprimida no momento), local e prioridade — ≤3 toques. "Mais campos" leva o
+já escrito para o formulário completo (`openFullNewReport`). Contexto
+estruturado viaja junto: `equipmentId/equipmentName`, `doorId/doorNumero`, ou
+desconto de stock (`toolId` + quantidade, descontado **depois** de gravar —
+a avaria nunca se perde por falta de stock). O ditado avisa sem rede (é
+transcrição na nuvem) em vez de ficar mudo.
 
 ---
 
@@ -429,6 +517,12 @@ primeiro do teste.
 `tier3-interactions`, `tier4-stadium-scenarios`. `workers: 1` (o IndexedDB
 tranca com paralelismo), Pixel 5 (393×851) e iPhone 13 (390×844).
 
+> **E2E obsoleto (2026-09-10, medido):** os specs clicam em `#btn-new-report`,
+> que já não existe na app (a captura é `#btn-hero-report` → folha rápida).
+> T1.10–T1.14 falham por timeout de seletor; T1.15 (badge offline) passa. Os
+> specs precisam de ser reescritos para a UI atual — e `tests/` não se mexe
+> sem decisão explícita (§11.3). Não correr `test:e2e` à espera de verde.
+
 Há duas configurações de teste (`vitest.config.ts` e o bloco `test` do
 `vite.config.js`) — quase iguais; a do `vitest.config.ts` também aceita `.ts`.
 
@@ -452,16 +546,28 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
 
 ---
 
-## 12. Estado atual
+## 12. Estado atual (2026-09-10)
 
-- Funcional e testado: base de dados local v4, 7 setores/33 locais, CRUD de
-  intervenções com fotos, tarefas, notas, ferramentas com movimentos de stock,
-  equipamento, PDF, ditado, memos de voz, métricas, sincronização com
-  PostgreSQL, Service Worker com Network-First na casca da app.
-- As 13 fichas de `tarefas-qwen/` estão **todas executadas** (ver `git log`:
-  `locationId` nulo, marcar sincronizado, zoom, header sem blur, debounce,
-  splash, métricas, vibração, compressão de fotos, fugas de ouvintes, `esc()`
-  centralizado, guarda anti-inline).
+-_sync sem perdas_: push parcial seguro (só toca colunas trazidas),
+  `updatedAt` cortado pelo servidor, `tool_move`/`material` nos dois sentidos,
+  pull paginado com cursor, push em lotes de 100, transação atómica
+  marcar+apagar, quota cheia com aviso honesto.
+- _Turno_: captura rápida com foto (botão verde), contexto estruturado
+  (equipamento/porta/stock), históricos nas fichas, "A seguir" abre a ficha,
+  notas→intervenção/tarefa, recorrências criáveis, ditado honesto sem rede.
+- _Segurança_: token opcional (`SYNC_TOKEN`/`VITE_SYNC_TOKEN`), rate-limit,
+  limites de corpo em bytes, CSP, SW sem `/api`, XSS fail-closed nas fotos,
+  `esc()`/whitelists, sourcemaps só em dev.
+- _Ops_: CI (`.github/workflows/ci.yml`), `scripts/backup.mjs`, cartão de
+  sincronização nas Definições.
+- Verificado: `npm test` **175 passed**, `verificar:estilos` OK, harness de
+  sync 20/20, servidor ao vivo 11/11, `npm run build` OK (sem sourcemaps),
+  `npm audit --omit=dev` 0 vulnerabilidades.
+- Funcional e testado (herdado): base de dados local v5, 7 setores/33 locais,
+  as 464 portas do chaveiro, CRUD de intervenções com fotos, tarefas, notas,
+  ferramentas com movimentos de stock, equipamento, PDF, memos de voz,
+  métricas, Service Worker com Network-First na casca da app.
+- As 13 fichas de `tarefas-qwen/` estão **todas executadas**.
 - **`PROJECT.md` está desatualizado.** Descreve `services/cloud/` com
   `MockCloudProvider`/`FirebaseCloudProvider`, `reportForm.js`,
   `reportDetailModal.js`, `reportList.js`, `connectivity.js`, `syncQueue.js`,
@@ -470,8 +576,10 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
 
 ### Pendentes conhecidos
 
-1. `public/icons/` tem 13 variantes do logotipo mmcrespo sem nenhuma a marcar
-   qual é a canónica.
+1. ~~`public/icons/` tem 13 variantes~~ **Resolvido (2026-09-10):** ficam 6
+   ficheiros canónicos (`apple-touch-icon`, `icon-192/512`, `logo-mmcrespo`,
+   `mmcrespo-header/-white`). Os 12 órfãos (~0,5 MB) foram apagados; testes
+   que prendem `icon-192/512` continuam verdes.
 2. `design-2026/` tem 6 mockups ainda não aplicados à app.
 3. **Revisão de design 2026 — feita.** Ver `REVISAO-DESIGN-2026.md` e
    `FASE1-MEDICOES.md` na raiz. O ecrã "Hoje" passou a "quadrados vivos": cada
@@ -483,6 +591,12 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
    **Não voltes a pôr rótulos sem número nesta página**: media-se 52% do
    primeiro ecrã gasto em botões e zero dados à vista.
 4. `src/ui/stadiumMap.js` não é importado por nenhum ecrã, só pelo teste
-   `field_tools.test.js`. Ver §10.
-5. `src/main.js` concentra 53 `style="` e 24 `font-size` inline — é o pior
-   ficheiro do projeto nesse aspeto (§11.7).
+   `field_tools.test.js`. Ver §10. Fica assim de propósito (§11.3 proíbe
+   mexer em `tests/` para apagar código).
+5. `src/main.js` concentra a maior parte dos `style="` inline — ver
+   `npm run verificar:estilos` (o `esc()` local já foi centralizado no
+   `utils/html.js`; o resto é dívida visível, não escondida).
+6. Por fazer (precisa de gente, não de código): piloto no terreno com 2
+   técnicos (protocolo: 3 avarias com foto + 2 tarefas + 1 movimento em modo
+   avião, medir toques e erros de luva); teste contra PG de staging;
+   definir `SYNC_TOKEN`; reescrever os specs E2E para a UI atual.

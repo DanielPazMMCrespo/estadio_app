@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: maintenance_app/package-lock.json
+      - name: Instalar
+        run: npm ci
+        working-directory: maintenance_app
+      - name: Testes unitários (175)
+        run: npm test
+        working-directory: maintenance_app
+      - name: Guarda anti-inline
+        run: npm run verificar:estilos
+        working-directory: maintenance_app
+      - name: Servidor carrega
+        run: node --check server.js && node --check server/db.js && node -e "import('./server/db.js').then(m => { if (typeof m.processSyncPush !== 'function' || typeof m.getSyncPull !== 'function') process.exit(1); console.log('API sync OK'); })"
+        working-directory: maintenance_app
