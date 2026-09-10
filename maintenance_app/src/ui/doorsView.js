@@ -443,6 +443,10 @@ export class DoorsViewComponent {
       .normalize('NFD')
       .replace(DIACRITICS_RE, '')
       .toLowerCase()
+      // O chaveiro mistura "13a" com "480 a": sem isto, pesquisar "480a"
+      // não encontrava "480 a" e o técnico ficava sem a porta. Os dados
+      // ficam exatamente como estão — só a pesquisa ignora os espaços.
+      .replace(/\s+/g, '')
       .trim();
   }
 }
