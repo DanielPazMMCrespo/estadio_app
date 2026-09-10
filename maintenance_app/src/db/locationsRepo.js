@@ -371,7 +371,7 @@ export class LocationsRepository {
       entityType: 'location',
       entityId: id,
       action: 'UPDATE',
-      payload: { id, name: updated.name, number: updated.number, description: updated.description, sectorName: updated.sectorName },
+      payload: { id, name: updated.name, number: updated.number, description: updated.description, sectorId: updated.sectorId, sectorName: updated.sectorName },
       timestamp: Date.now(),
       retryCount: 0
     };

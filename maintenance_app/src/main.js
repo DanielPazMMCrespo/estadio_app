@@ -714,13 +714,22 @@ export class App {
       }
       const info = await engine.pendingInfo();
       if (!info.pending) {
+        if (info.dropped > 0) {
+          el.textContent = 'Tudo sincronizado. Nada à espera de subir. ' +
+            `${info.dropped} itens recusados pelo servidor ficaram registados nas Definições.`;
+          return;
+        }
         el.textContent = 'Tudo sincronizado. Nada à espera de subir.';
         return;
       }
       const age = info.oldest ? Date.now() - info.oldest : 0;
-      el.textContent =
+      let text =
         `${info.pending} à espera de subir` +
         (age > 0 ? ` · o mais antigo há ${this.formatAge(age)}` : '') + '.';
+      if (info.dropped > 0) {
+        text += ` ${info.dropped} itens recusados ficaram registados.`;
+      }
+      el.textContent = text;
     } catch (err) {
       console.error('[Settings] estado do sync:', err);
       el.textContent = 'Não foi possível ler o estado da fila.';
@@ -1184,13 +1193,17 @@ export class App {
 
     const priorityGroup = document.getElementById('priority-options-group');
     if (priorityGroup) {
-      const btn = priorityGroup.querySelector(`[data-priority="${prefill.priority || 'medium'}"]`);
+      const btn = priorityGroup.querySelector(
+        `[data-priority="${this.pickSafe(prefill.priority, ['critical', 'medium', 'low'], 'medium')}"]`
+      );
       if (btn) btn.click();
     }
 
     const statusGroup = document.getElementById('status-options-group');
     if (statusGroup) {
-      const btn = statusGroup.querySelector(`[data-status="${prefill.status || 'pending'}"]`);
+      const btn = statusGroup.querySelector(
+        `[data-status="${this.pickSafe(prefill.status, ['pending', 'in_progress', 'resolved'], 'pending')}"]`
+      );
       if (btn) btn.click();
     }
 
@@ -1236,13 +1249,17 @@ export class App {
       
       const priorityGroup = document.getElementById('priority-options-group');
       if (priorityGroup) {
-        const btn = priorityGroup.querySelector(`[data-priority="${report.priority}"]`);
+        const btn = priorityGroup.querySelector(
+          `[data-priority="${this.pickSafe(report.priority, ['critical', 'medium', 'low'], 'medium')}"]`
+        );
         if (btn) btn.click();
       }
       
       const statusGroup = document.getElementById('status-options-group');
       if (statusGroup) {
-        const btn = statusGroup.querySelector(`[data-status="${report.status}"]`);
+        const btn = statusGroup.querySelector(
+          `[data-status="${this.pickSafe(report.status, ['pending', 'in_progress', 'resolved'], 'pending')}"]`
+        );
         if (btn) btn.click();
       }
       
@@ -1506,6 +1523,14 @@ export class App {
   // para os 15+ usos internos não mudarem.
   esc(value) {
     return escUtil(value);
+  }
+
+  // Valores de ENUM usados em seletores de atributo (querySelector):
+  // em vez de escapar, exige whitelist. Um prefill vindo do sync podia trazer
+  // `"][data-x=...]` e transformar o seletor noutra coisa; allowlist não deixa.
+  pickSafe(value, allowed, fallback) {
+    const v = String(value);
+    return Array.isArray(allowed) && allowed.includes(v) ? v : fallback;
   }
 }
 

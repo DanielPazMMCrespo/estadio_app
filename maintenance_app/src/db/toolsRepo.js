@@ -1,4 +1,5 @@
 import { db as defaultDb } from './db.js';
+import { currentAuthor } from '../services/profile.js';
 
 /**
  * Cross-environment UUID v4 generator.
@@ -281,6 +282,7 @@ export class ToolsRepository {
           qtyAfter,
           reason: reason ? String(reason).trim() : '',
           reportId: reportId || null,
+          technician: currentAuthor(),
           at: now,
           synced: 0
         };

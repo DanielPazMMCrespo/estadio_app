@@ -188,6 +188,17 @@ export async function initDatabase() {
         ALTER TABLE tool_moves ALTER COLUMN delta TYPE NUMERIC USING delta::numeric;
         CREATE UNIQUE INDEX IF NOT EXISTS idx_tool_moves_client_ref ON tool_moves(client_ref);
 
+        -- Campos que o cliente tem e que o sync antes perdia: tarefas (notas,
+        -- conclusão, local), localizações (setor) e relatórios (nomes do
+        -- equipamento/porta, só para leitura no overview, além dos IDs).
+        ALTER TABLE tasks ADD COLUMN IF NOT EXISTS notes TEXT;
+        ALTER TABLE tasks ADD COLUMN IF NOT EXISTS done_at TIMESTAMPTZ;
+        ALTER TABLE tasks ADD COLUMN IF NOT EXISTS location_name VARCHAR(255) DEFAULT '';
+        ALTER TABLE locations ADD COLUMN IF NOT EXISTS sector_id VARCHAR(100) DEFAULT '';
+        ALTER TABLE locations ADD COLUMN IF NOT EXISTS sector_name VARCHAR(255) DEFAULT '';
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS equipment_name VARCHAR(255) DEFAULT '';
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS door_numero VARCHAR(20) DEFAULT '';
+
         -- Índices para buscas rápidas de sincronização
         CREATE INDEX IF NOT EXISTS idx_materials_updated ON materials(updated_at);
         CREATE INDEX IF NOT EXISTS idx_reports_updated ON reports(updated_at);
@@ -253,15 +264,17 @@ const PUSH_ENTITIES = {
     timeSpentMinutes: ['time_spent_minutes', 'int'], photos: ['photos', 'json'],
     materials: ['materials', 'str'], resolutionNotes: ['resolution_notes', 'str'],
     resolvedAt: ['resolved_at', 'nullstr'], equipmentId: ['equipment_id', 'nullstr'],
-    doorId: ['door_id', 'nullstr'], author: ['author', 'str'], deleted: ['deleted', 'int01'],
+    equipmentName: ['equipment_name', 'str'], doorId: ['door_id', 'nullstr'],
+    doorNumero: ['door_numero', 'str'], author: ['author', 'str'], deleted: ['deleted', 'int01'],
   }, defaults: { priority: 'medium', status: 'pending', description: '', time_spent_minutes: 0, photos: '[]', location_name: '', sector_code: '', materials: '', author: '', deleted: 0, created_at: (now) => now } },
   tasks: { table: 'tasks', fields: {
     title: ['title', 'str'], description: ['description', 'str'],
-    dueDate: ['due_date', 'str'], locationId: ['location_id', 'nullstr'],
+    notes: ['notes', 'str'], dueDate: ['due_date', 'str'], doneAt: ['done_at', 'nullstr'],
+    locationId: ['location_id', 'nullstr'], locationName: ['location_name', 'str'],
     equipmentId: ['equipment_id', 'nullstr'], done: ['done', 'int01'],
     priority: ['priority', 'str'], recurring: ['recurring', 'nullstr'],
     deleted: ['deleted', 'int01'],
-  }, defaults: { title: '', description: '', due_date: '', priority: 'medium', deleted: 0, created_at: (now) => now } },
+  }, defaults: { title: '', description: '', notes: '', due_date: '', priority: 'medium', location_name: '', deleted: 0, created_at: (now) => now } },
   notes: { table: 'notes', fields: {
     body: ['content', 'str'], content: ['content', 'str'], title: ['title', 'str'],
     pinned: ['pinned', 'int01'], locationId: ['location_id', 'nullstr'],
@@ -284,9 +297,10 @@ const PUSH_ENTITIES = {
   }, defaults: { name: '', category: '', status: 'ok', location_name: '', brand: '', model: '', serial: '', notes: '', qr_code: '', deleted: 0, created_at: (now) => now } },
   locations: { table: 'locations', fields: {
     name: ['name', 'str'], number: ['number', 'str'],
+    sectorId: ['sector_id', 'str'], sectorName: ['sector_name', 'str'],
     isCustom: ['is_custom', 'bool'], description: ['description', 'str'],
     deleted: ['deleted', 'int01'],
-  }, defaults: { name: '', number: '', is_custom: false, description: '', deleted: 0, created_at: (now) => now } },
+  }, defaults: { name: '', number: '', sector_id: '', sector_name: '', is_custom: false, description: '', deleted: 0, created_at: (now) => now } },
   doors: { table: 'doors', fields: {
     numero: ['numero', 'str'], numeroAntigo: ['numero_antigo', 'str'], lado: ['lado', 'str'],
     piso: ['piso', 'int'], descricao: ['descricao', 'str'], tipo: ['tipo', 'str'],
@@ -306,7 +320,8 @@ const PUSH_ENTITIES = {
  * Colunas em falta num INSERT levam o default da entidade; created_at nunca
  * é reescrito num UPDATE. Nomes de tabelas/colunas vêm do mapa fixo acima,
  * nunca do pedido — sem risco de SQL injection.
- * @returns {Promise<boolean>} true se tratado
+ * @returns {Promise<boolean|string>} true se DELETE tratado; a string do
+ * updated_at GRAVADO se UPSERT (já clampado pelo relógio do servidor).
  */
 async function pushEntity(client, entity, entityId, action, payload, now) {
   const cfg = PUSH_ENTITIES[entity];
@@ -350,7 +365,7 @@ async function pushEntity(client, entity, entityId, action, payload, now) {
     `WHERE ${cfg.table}.updated_at IS NULL OR EXCLUDED.updated_at >= ${cfg.table}.updated_at`,
     values
   );
-  return true;
+  return updatedAt;
 }
 
 /**
@@ -376,7 +391,7 @@ async function pushToolMove(client, item, payload, now) {
     [
       String(data.toolId),
       data.reportId || null,
-      '',
+      String(data.technician || data.author || ''),
       String(data.action || ''),
       Number.isFinite(delta) ? delta : 0,
       Number.isFinite(qtyAfter) ? qtyAfter : null,
@@ -410,11 +425,17 @@ export async function processSyncPush(mutations, poolOverride = null) {
 
   try {
     await client.query('BEGIN');
+    let savepointSeq = 0;
+    // processedTimes: id do item (da sync_queue) -> updated_at GRAVADO no
+    // servidor. Permite ao cliente re-ancorar o relógio local (ver fix do
+    // clock futuro) sem esperar pelo pull seguinte.
+    const processedTimes = {};
 
     for (const item of mutations) {
       const { entityType, entityId, action, payload } = item || {};
       const now = new Date().toISOString();
       const key = (item && item.id !== undefined && item.id !== null) ? item.id : entityId;
+      const savepoint = `sp_${++savepointSeq}`;
 
       // Sem identificador não há como confirmar em segurança: fica na fila.
       if (entityId === undefined || entityId === null || entityId === '') {
@@ -422,39 +443,52 @@ export async function processSyncPush(mutations, poolOverride = null) {
         continue;
       }
 
+      // SAVEPOINT por item: um registo inválido/duplicado nunca deve
+      // reverter o lote inteiro e encravar a fila do técnico para sempre.
+      await client.query(`SAVEPOINT ${savepoint}`);
       let handled = false;
+      let storedAt = null;
 
-      if (entityType === 'report' || entityType === 'reports') {
-        handled = await pushEntity(client, 'reports', entityId, action, payload, now);
-      } else if (entityType === 'task' || entityType === 'tasks') {
-        handled = await pushEntity(client, 'tasks', entityId, action, payload, now);
-      } else if (entityType === 'note' || entityType === 'notes') {
-        handled = await pushEntity(client, 'notes', entityId, action, payload, now);
-      } else if (entityType === 'tool' || entityType === 'tools') {
-        handled = await pushEntity(client, 'tools', entityId, action, payload, now);
-      } else if (entityType === 'location' || entityType === 'locations') {
-        handled = await pushEntity(client, 'locations', entityId, action, payload, now);
-      } else if (entityType === 'door') {
-        handled = await pushEntity(client, 'doors', entityId, action, payload, now);
-      } else if (entityType === 'equipment') {
-        handled = await pushEntity(client, 'equipment', entityId, action, payload, now);
-      } else if (entityType === 'tool_move') {
-        handled = await pushToolMove(client, item, payload, now);
-      } else if (entityType === 'material' || entityType === 'materials') {
-        handled = await pushEntity(client, 'materials', entityId, action, payload, now);
-      } else {
-        // Tipo de entidade desconhecido: não confirmar. O item fica na
-        // sync_queue e é devolvido em unprocessedIds para diagnóstico.
-        unprocessed.push(item.id || entityId);
-        continue;
+      try {
+        if (entityType === 'report' || entityType === 'reports') {
+          handled = await pushEntity(client, 'reports', entityId, action, payload, now);
+        } else if (entityType === 'task' || entityType === 'tasks') {
+          handled = await pushEntity(client, 'tasks', entityId, action, payload, now);
+        } else if (entityType === 'note' || entityType === 'notes') {
+          handled = await pushEntity(client, 'notes', entityId, action, payload, now);
+        } else if (entityType === 'tool' || entityType === 'tools') {
+          handled = await pushEntity(client, 'tools', entityId, action, payload, now);
+        } else if (entityType === 'location' || entityType === 'locations') {
+          handled = await pushEntity(client, 'locations', entityId, action, payload, now);
+        } else if (entityType === 'door') {
+          handled = await pushEntity(client, 'doors', entityId, action, payload, now);
+        } else if (entityType === 'equipment') {
+          handled = await pushEntity(client, 'equipment', entityId, action, payload, now);
+        } else if (entityType === 'tool_move') {
+          handled = await pushToolMove(client, item, payload, now);
+        } else if (entityType === 'material' || entityType === 'materials') {
+          handled = await pushEntity(client, 'materials', entityId, action, payload, now);
+        } else {
+          handled = false;
+        }
+        if (typeof handled === 'string') storedAt = handled;
+        if (handled) processedTimes[key] = storedAt;
+      } catch (err) {
+        // Aceitos já gravados (linhas do savepoint anterior) ficam; o item
+        // problemático volta para a fila do técnico para novo diagnóstico.
+        await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+        handled = false;
+        console.warn(`[db] item ${entityType}/${entityId} falhou isolado:`, err && err.message ? err.message : err);
+      } finally {
+        await client.query(`RELEASE SAVEPOINT ${savepoint}`);
       }
 
-      if (handled) processed.push(item.id || entityId);
-      else unprocessed.push(item.id || entityId);
+      if (handled) processed.push(key);
+      else unprocessed.push(key);
     }
 
     await client.query('COMMIT');
-    return { success: true, processedCount: processed.length, processedIds: processed, unprocessedCount: unprocessed.length, unprocessedIds: unprocessed };
+    return { success: true, processedCount: processed.length, processedIds: processed, processedTimes, unprocessedCount: unprocessed.length, unprocessedIds: unprocessed };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -464,38 +498,85 @@ export async function processSyncPush(mutations, poolOverride = null) {
 }
 
 /**
- * Puxa alterações ocorridas desde um timestamp (Pull), em lotes.
- * Teto de 1000 linhas por tabela e cursor = maior updated_at do lote: sem
- * isto, uma base com anos de histórico despejava tudo num só GET (memória
- * do servidor, do telemóvel e do CacheStorage). O cliente repete enquanto
- * hasMore for true, avançando o cursor — por isso o timestamp devolvido é
- * o máximo do LOTE, não a hora atual (que saltava linhas numa falha a meio).
+ * Puxa alterações ocorridas desde um cursor (Pull), em lotes.
+ *
+ * Cursor POR TABELA: o antigo cursor global era o maior updated_at de TODAS
+ * as tabelas, o que podia saltar linhas (ex.: 1200 relatórios + 1 tarefa com
+ * timestamp mais novo no lote 1 fazia o cursor saltar para o da tarefa e
+ * perdiam-se os relatórios 1001-1200). Cada tabela traz o seu próprio cursor,
+ * e o `since` aceita o mapa {tabela: {ts, id}} (ou um ISO simples de versões
+ * antigas). Usa-se o par (updated_at, id) para nunca repetir nem saltar linhas
+ * com o MESMO timestamp no limite do lote.
  */
 const PULL_LIMIT = 1000;
-export async function getSyncPull(sinceTimestamp) {
-  const p = getPool();
-  if (!p) throw new Error('Base de dados não disponível');
+// Semântica do protocolo antigo: "estritamente maior que o ISO recebido".
+// id = máximo (ordenação de texto) ⇒ nada com o mesmo ts é repetido.
+const LEGACY_CURSOR_ID = '\uffff';
 
-  const since = (() => {
-    if (!sinceTimestamp) return '1970-01-01T00:00:00Z';
-    const d = new Date(Number(sinceTimestamp) || sinceTimestamp);
+function parseSinceCursors(raw) {
+  if (!raw) return null;
+  const str = String(raw);
+  if (!str.startsWith('{')) {
+    // Protocolo antigo: um único ISO valia para todas as tabelas com a
+    // semântica "estritamente maior que ts". id = máximo preserva isso na
+    // comparação composta (updated_at, id) > (ts, id).
+    const d = new Date(Number(str) || str);
     if (Number.isNaN(d.getTime())) {
       const err = new Error('Parâmetro "since" inválido');
       err.status = 400;
       throw err;
     }
-    return d.toISOString();
-  })();
+    const out = {};
+    for (const table of ['reports', 'tasks', 'notes', 'tools', 'equipment', 'locations', 'doors', 'materials']) {
+      out[table] = { ts: d.toISOString(), id: LEGACY_CURSOR_ID };
+    }
+    return out;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(str);
+  } catch {
+    const err = new Error('Parâmetro "since" inválido');
+    err.status = 400;
+    throw err;
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    const err = new Error('Parâmetro "since" inválido');
+    err.status = 400;
+    throw err;
+  }
+  const out = {};
+  for (const table of ['reports', 'tasks', 'notes', 'tools', 'equipment', 'locations', 'doors', 'materials']) {
+    const c = parsed[table];
+    let ts = (c && c.ts) || '1970-01-01T00:00:00Z';
+    let id = (c && c.id) || '';
+    const d = new Date(Number(ts) || ts);
+    if (Number.isNaN(d.getTime())) {
+      const err = new Error(`Cursor inválido para ${table}`);
+      err.status = 400;
+      throw err;
+    }
+    out[table] = { ts: d.toISOString(), id: String(id) };
+  }
+  return out;
+}
+
+export async function getSyncPull(sinceTimestamp) {
+  const p = getPool();
+  if (!p) throw new Error('Base de dados não disponível');
+
+  const cursors = parseSinceCursors(sinceTimestamp) || {};
+  const cursor = (t) => cursors[t] || { ts: '1970-01-01T00:00:00Z', id: '' };
 
   const [repRes, taskRes, noteRes, toolRes, equipRes, locRes, doorRes, matRes] = await Promise.all([
-    p.query('SELECT * FROM reports WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM tasks WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM notes WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM tools WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM equipment WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM locations WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM doors WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT]),
-    p.query('SELECT * FROM materials WHERE updated_at > $1 ORDER BY updated_at ASC LIMIT $2', [since, PULL_LIMIT])
+    p.query('SELECT * FROM reports WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('reports').ts, cursor('reports').id, PULL_LIMIT]),
+    p.query('SELECT * FROM tasks WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('tasks').ts, cursor('tasks').id, PULL_LIMIT]),
+    p.query('SELECT * FROM notes WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('notes').ts, cursor('notes').id, PULL_LIMIT]),
+    p.query('SELECT * FROM tools WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('tools').ts, cursor('tools').id, PULL_LIMIT]),
+    p.query('SELECT * FROM equipment WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('equipment').ts, cursor('equipment').id, PULL_LIMIT]),
+    p.query('SELECT * FROM locations WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('locations').ts, cursor('locations').id, PULL_LIMIT]),
+    p.query('SELECT * FROM doors WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('doors').ts, cursor('doors').id, PULL_LIMIT]),
+    p.query('SELECT * FROM materials WHERE (updated_at, id) > ($1, $2) ORDER BY updated_at ASC, id ASC LIMIT $3', [cursor('materials').ts, cursor('materials').id, PULL_LIMIT])
   ]);
 
   // Transformar snake_case para camelCase
@@ -513,7 +594,9 @@ export async function getSyncPull(sinceTimestamp) {
     photos: r.photos,
     materials: r.materials,
     equipmentId: r.equipment_id || '',
+    equipmentName: r.equipment_name || '',
     doorId: r.door_id || '',
+    doorNumero: r.door_numero || '',
     author: r.author || '',
     resolutionNotes: r.resolution_notes || '',
     resolvedAt: r.resolved_at ? (r.resolved_at.toISOString ? r.resolved_at.toISOString() : r.resolved_at) : null,
@@ -527,8 +610,11 @@ export async function getSyncPull(sinceTimestamp) {
     id: t.id,
     title: t.title,
     description: t.description,
+    notes: t.notes || '',
     dueDate: t.due_date,
+    doneAt: t.done_at ? (t.done_at.toISOString ? t.done_at.toISOString() : t.done_at) : null,
     locationId: t.location_id,
+    locationName: t.location_name || '',
     equipmentId: t.equipment_id,
     done: t.done,
     priority: t.priority,
@@ -616,6 +702,8 @@ export async function getSyncPull(sinceTimestamp) {
     id: l.id,
     name: l.name,
     number: l.number || '',
+    sectorId: l.sector_id || '',
+    sectorName: l.sector_name || '',
     isCustom: l.is_custom,
     description: l.description,
     createdAt: l.created_at?.toISOString ? l.created_at.toISOString() : l.created_at,
@@ -636,22 +724,37 @@ export async function getSyncPull(sinceTimestamp) {
     synced: 1
   }));
 
-  // Cursor do lote: o maior updated_at devolvido. Vazio = mantém o cursor
-  // que veio (não avançar à toa). hasMore diz ao cliente para pedir o lote
-  // seguinte; só é true quando alguma tabela encheu o teto.
+  // Cursor POR TABELA: a última linha (updated_at, id) de cada lote. Tabela
+  // vazia mantém o cursor que veio (não avançar à toa). hasMore só é true
+  // quando alguma tabela encheu o teto — o cliente pede o resto POR TABELA.
+  const tables = { reports: repRes, tasks: taskRes, notes: noteRes, tools: toolRes,
+    equipment: equipRes, locations: locRes, doors: doorRes, materials: matRes };
+  const newCursors = {};
+  for (const [table, res] of Object.entries(tables)) {
+    if (res.rows.length === 0) {
+      newCursors[table] = cursor(table);
+      continue;
+    }
+    const last = res.rows[res.rows.length - 1];
+    const iso = last.updated_at?.toISOString ? last.updated_at.toISOString() : last.updated_at;
+    newCursors[table] = { ts: iso, id: String(last.id) };
+  }
+  const hasMore = Object.values(tables).some((r) => r.rows.length >= PULL_LIMIT);
+
+  // Compat: timestamp global = maior updated_at do lote (para registos antigos
+  // e para o ecrã de sincronização). O avanço real é por tabela (cursors).
   const allRows = [...repRes.rows, ...taskRes.rows, ...noteRes.rows, ...toolRes.rows,
     ...equipRes.rows, ...locRes.rows, ...doorRes.rows, ...matRes.rows];
-  let batchMax = since;
+  let batchMax = '1970-01-01T00:00:00Z';
   for (const row of allRows) {
     const t = row.updated_at;
     const iso = t && t.toISOString ? t.toISOString() : t;
     if (iso && iso > batchMax) batchMax = iso;
   }
-  const hasMore = [repRes, taskRes, noteRes, toolRes, equipRes, locRes, doorRes, matRes]
-    .some((r) => r.rows.length >= PULL_LIMIT);
 
   return {
     timestamp: batchMax,
+    cursors: newCursors,
     hasMore,
     reports,
     tasks,

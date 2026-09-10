@@ -48,6 +48,18 @@ const PULL_MAX_BATCHES = 50;
 // Espera crescente entre tentativas depois de o backend não responder.
 const BACKOFF_MS = [60_000, 5 * 60_000, 15 * 60_000, 30 * 60_000];
 const PERIODIC_MS = 30_000;
+// Tabelas que viajam no PULL. tool_moves é só subida (os ids locais ++id
+// colidiriam com os SERIAL do servidor, ver server/db.js).
+const PULL_TABLES = ['reports', 'tasks', 'notes', 'tools', 'equipment', 'doors', 'locations', 'materials'];
+// Cursor antigo (ISO simples) aplicado às 8 tabelas na migração. O sufixo id
+// é o máximo possível para manter exatamente o comportamento anterior: só
+// linhas com updated_at > ts, nunca as do próprio ts.
+const LEGACY_ID = '\uffff';
+// Um item que o servidor recusa 5 vezes (tipo desconhecido, sem identificador)
+// não vai melhorar: sai da fila para não a encravar para sempre e fica em
+// 'sync.dropped' (visível no cartão das Definições). Sempre com cópia local.
+const MAX_PUSH_RETRIES = 5;
+const DROPPED_CAP = 50;
 
 class SyncEngine {
   constructor() {
@@ -135,7 +147,7 @@ class SyncEngine {
    * É isto que distingue "offline há 1h" de "backend em baixo há 3 semanas".
    */
   async pendingInfo() {
-    const info = { pending: 0, oldest: 0, lastSync: 0 };
+    const info = { pending: 0, oldest: 0, lastSync: 0, dropped: 0 };
     try {
       info.pending = await db.sync_queue.count();
       try {
@@ -149,7 +161,47 @@ class SyncEngine {
       if (!Number.isFinite(t) || t <= 0) t = Date.parse(raw) || 0;
       info.lastSync = t;
     } catch { /* sem relógio guardado */ }
+    try {
+      const raw = JSON.parse(localStorage.getItem('sync.dropped') || '[]');
+      info.dropped = Array.isArray(raw) ? raw.length : 0;
+    } catch { /* sem dead-letter */ }
     return info;
+  }
+
+  /** Cursor POR TABELA gravado entre rondas; migra o cursor global antigo. */
+  loadCursors() {
+    const base = { ts: '1970-01-01T00:00:00Z', id: '' };
+    const out = {};
+    for (const t of PULL_TABLES) out[t] = { ...base };
+    try {
+      const raw = localStorage.getItem('sync.cursors');
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        let valid = true;
+        for (const t of PULL_TABLES) {
+          const c = parsed[t];
+          if (!c || typeof c !== 'object' || typeof c.ts !== 'string') { valid = false; break; }
+          out[t] = { ts: c.ts, id: typeof c.id === 'string' ? c.id : '' };
+        }
+        if (valid) return out;
+      }
+    } catch { /* cursor ilegível — recomeça */ }
+    // Migração: sem 'sync.cursors', o cursor global antigo vale como base de
+    // todas as tabelas (id = máximo ⇒ mesma semântica: updated_at > ts).
+    try {
+      const legacy = localStorage.getItem('last_sync_timestamp') || '';
+      if (legacy && legacy !== '0') {
+        for (const t of PULL_TABLES) out[t] = { ts: legacy, id: LEGACY_ID };
+      }
+    } catch { /* sem armazenamento */ }
+    return out;
+  }
+
+  saveCursors(cursors) {
+    try {
+      localStorage.setItem('sync.cursors', JSON.stringify(cursors));
+    } catch { /* sem armazenamento — o cursor antigo continua a valer */ }
+    return cursors;
   }
 
   /**
@@ -187,10 +239,20 @@ class SyncEngine {
    * Um item que falhe a marcar fica na fila; o push é idempotente no
    * servidor (upserts + client_ref), por isso repetir é seguro.
    */
-  async markConfirmed(queueItems, confirmedIds) {
+  async markConfirmed(queueItems, confirmedIds, processedTimes = {}) {
     const confirmedSet = new Set((confirmedIds || []).map(String));
     const confirmedItems = (queueItems || []).filter(q => confirmedSet.has(String(q.id)));
     if (!confirmedItems.length) return 0;
+    // Só re-ancoramos o relógio numa linha cuja entidade NÃO tenha mais
+    // mutações por subir na fila. Um upsert futuro-clocked seria "velho" aos
+    // olhos do servidor (que o clampara), e ancorar o registo ao timestamp
+    // devolvido impede que um pull seguinte o considere obsoleto para sempre
+    // — sem nunca baixar uma edição que ainda vai subir.
+    const pendingKeys = new Set();
+    for (const q of queueItems || []) {
+      if (confirmedSet.has(String(q.id))) continue;
+      pendingKeys.add(`${q.entityType}::${q.entityId}`);
+    }
     // Tabelas deste lote (whitelist fixa, nunca nomes do pedido).
     const tableNames = [...new Set(
       confirmedItems.map(i => SYNCED_TABLES[i.entityType]).filter(t => t && db[t])
@@ -212,7 +274,13 @@ class SyncEngine {
           if (!Number.isInteger(markKey)) { okIds.push(item.id); continue; }
         }
         try {
-          await db[tableName].update(markKey, { synced: 1 });
+          const updateData = { synced: 1 };
+          const serverTs = processedTimes && processedTimes[item.id];
+          const isLastMutation = !pendingKeys.has(`${item.entityType}::${item.entityId}`);
+          if (typeof serverTs === 'string' && isLastMutation) {
+            updateData.updatedAt = serverTs;
+          }
+          await db[tableName].update(markKey, updateData);
           okIds.push(item.id);
         } catch (err) {
           // Fica na fila para a próxima volta; o push é idempotente.
@@ -231,6 +299,55 @@ class SyncEngine {
     this.backendState = 'available';
     this.failureCount = 0;
     this.retryAfter = 0;
+  }
+
+  /**
+   * Itens que o servidor recusou explicitamente (não conhece o tipo de
+   * entidade, veio sem identificador, etc.) NUNCA serão aceites: tentar é
+   * gastar bateria a pedir o mesmo 30 em 30 segundos. Conta as tentativas e,
+   * ao fim de MAX_PUSH_RETRIES, tira-os da fila para 'sync.dropped' (ficam
+   * registados e visíveis nas Definições). A alternativa — retry eterno —
+   * mantinha um lote tóxico a encravar as rondas e o telhado das Definições.
+   */
+  async countRefusals(chunk, unprocessedIds) {
+    const unprocessedSet = new Set((unprocessedIds || []).map(String));
+    const refused = (chunk || []).filter(i => unprocessedSet.has(String(i.id)));
+    if (!refused.length) return;
+    try {
+      await db.transaction('rw', db.sync_queue, async () => {
+        const dropped = [];
+        for (const item of refused) {
+          const current = await db.sync_queue.get(item.id);
+          if (!current) continue;
+          const retryCount = (current.retryCount || 0) + 1;
+          if (retryCount >= MAX_PUSH_RETRIES) {
+            await db.sync_queue.delete(item.id);
+            dropped.push({
+              id: item.id,
+              entityType: item.entityType,
+              entityId: item.entityId,
+              reason: 'recusa do servidor após ' + retryCount + ' tentativas',
+              at: Date.now()
+            });
+          } else {
+            await db.sync_queue.update(item.id, { retryCount });
+          }
+        }
+        if (dropped.length) this.saveDropped(dropped);
+      });
+    } catch (err) {
+      // Se o IndexedDB falhar, os itens continuam na fila e voltam a tentar.
+      console.info('[SyncEngine] Não foi possível gerir itens recusados:', err);
+    }
+  }
+
+  saveDropped(entries) {
+    try {
+      const raw = JSON.parse(localStorage.getItem('sync.dropped') || '[]');
+      const list = Array.isArray(raw) ? raw : [];
+      for (const entry of entries) list.push(entry);
+      localStorage.setItem('sync.dropped', JSON.stringify(list.slice(-DROPPED_CAP)));
+    } catch { /* sem armazenamento — registo perdido, os dados não */ }
   }
 
   /**
@@ -364,6 +481,7 @@ class SyncEngine {
 
       if (queueItems.length > 0) {
         const confirmedIds = [];
+        const processedTimes = {};
         let pushFailed = false;
 
         for (let i = 0; i < queueItems.length && !pushFailed; i += PUSH_CHUNK_SIZE) {
@@ -383,12 +501,22 @@ class SyncEngine {
 
           const confirmed = Array.isArray(push.data?.processedIds) ? push.data.processedIds : [];
           for (const id of confirmed) confirmedIds.push(id);
+          const times = push.data && typeof push.data.processedTimes === 'object' ? push.data.processedTimes : {};
+          for (const [id, ts] of Object.entries(times)) {
+            if (typeof ts === 'string' && ts) processedTimes[id] = ts;
+          }
+          const unprocessed = Array.isArray(push.data?.unprocessedIds) ? push.data.unprocessedIds : [];
+          if (unprocessed.length > 0) {
+            // Itens que o servidor recusou explicitamente (tipo desconhecido,
+            // sem identificador, etc.): não confirmar, mas contar as tentativas.
+            await this.countRefusals(chunk, unprocessed);
+          }
         }
 
         if (pushFailed) {
           // Apaga só o que foi confirmado antes da falha; o resto fica.
           if (confirmedIds.length > 0) {
-            await this.markConfirmed(queueItems, confirmedIds);
+            await this.markConfirmed(queueItems, confirmedIds, processedTimes);
             pushedCount = confirmedIds.length;
           }
           this.markUnavailable('push_failed');
@@ -398,7 +526,7 @@ class SyncEngine {
         }
 
         // Só se apaga o que o servidor CONFIRMOU ter processado, item a item.
-        pushedCount = await this.markConfirmed(queueItems, confirmedIds);
+        pushedCount = await this.markConfirmed(queueItems, confirmedIds, processedTimes);
 
         if (pushedCount < queueItems.length) {
           console.info(
@@ -409,31 +537,24 @@ class SyncEngine {
       }
 
       // ----------------------------------------
-      // 2. PULL: obter novidades, em lotes com cursor
+      // 2. PULL: obter novidades, em lotes com cursor POR TABELA
       // ----------------------------------------
-      let cursor = (() => {
-        try { return localStorage.getItem('last_sync_timestamp') || '0'; } catch { return '0'; }
-      })();
+      // Um cursor global (maior updated_at de TODAS as tabelas) saltava linhas:
+      // com 1200 relatórios + 1 tarefa com timestamp mais novo no lote 1, o
+      // cursor saltava para o da tarefa e os relatórios 1001-1200 nunca eram
+      // puxados. Cada tabela guarda o seu próprio cursor e o pedido leva o
+      // mapa {tabela: {ts, id}} (o servidor aceita o ISO antigo na migração).
+      let cursors = this.loadCursors();
 
-      const tables = [
-        ['reports', db.reports],
-        ['tasks', db.tasks],
-        ['notes', db.notes],
-        ['tools', db.tools],
-        ['equipment', db.equipment],
-        ['doors', db.doors],
-        ['locations', db.locations],
-        // materials viaja nos dois sentidos; tool_moves é só subida
-        // (os ids locais ++id colidiriam com os SERIAL do servidor).
-        ['materials', db.materials]
-      ];
+      const tables = PULL_TABLES.map(key => [key, db[key]]).filter(([, t]) => !!t);
 
       let batches = 0;
       let more = true;
       let pullFailed = false;
       while (more && !pullFailed && batches < PULL_MAX_BATCHES) {
         batches += 1;
-        const pull = await this.request(`${API_PULL}?since=${encodeURIComponent(cursor)}`, { method: 'GET' });
+        const sinceParam = encodeURIComponent(JSON.stringify(cursors));
+        const pull = await this.request(`${API_PULL}?since=${sinceParam}`, { method: 'GET' });
 
         if (!pull.ok) {
           pullFailed = true;
@@ -453,6 +574,20 @@ class SyncEngine {
               // Sem isto, um pull a meio de uma falha de rede ressuscitava
               // apagados e desfazia edições por sincronizar.
               if (await this.isIncomingStale(table, row)) continue;
+              // Notas e relatórios têm DURAÇÃO DE ÁUDIO só no telemóvel (os
+              // bytes do áudio nunca sobem — seria um GET de MB). O servidor
+              // não tem a coluna (relatórios) ou devolve-a vazia (notas), e
+              // um put() sem o Blob apagaria o áudio gravado pelo técnico.
+              // Preserva o Blob e a duração locais quando a linha vem sem eles.
+              if ((key === 'notes' || key === 'reports') && row.audioBlob == null) {
+                try {
+                  const local = await table.get(row.id);
+                  if (local && local.audioBlob) {
+                    row.audioBlob = local.audioBlob;
+                    row.audioDuration = local.audioDuration || 0;
+                  }
+                } catch { /* sem referência local — segue o que veio */ }
+              }
               await table.put(row);
               pulledCount += 1;
             }
@@ -469,12 +604,28 @@ class SyncEngine {
           throw putErr;
         }
 
-        // O cursor avança por lote e é gravado já: se a app cair a meio de
-        // um pull longo, o próximo continua daqui em vez de recomeçar.
-        if (data.timestamp) {
-          cursor = String(data.timestamp);
-          try { localStorage.setItem('last_sync_timestamp', cursor); } catch { /* ignorar */ }
+        // O cursor AVANÇA POR TABELA e é gravado já: se a app cair a meio de
+        // um pull longo, o próximo continua daqui em vez de recomeçar. Cada
+        // tabela só avança com os seus próprios dados (sem saltar linhas de
+        // outras). O timestamp global antigo continua a ser atualizado só
+        // para o ecrã das Definições.
+        if (data.cursors && typeof data.cursors === 'object') {
+          for (const t of PULL_TABLES) {
+            const c = data.cursors[t];
+            if (c && typeof c === 'object' && typeof c.ts === 'string' && c.ts) {
+              cursors[t] = { ts: c.ts, id: typeof c.id === 'string' ? c.id : '' };
+            }
+          }
+          this.saveCursors(cursors);
+        } else if (data.timestamp) {
+          // Servidor antigo (sem cursors): cai de novo na semântica global.
+          const legacyTs = String(data.timestamp);
+          for (const t of PULL_TABLES) cursors[t] = { ts: legacyTs, id: LEGACY_ID };
+          this.saveCursors(cursors);
         }
+        try {
+          localStorage.setItem('last_sync_timestamp', data.timestamp || '');
+        } catch { /* sem armazenamento — o mapa sync.cursors já guarda */ }
         more = !!data.hasMore && batchRows > 0;
       }
 
