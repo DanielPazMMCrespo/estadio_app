@@ -1,6 +1,7 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { locationsRepo, locationLabel } from '../db/locationsRepo.js';
 import { speechService } from '../services/speechService.js';
+import { audioService, AudioService } from '../services/audioService.js';
 import { compressPhoto } from '../services/photoCompressor.js';
 import { toolsRepo } from '../db/toolsRepo.js';
 import { toast } from './toast.js';
@@ -30,6 +31,11 @@ export class QuickCaptureComponent {
     // Fotos desta captura, no mesmo formato do formulário completo
     // ({id, blobData, dataUrl, type, mimeType}) para o reportsRepo tratar.
     this.photos = [];
+    // Nota de voz local (MediaRecorder, offline): {blob, duration, dataUrl}.
+    // Fica só no telemóvel — o sync não leva áudios, por decisão antiga.
+    this.audio = null;
+    this.recording = false;
+    this.recSecs = 0;
     // Contexto opcional: equipamento, porta ou ferramenta em consumo.
     this.context = {};
     this.consumeTool = null;
@@ -71,6 +77,9 @@ export class QuickCaptureComponent {
       ? { toolId: prefill.toolId, toolName: prefill.toolName || '', qty: 1 }
       : null;
     this.photos = [];
+    this.audio = null;
+    this.recording = false;
+    this.recSecs = 0;
     this.prefillDescription = prefill.description || '';
 
     this.modal = document.createElement('div');
@@ -112,6 +121,20 @@ export class QuickCaptureComponent {
             </button>
             <input type="file" id="qc-photo-input" accept="image/*" capture="environment" hidden />
             <div id="qc-photo-list" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+          </div>
+
+          <!-- NOTA DE VOZ (OPCIONAL, SÓ LOCAL) -->
+          <div class="form-group" style="margin-bottom: 16px;" id="qc-voice-block">
+            <span class="form-label">Nota de voz</span>
+            <button type="button" id="qc-btn-voice" class="btn-secondary touch-target" style="width: 100%;">
+              Gravar nota de voz
+            </button>
+            <p id="qc-voice-state" style="margin: 8px 0 0 0; font-size: var(--fs-label); color: var(--color-text-secondary);" aria-live="polite"></p>
+            <div id="qc-voice-saved" style="display: none; gap: 8px; margin-top: 8px;">
+              <button type="button" id="qc-voice-play" class="btn-secondary touch-target" style="flex: 1;">Ouvir</button>
+              <button type="button" id="qc-voice-del" class="btn-secondary touch-target" style="flex: 1;">Apagar</button>
+            </div>
+            <audio id="qc-voice-audio" hidden></audio>
           </div>
 
           <!-- LOCALIZAÇÃO -->
@@ -256,10 +279,91 @@ export class QuickCaptureComponent {
           });
           this.renderPhotoList();
           haptics.tap();
+          // Sem compressão, o original (pesado) vai para a base de dados:
+          // o técnico tem de saber que esta foto custa espaço.
+          if (result.compressed === false) {
+            toast.warning('Foto guardada sem compressão (ficheiro grande).');
+          }
         } catch (err) {
           console.error('[Captura] Erro na foto:', err);
           toast.error('Não foi possível juntar a foto.');
         }
+      });
+    }
+
+    // Nota de voz local. Sem suporte no aparelho, o bloco nem aparece:
+    // botão morto é pior que funcionalidade em falta.
+    const voiceBlock = this.modal.querySelector('#qc-voice-block');
+    const voiceBtn = this.modal.querySelector('#qc-btn-voice');
+    const voiceState = this.modal.querySelector('#qc-voice-state');
+    const voiceSaved = this.modal.querySelector('#qc-voice-saved');
+    const voiceAudio = this.modal.querySelector('#qc-voice-audio');
+    if (voiceBlock && !AudioService.isSupported()) {
+      voiceBlock.style.display = 'none';
+    }
+    const paintVoice = () => {
+      if (!voiceBtn || !voiceState || !voiceSaved) return;
+      if (this.recording) {
+        voiceBtn.textContent = `A gravar… ${this.recSecs}s (Parar)`;
+        voiceState.textContent = 'Fale à vontade. Para aos 2 minutos sozinha.';
+        voiceSaved.style.display = 'none';
+      } else if (this.audio) {
+        voiceBtn.textContent = 'Gravar de novo';
+        voiceState.textContent = `Nota de voz de ${this.audio.duration}s guardada (só neste telemóvel).`;
+        voiceSaved.style.display = 'flex';
+      } else {
+        voiceBtn.textContent = 'Gravar nota de voz';
+        voiceState.textContent = '';
+        voiceSaved.style.display = 'none';
+      }
+    };
+    if (voiceBtn) {
+      paintVoice();
+      voiceBtn.addEventListener('click', async () => {
+        if (this.recording) {
+          try {
+            this.audio = await audioService.stopRecording();
+          } catch (err) {
+            console.error('[Captura] Parar voz:', err);
+            toast.error('Não foi possível terminar a gravação.');
+          }
+          this.recording = false;
+          haptics.success();
+          paintVoice();
+          return;
+        }
+        this.audio = null;
+        this.recSecs = 0;
+        try {
+          await audioService.startRecording((secs) => {
+            this.recSecs = secs;
+            paintVoice();
+            // Teto de 2 minutos: memos longos comem o armazenamento sem avisar.
+            if (secs >= 120) {
+              voiceBtn.click();
+              toast.warning('Nota de voz limitada a 2 minutos.');
+            }
+          });
+          this.recording = true;
+          haptics.tap();
+          paintVoice();
+        } catch (err) {
+          console.error('[Captura] Gravar voz:', err);
+          toast.error(err && err.message ? err.message : 'Não foi possível gravar.');
+        }
+      });
+      const playBtn = this.modal.querySelector('#qc-voice-play');
+      if (playBtn) playBtn.addEventListener('click', () => {
+        if (this.audio && voiceAudio) {
+          voiceAudio.src = this.audio.dataUrl;
+          voiceAudio.play().catch(() => toast.error('Não foi possível ouvir.'));
+        }
+      });
+      const delBtn = this.modal.querySelector('#qc-voice-del');
+      if (delBtn) delBtn.addEventListener('click', () => {
+        this.audio = null;
+        if (voiceAudio) voiceAudio.removeAttribute('src');
+        paintVoice();
       });
     }
 
@@ -358,8 +462,8 @@ export class QuickCaptureComponent {
           date: new Date().toISOString(),
           timeSpent: 0,
           photos: this.photos,
-          audioBlob: null,
-          audioDuration: 0,
+          audioBlob: this.audio ? this.audio.blob : null,
+          audioDuration: this.audio ? this.audio.duration : 0,
           materials: '',
           ...(this.context.equipmentId ? { equipmentId: this.context.equipmentId } : {}),
           ...(this.context.equipmentName ? { equipmentName: this.context.equipmentName } : {}),
@@ -398,9 +502,15 @@ export class QuickCaptureComponent {
       };
     }
     // Mais campos: leva o já escrito para o formulário completo.
+    // A nota de voz não viaja (o completo não tem gravador): avisa em vez
+    // de a deitar fora em silêncio.
     const expandBtn = this.modal.querySelector('#btn-expand-capture');
     if (expandBtn && typeof this.onExpand === 'function') {
       expandBtn.addEventListener('click', () => {
+        if (this.audio) {
+          toast.warning('Guarde aqui primeiro: a nota de voz não cabe no formulário completo.');
+          return;
+        }
         const desc = (this.modal.querySelector('#qc-description').value || '').trim();
         const carried = {
           description: desc,
@@ -420,7 +530,13 @@ export class QuickCaptureComponent {
 
   close() {
     speechService.stopListening();
+    if (this.recording) {
+      this.recording = false;
+      try { audioService.cancelRecording(); } catch { /* já fechado */ }
+    }
     this.photos = [];
+    this.audio = null;
+    this.recSecs = 0;
     this.consumeTool = null;
     this.context = {};
     if (this.outsideClickHandler) {

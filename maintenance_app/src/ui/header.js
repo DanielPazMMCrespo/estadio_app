@@ -51,8 +51,7 @@ export class HeaderComponent {
              esmagada para 34px de altura: o subtítulo ficava ilegível e o
              conjunto parecia uma captura de ecrã colada no canto.
              Duas versões, uma por tema — só o CSS decide qual se vê. -->
-        <img class="header-logo header-logo--light" src="/icons/mmcrespo-header.png" alt="mmcrespo" />
-        <img class="header-logo header-logo--dark" src="/icons/mmcrespo-header-white.png" alt="" aria-hidden="true" />
+        <img class="header-logo" src="/icons/mmcrespo-header.png" alt="mmcrespo" />
         <div class="header-status">
           <button type="button" id="connectivity-badge" class="status-badge ${badgeClass}" title="Toque para sincronizar">
             <span class="status-dot"></span>

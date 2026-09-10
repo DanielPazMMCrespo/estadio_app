@@ -1084,7 +1084,11 @@ export class App {
       this.tempPhotos.push(photoItem);
       this.renderPhotoPreviews();
 
-      toast.success('Foto guardada. Toque na foto para desenhar setas ou anotações.');
+      if (result.compressed === false) {
+        toast.warning('Foto guardada sem compressão (ficheiro grande). Toque na foto para anotar.');
+      } else {
+        toast.success('Foto guardada. Toque na foto para desenhar setas ou anotações.');
+      }
     } catch (err) {
       console.error('[handlePhotoAdded] Erro ao processar a foto:', err);
       toast.error('Não foi possível processar a foto.');

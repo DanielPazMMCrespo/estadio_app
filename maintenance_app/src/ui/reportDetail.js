@@ -1,5 +1,6 @@
 import { reportsRepo } from '../db/reportsRepo.js';
 import { getPhotoDataUrl, isSafePhotoUrl } from '../db/db.js';
+import { AudioService } from '../services/audioService.js';
 import { PdfService } from '../services/pdfService.js';
 import { toast } from './toast.js';
 import { haptics } from '../services/haptics.js';
@@ -88,6 +89,21 @@ export class ReportDetailComponent {
       }
     }
 
+    // Nota de voz (só existe no telemóvel que gravou — não sincroniza).
+    let audioHtml = '';
+    try {
+      const audioUrl = AudioService.getPlayableUrl(r.audioBlob);
+      if (audioUrl) {
+        const mins = r.audioDuration ? `${Math.floor(r.audioDuration / 60)}:${String(r.audioDuration % 60).padStart(2, '0')}` : '';
+        audioHtml = `
+          <div class="detail-section">
+            <h4 class="detail-section-title">Nota de voz ${mins ? `(${mins})` : ''}</h4>
+            <audio controls preload="none" src="${esc(audioUrl)}" style="width: 100%; min-height: 48px;"></audio>
+          </div>
+        `;
+      }
+    } catch { /* sem leitor, sem bloco */ }
+
     this.modalEl = document.createElement('div');
     this.modalEl.className = 'bottom-sheet-overlay animate-fade-in';
     this.modalEl.innerHTML = `
@@ -144,6 +160,8 @@ export class ReportDetailComponent {
         ` : ''}
 
         ${photosHtml}
+
+        ${audioHtml}
 
         <!-- Resolution Notes if Resolved -->
         <div class="detail-section" id="section-resolution-notes" style="${status === 'resolved' ? '' : 'display:none;'}">

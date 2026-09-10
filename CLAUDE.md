@@ -410,8 +410,10 @@ Ciclo:
    em loop enquanto `hasMore` (trava de 50 lotes); o cursor avança e grava por
    lote, por isso cair a meio retoma em vez de recomeçar. Faz `table.put(row)`
    em cada tabela (`reports`, `tasks`, `notes`, `tools`, `equipment`, `doors`,
-   `locations`, `materials`). Quota cheia a meio do pull para com aviso
-   honesto em vez de fingir que correu.
+   `locations`, `materials`) — **menos** quando a linha já vem ultrapassada
+   (`isIncomingStale`: local mais recente, ou tombstone local em empate).
+   Sem isto, um pull a meio de uma falha de rede ressuscitava apagados.
+   Quota cheia a meio do pull para com aviso honesto em vez de fingir.
 5. Falhas → backoff crescente: **1 min → 5 min → 15 min → 30 min**. Voltar a ter
    rede limpa o backoff.
 
@@ -437,7 +439,10 @@ já escrito para o formulário completo (`openFullNewReport`). Contexto
 estruturado viaja junto: `equipmentId/equipmentName`, `doorId/doorNumero`, ou
 desconto de stock (`toolId` + quantidade, descontado **depois** de gravar —
 a avaria nunca se perde por falta de stock). O ditado avisa sem rede (é
-transcrição na nuvem) em vez de ficar mudo.
+transcrição na nuvem) em vez de ficar mudo. **Nota de voz** local
+(MediaRecorder, teto de 2 min, só no telemóvel — o sync não leva áudios),
+com ouvir/apagar na captura e leitor na ficha. Foto sem compressão avisa
+em vez de entrar pesada em silêncio.
 
 ### Entrada com PIN (perfil local)
 
@@ -457,9 +462,9 @@ dados ficam; recarrega para o setup). Quem já usava a app vê o nome antigo
 tem a sua única definição dentro de um `@media` ou `[data-theme]`. Ordem
 obrigatória dos blocos:
 
-1. `:root` → tema **claro** (defeito)
-2. `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }`
-3. `:root[data-theme="dark"]` → escolha explícita ganha
+**Um só tema**: claro, sempre. Houve blocos escuros no `theme.css`; foram
+removidos porque nunca corriam (ver nota no topo do ficheiro). Não
+reintroduzir `@media (prefers-color-scheme)` sem interruptor e testes.
 
 ### Cores
 
@@ -590,12 +595,15 @@ Do `tarefas-qwen/REGRAS.md`, e valem em geral:
 
 ### Pendentes conhecidos
 
-1. ~~`public/icons/` tem 13 variantes~~ **Resolvido (2026-09-10):** ficam 6
+1. ~~`public/icons/` tem 13 variantes~~ **Resolvido (2026-09-10):** ficam 5
    ficheiros canónicos (`apple-touch-icon`, `icon-192/512`, `logo-mmcrespo`,
-   `mmcrespo-header/-white`). Os 12 órfãos (~0,5 MB) foram apagados; testes
-   que prendem `icon-192/512` continuam verdes.
-2. `design-2026/` tem 6 mockups ainda não aplicados à app.
-3. **Revisão de design 2026 — feita.** Ver `REVISAO-DESIGN-2026.md` e
+   `mmcrespo-header`). Os órfãos foram apagados; testes que prendem
+   `icon-192/512` continuam verdes.
+2. ~~Modo escuro morto~~ **Resolvido (2026-09-10):** ~150 linhas de CSS + regras
+   de troca de logótipo removidas (nunca corriam; `index.html` fixa claro).
+   Tema claro é decisão, não defeito — ver nota no topo de `theme.css`.
+3. `design-2026/` tem 6 mockups ainda não aplicados à app.
+4. **Revisão de design 2026 — feita.** Ver `REVISAO-DESIGN-2026.md` e
    `FASE1-MEDICOES.md` na raiz. O ecrã "Hoje" passou a "quadrados vivos": cada
    quadrado diz o seu número e a cor muda com o estado (vermelho só com
    críticas, âmbar com trabalho aberto, branco quando está tudo em ordem).

@@ -3,16 +3,11 @@
    Estádio Municipal de Leiria — Maintenance PWA
 
    REGRA DE OURO DESTE FICHEIRO:
-   toda a cor NASCE no `:root` simples. Nenhuma cor tem a sua única definição
-   dentro de um @media ou de um [data-theme] — se tivesse, o tema por defeito
-   ficava sem essa cor. Os blocos de tema escuro apenas REDEFINEM tokens.
-
-   Ordem dos blocos (importa):
-     1. :root                                  -> tema claro (defeito)
-     2. @media (prefers-color-scheme: dark)
-          :root:not([data-theme="light"])       -> escuro só se o utilizador
-                                                   não tiver escolhido claro
-     3. :root[data-theme="dark"]                -> escolha explícita ganha
+   toda a cor NASCE no `:root` simples (tema claro, o único que existe).
+   Houve blocos de tema escuro; foram removidos em 2026-09-10 porque nunca
+   corriam (o index.html fixa data-theme="light" e nenhum JS o muda) e o
+   técnico lê ao sol — fundo branco ou nada. Se um dia houver modo escuro
+   a sério, nasce num ramo próprio com interruptor nas definições e testes.
    ========================================================================== */
 
 :root {
@@ -159,156 +154,8 @@
 }
 
 /* ==========================================================================
-   TEMA ESCURO — OPÇÃO, NÃO DEFEITO
-   Só redefine tokens. Aplica-se quando o telemóvel está em escuro E o
-   utilizador não escolheu claro.
+   (Sem tema escuro: ver nota no topo do ficheiro.)
    ========================================================================== */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --color-bg: #101418;
-    --color-bg-alt: #0A0D10;
-    --color-card: #171C22;
-    --color-card-elevated: #1D242B;
-    --color-surface: #222A32;
-    --color-surface-hover: #2C353E;
-    --color-border: #2E3841;
-    --color-border-focus: #4A5764;
-    --color-border-subtle: #232B33;
-
-    --color-text: #F4F7FA;
-    --color-text-secondary: #C3CDD8;
-    --color-text-muted: #C3CDD8;
-    --color-on-accent: #FFFFFF;
-
-    --color-brand-primary: #557D14;
-    --color-brand-primary-hover: #658F1E;
-    --color-brand-text: #8CC63F;
-
-    --color-stadium-green: #10B981;
-    --color-stadium-glow: #2DD4BF;
-    --color-success: #10B981;
-    --color-success-text: #5BD9AC;
-
-    --color-gold: #D97706;
-    --color-gold-hover: #F59E0B;
-    --color-warning-text: #F0A64A;
-
-    --color-danger: #E14343;
-    --color-danger-text: #FF8A8A;
-    --color-danger-glow: rgba(225, 67, 67, 0.18);
-
-    --color-info: #2DD4BF;
-    --color-info-text: #5EEAD4;
-
-    --tint-blue:  #232E10;
-    --tint-green: #12332A;
-    --tint-amber: #33260F;
-    --tint-red:   #351A1A;
-    --tint-neutral: #222A32;
-
-    --sec-poente:   #F0A64A;
-    --sec-nascente: #7CCBF3;
-    --sec-norte:    #BFA8FF;
-    --sec-sul:      #FF8FA8;
-    --sec-relvado:  #5BD9AC;
-    --sec-tecnica:  #F0BC5A;
-    --sec-exterior: #A9B7C6;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
-    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
-    --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
-    --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
-
-    --color-overlay: rgba(0, 0, 0, 0.65);
-    --color-header-bg: rgba(16, 20, 24, 0.97);
-
-    --color-toast-bg: #1D242B;
-    --color-toast-text: #F4F7FA;
-    --color-toast-border: #3A454F;
-
-    --color-splash-bg: #101418;
-
-    --color-navy: #F4F7FA;
-    --color-navy-header: #F4F7FA;
-    --color-gold-light: var(--tint-amber);
-  }
-}
-
-/* Escolha explícita do utilizador: escuro ganha em qualquer sistema. */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --color-bg: #101418;
-  --color-bg-alt: #0A0D10;
-  --color-card: #171C22;
-  --color-card-elevated: #1D242B;
-  --color-surface: #222A32;
-  --color-surface-hover: #2C353E;
-  --color-border: #2E3841;
-  --color-border-focus: #4A5764;
-  --color-border-subtle: #232B33;
-
-  --color-text: #F4F7FA;
-  --color-text-secondary: #C3CDD8;
-  --color-text-muted: #C3CDD8;
-  --color-on-accent: #FFFFFF;
-
-  --color-brand-primary: #557D14;
-  --color-brand-primary-hover: #658F1E;
-  --color-brand-text: #8CC63F;
-
-  --color-stadium-green: #10B981;
-  --color-stadium-glow: #2DD4BF;
-  --color-success: #10B981;
-  --color-success-text: #5BD9AC;
-
-  --color-gold: #D97706;
-  --color-gold-hover: #F59E0B;
-  --color-warning-text: #F0A64A;
-
-  --color-danger: #E14343;
-  --color-danger-text: #FF8A8A;
-  --color-danger-glow: rgba(225, 67, 67, 0.18);
-
-  --color-info: #2DD4BF;
-  --color-info-text: #5EEAD4;
-
-  --tint-blue:  #232E10;
-  --tint-green: #12332A;
-  --tint-amber: #33260F;
-  --tint-red:   #351A1A;
-  --tint-neutral: #222A32;
-
-  --sec-poente:   #F0A64A;
-  --sec-nascente: #7CCBF3;
-  --sec-norte:    #BFA8FF;
-  --sec-sul:      #FF8FA8;
-  --sec-relvado:  #5BD9AC;
-  --sec-tecnica:  #F0BC5A;
-  --sec-exterior: #A9B7C6;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
-  --shadow-up: 0 -2px 12px rgba(0, 0, 0, 0.55);
-  --shadow-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.35);
-
-  --color-overlay: rgba(0, 0, 0, 0.65);
-  --color-header-bg: rgba(16, 20, 24, 0.97);
-
-  --color-toast-bg: #1D242B;
-  --color-toast-text: #F4F7FA;
-  --color-toast-border: #3A454F;
-
-  --color-splash-bg: #101418;
-
-  --color-navy: #F4F7FA;
-  --color-navy-header: #F4F7FA;
-  --color-gold-light: var(--tint-amber);
-}
 
 /* ==========================================================================
    BASE
@@ -367,20 +214,8 @@ body {
   display: block;
 }
 
-/* Um logótipo por tema. Por defeito (claro) vê-se o normal.
-   Segue a mesma ordem dos tokens de cor: :root, depois @media, depois
-   [data-theme] — para a escolha explícita do utilizador ganhar sempre. */
-.header-logo--dark { display: none; }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .header-logo--light { display: none; }
-  :root:not([data-theme="light"]) .header-logo--dark { display: block; }
-}
-
-:root[data-theme="dark"] .header-logo--light { display: none; }
-:root[data-theme="dark"] .header-logo--dark { display: block; }
-:root[data-theme="light"] .header-logo--light { display: block; }
-:root[data-theme="light"] .header-logo--dark { display: none; }
+/* Um só logótipo (o claro): o index.html fixa data-theme="light", por isso
+   as regras de troca por tema que estavam aqui nunca corriam. */
 
 /* Os !important que existiam aqui foram removidos: o header.js já não escreve
    font-size inline. Se voltarem estilos inline ao JS, o problema é o JS. */

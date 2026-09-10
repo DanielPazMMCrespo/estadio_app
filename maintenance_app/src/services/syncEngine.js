@@ -104,6 +104,32 @@ class SyncEngine {
   }
 
   /**
+   * Diz se uma linha do pull já vem ultrapassada pelo registo local.
+   * Compara updatedAt (ISO: comparação de texto vale); sem relógio nos
+   * dois lados, a linha entra (não se perde nada por defeito). Tombstone
+   * local (deleted=1) com relógio igual ou maior também ganha: apagar é
+   * intenção explícita e não se desfaz sozinho.
+   */
+  async isIncomingStale(table, row) {
+    try {
+      if (!table || !row || row.id === undefined || row.id === null) return false;
+      const local = await table.get(row.id);
+      if (!local) return false;
+      const t = (v) => {
+        const n = v ? Date.parse(v) : NaN;
+        return Number.isFinite(n) ? n : 0;
+      };
+      const inT = t(row.updatedAt);
+      const loT = t(local.updatedAt);
+      if (loT > inT) return true;
+      if (loT === inT && (local.deleted ? 1 : 0) === 1 && (row.deleted ? 1 : 0) !== 1) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Estado da fila para as Definições: quantas faltam, há quanto tempo está
    * a mais antiga à espera, e quando foi a última sincronização recebida.
    * É isto que distingue "offline há 1h" de "backend em baixo há 3 semanas".
@@ -421,9 +447,15 @@ class SyncEngine {
             const rows = data[key];
             if (!Array.isArray(rows) || rows.length === 0 || !table) continue;
             for (const row of rows) {
+              // Nunca apagar trabalho local com cópia velha do servidor:
+              // se o registo local é mais recente (ex.: apagado offline com
+              // o push ainda por fazer), a linha que chega fica de fora.
+              // Sem isto, um pull a meio de uma falha de rede ressuscitava
+              // apagados e desfazia edições por sincronizar.
+              if (await this.isIncomingStale(table, row)) continue;
               await table.put(row);
+              pulledCount += 1;
             }
-            pulledCount += rows.length;
             batchRows += rows.length;
           }
         } catch (putErr) {
