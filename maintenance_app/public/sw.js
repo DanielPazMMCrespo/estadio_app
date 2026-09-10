@@ -1,4 +1,4 @@
-const CACHE_NAME = 'estadio-shell-v1';
+const CACHE_NAME = 'estadio-shell-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -9,10 +9,23 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png'
 ];
 
+// Extrai do index.html servido os /assets/*.js e /assets/*.css (nomes com
+// hash do build do Vite) para os pré-cachear também. Sem isto, a primeira
+// navegação offline tinha a casca mas ficava sem o CSS/JS que lhe dá vida.
+// Cache 'no-cache' para não servir HTML velho a apontar para ficheiros novos.
+function extractBuildAssets(htmlText) {
+  const assets = [];
+  const re = /(?:src|href)=["'](\/assets\/[^"']+\.(?:js|css))["']/g;
+  let m;
+  while (m = re.exec(htmlText)) assets.push(m[1]);
+  return assets;
+}
+
 // Install Event: Safe precaching of app shell core using Promise.allSettled
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
+      // 1. Casca estática
       await Promise.allSettled(
         STATIC_ASSETS.map(async (asset) => {
           try {
@@ -25,6 +38,26 @@ self.addEventListener('install', (event) => {
           }
         })
       );
+      // 2. JS/CSS com hash citados no index.html fresco
+      try {
+        const shell = await cache.match('/index.html');
+        const html = shell ? await shell.text() : '';
+        const buildAssets = extractBuildAssets(html);
+        await Promise.allSettled(
+          buildAssets.map(async (asset) => {
+            try {
+              const response = await fetch(asset, { cache: 'no-cache' });
+              if (response.ok) {
+                await cache.put(asset, response);
+              }
+            } catch (err) {
+              console.warn(`[SW Precache] Failed to precache build asset: ${asset}`, err);
+            }
+          })
+        );
+      } catch (err) {
+        console.warn('[SW Precache] Não foi possível pré-cachear assets do build:', err);
+      }
     }).then(() => self.skipWaiting())
   );
 });
