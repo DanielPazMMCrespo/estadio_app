@@ -31,6 +31,10 @@ export default defineConfig({
       name: 'Mobile Safari (iPhone 13)',
       use: {
         ...devices['iPhone 13'],
+        // Ambiente de teste sem WebKit instalado (só chromium): corre o
+        // mesmo viewport/DSF do iPhone 13 mas num motor disponível. Não é um
+        // substituto do Safari real — só resolve a falta de `webkit`.
+        browserName: 'chromium',
         viewport: { width: 390, height: 844 },
         deviceScaleFactor: 3,
         isMobile: true,

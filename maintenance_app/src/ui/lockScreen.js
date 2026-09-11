@@ -1,4 +1,4 @@
-import { setupProfile, verifyPin, clearProfile, isValidPin } from '../services/profile.js';
+import { setupProfile, verifyPin, clearProfile, isValidPin, getUsers, getUserById, getCurrentUser, setCurrentUser, verifyUserPin } from '../services/profile.js';
 import { haptics } from '../services/haptics.js';
 import { toast } from './toast.js';
 
@@ -7,9 +7,10 @@ import { esc } from '../utils/html.js';
 /**
  * Ecrã de entrada — perfil local com PIN (sem servidor, sem rede).
  *
- * Dois modos:
- * - setup: primeira abertura (ou troca): nome + PIN duas vezes.
+ * Três modos:
+ * - setup: primeira abertura (ou criação): nome + PIN duas vezes.
  * - unlock: aberturas seguintes: "Olá, nome" + PIN uma vez.
+ * - select: alternar entre utilizadores registados.
  *
  * Teclado de luvas: teclas de 72px, pontos grandes, vibração por toque.
  * Nunca mostra o PIN: nem em pontos pequenos, nem em lado nenhum.
@@ -18,13 +19,16 @@ export class LockScreenComponent {
   constructor(container, options = {}) {
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
     this.mode = options.mode === 'unlock' ? 'unlock' : 'setup';
-    this.name = options.name || '';
+    const current = getCurrentUser();
+    this.selectedUserId = current ? current.id : null;
+    this.name = options.name || (current ? current.name : '');
     this.onDone = options.onDone || null;
     this.overlay = null;
     this.entered = '';
     this.firstPin = '';
     this.expectingConfirm = false;
     this.busy = false;
+    this.selectingUser = false;
   }
 
   open() {
@@ -49,7 +53,32 @@ export class LockScreenComponent {
   }
 
   template() {
+    if (this.selectingUser) {
+      const users = getUsers();
+      return `
+        <div class="lock-card">
+          <img src="/icons/logo-mmcrespo.png" alt="mmcrespo" class="lock-logo" />
+          <h1 class="lock-title">Quem vai usar?</h1>
+          <p class="lock-sub">Escolha o seu perfil para introduzir o PIN:</p>
+
+          <div class="lock-users-list">
+            ${users.map(u => `
+              <button type="button" class="lock-user-tile touch-target${u.id === this.selectedUserId ? ' is-active' : ''}" data-user-id="${esc(u.id)}">
+                <span class="lock-user-name">${esc(u.name)}</span>
+                <span class="lock-user-badge ${u.role === 'admin' ? 'is-admin' : 'is-tech'}">${u.role === 'admin' ? 'Administrador' : 'Técnico'}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <button type="button" class="lock-switch" id="lock-back-pin">Voltar ao ecrã anterior</button>
+        </div>
+      `;
+    }
+
     const isSetup = this.mode === 'setup';
+    const allUsers = getUsers();
+    const canSwitch = allUsers.length > 1;
+
     return `
       <div class="lock-card">
         <img src="/icons/logo-mmcrespo.png" alt="mmcrespo" class="lock-logo" />
@@ -77,23 +106,55 @@ export class LockScreenComponent {
           <button type="button" class="lock-key lock-back" data-key="back" aria-label="Apagar">⌫</button>
         </div>
 
-        ${!isSetup ? `<button type="button" class="lock-switch" id="lock-switch">Não é ${esc(this.name) || 'esta pessoa'}? Trocar</button>` : ''}
+        ${!isSetup ? `<button type="button" class="lock-switch" id="lock-switch">${canSwitch ? 'Trocar de utilizador' : `Não é ${esc(this.name) || 'esta pessoa'}? Trocar`}</button>` : ''}
       </div>
     `;
   }
 
   bindEvents() {
     if (!this.overlay) return;
+
+    if (this.selectingUser) {
+      this.overlay.querySelectorAll('.lock-user-tile').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const uid = btn.dataset.userId;
+          const u = getUserById(uid);
+          if (u) {
+            this.selectedUserId = u.id;
+            this.name = u.name;
+          }
+          this.selectingUser = false;
+          this.open();
+        });
+      });
+
+      const backBtn = this.overlay.querySelector('#lock-back-pin');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          this.selectingUser = false;
+          this.open();
+        });
+      }
+      return;
+    }
+
     this.overlay.querySelectorAll('.lock-key').forEach((btn) => {
       btn.addEventListener('click', () => this.press(btn.dataset.key));
     });
     const swap = this.overlay.querySelector('#lock-switch');
     if (swap) {
       swap.addEventListener('click', () => {
-        clearProfile();
-        this.mode = 'setup';
-        this.name = '';
-        this.open();
+        const users = getUsers();
+        if (users.length > 1) {
+          this.selectingUser = true;
+          this.open();
+        } else {
+          clearProfile();
+          this.mode = 'setup';
+          this.name = '';
+          this.selectedUserId = null;
+          this.open();
+        }
       });
     }
   }
@@ -132,8 +193,13 @@ export class LockScreenComponent {
 
     if (this.mode === 'unlock') {
       this.busy = true;
-      const ok = await verifyPin(pin);
+      const ok = this.selectedUserId
+        ? await verifyUserPin(this.selectedUserId, pin)
+        : await verifyPin(pin);
       if (ok) {
+        if (this.selectedUserId) {
+          setCurrentUser(this.selectedUserId);
+        }
         haptics.success();
         this.finish();
       } else {

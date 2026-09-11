@@ -1,6 +1,7 @@
 import { equipmentRepo, EQUIPMENT_CATEGORIES } from '../db/equipmentRepo.js';
 import { reportsRepo } from '../db/reportsRepo.js';
 import { toast } from './toast.js';
+import { canCurrentUserEditDoors } from '../services/profile.js';
 
 import { esc, reportListHtml } from '../utils/html.js';
 /** Rótulos em português das categorias do repositório. */
@@ -311,6 +312,7 @@ export class EquipmentViewComponent {
 
     const info = STATUS_INFO[eq.status] || STATUS_INFO.ok;
     const nReports = this.reportCounts.get(eq.id) || 0;
+    const canEditEquip = canCurrentUserEditDoors();
 
     const overlay = document.createElement('div');
     overlay.className = 'bottom-sheet-overlay d-sheet-overlay';
@@ -338,9 +340,14 @@ export class EquipmentViewComponent {
         <p class="d-warranty ${this.warrantyClass(eq.warrantyUntil)}">${esc(this.warrantyText(eq.warrantyUntil))}</p>
 
         <p class="d-field-label">Mudar estado</p>
-        <div class="d-status-row">
+        ${!canEditEquip ? `
+          <div class="d-perm-notice">
+            <span>🔒 Apenas administradores podem alterar o estado do equipamento. Como técnico, pode registar uma intervenção abaixo.</span>
+          </div>
+        ` : ''}
+        <div class="d-status-row${canEditEquip ? '' : ' is-disabled'}">
           ${Object.keys(STATUS_INFO).map(s => `
-            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${eq.status === s ? ' active' : ''}" data-status="${esc(s)}">${esc(STATUS_INFO[s].label)}</button>
+            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${eq.status === s ? ' active' : ''}" data-status="${esc(s)}" ${canEditEquip ? '' : 'disabled title="Apenas administradores podem alterar o estado" aria-disabled="true"'}>${esc(STATUS_INFO[s].label)}</button>
           `).join('')}
         </div>
 
@@ -361,6 +368,10 @@ export class EquipmentViewComponent {
 
     overlay.querySelectorAll('.d-status-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (!canCurrentUserEditDoors()) {
+          toast.warning('Apenas administradores podem alterar o estado do equipamento.');
+          return;
+        }
         const status = btn.dataset.status;
         if (status === eq.status) return;
         btn.disabled = true;

@@ -1,5 +1,6 @@
 import { toolsRepo, TOOL_UNITS } from '../db/toolsRepo.js';
 import { toast } from './toast.js';
+import { canCurrentUserEditStock } from '../services/profile.js';
 
 import { esc } from '../utils/html.js';
 /**
@@ -31,6 +32,7 @@ export class ToolsViewComponent {
 
     await this.load();
 
+    const canEditStock = canCurrentUserEditStock();
     this.container.innerHTML = `
       <section class="tools-view animate-fade-in">
         <div class="section-header">
@@ -40,6 +42,13 @@ export class ToolsViewComponent {
           </div>
           <span class="section-badge">${this.allTools.length} artigos</span>
         </div>
+
+        ${!canEditStock ? `
+          <div class="d-perm-banner">
+            <span class="d-perm-badge">Modo Técnico</span>
+            <span class="d-perm-desc">Permissão para adicionar e repor. Retirar stock reservado a administradores.</span>
+          </div>
+        ` : ''}
 
         <button type="button" class="d-btn-primary-wide" id="btn-new-tool">
           + Nova ferramenta
@@ -140,6 +149,7 @@ export class ToolsViewComponent {
 
   renderToolCard(tool) {
     const low = this.isLow(tool);
+    const canEditStock = canCurrentUserEditStock();
     return `
       <article class="d-tool-card${low ? ' is-low' : ''}" data-tool-id="${esc(tool.id)}">
         <div class="d-tool-top">
@@ -160,8 +170,8 @@ export class ToolsViewComponent {
         </div>
 
         <div class="d-tool-actions">
-          <button type="button" class="d-tool-btn d-tool-take" data-act="take" data-id="${esc(tool.id)}">
-            &minus; Tirar 1
+          <button type="button" class="d-tool-btn d-tool-take${canEditStock ? '' : ' is-locked'}" data-act="take" data-id="${esc(tool.id)}" aria-label="${canEditStock ? 'Tirar 1' : 'Tirar bloqueado — apenas administradores'}">
+            ${canEditStock ? '&minus; Tirar 1' : '🔒 &minus; Tirar 1'}
           </button>
           <button type="button" class="d-tool-btn d-tool-restock" data-act="restock" data-id="${esc(tool.id)}">
             + Repor 1
@@ -216,9 +226,15 @@ export class ToolsViewComponent {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (this.pressFired) { this.pressFired = false; return; }
-        if (act === 'take') this.applyMove(id, -1, btn);
+        if (act === 'take') {
+          if (!canCurrentUserEditStock()) {
+            toast.warning('Apenas administradores podem alterar ou tirar stock.');
+            return;
+          }
+          this.applyMove(id, -1, btn);
+        }
         else if (act === 'restock') this.applyMove(id, 1, btn);
-        else if (act === 'custom') this.openQtySheet(id, 'take');
+        else if (act === 'custom') this.openQtySheet(id, canCurrentUserEditStock() ? 'take' : 'restock');
         else if (act === 'moves') this.openMovesSheet(id);
       });
 
@@ -250,6 +266,10 @@ export class ToolsViewComponent {
    */
   async applyMove(id, delta, btnEl) {
     if (!id || this.busy.has(id)) return;
+    if (delta < 0 && !canCurrentUserEditStock()) {
+      toast.warning('Sem permissão para tirar stock. Apenas administradores.');
+      return;
+    }
     this.busy.add(id);
     if (btnEl) btnEl.disabled = true;
 
@@ -334,6 +354,9 @@ export class ToolsViewComponent {
     const tool = this.allTools.find(t => t.id === id);
     if (!tool) return;
 
+    const canEditStock = canCurrentUserEditStock();
+    const effectiveMode = canEditStock ? mode : 'restock';
+
     let buffer = '';
     const unit = esc(tool.unit || 'un');
 
@@ -357,7 +380,7 @@ export class ToolsViewComponent {
       </div>
 
       <div class="d-pad-actions">
-        <button type="button" class="d-tool-btn d-tool-take" id="d-pad-take">&minus; Tirar</button>
+        <button type="button" class="d-tool-btn d-tool-take${canEditStock ? '' : ' is-locked'}" id="d-pad-take">${canEditStock ? '&minus; Tirar' : '🔒 &minus; Tirar'}</button>
         <button type="button" class="d-tool-btn d-tool-restock" id="d-pad-restock">+ Repor</button>
       </div>
     `);
@@ -388,11 +411,17 @@ export class ToolsViewComponent {
       await this.applyMove(id, sign * amount, null);
     };
 
-    overlay.querySelector('#d-pad-take').addEventListener('click', () => run(-1));
+    overlay.querySelector('#d-pad-take').addEventListener('click', () => {
+      if (!canCurrentUserEditStock()) {
+        toast.warning('Apenas administradores podem tirar stock.');
+        return;
+      }
+      run(-1);
+    });
     overlay.querySelector('#d-pad-restock').addEventListener('click', () => run(1));
 
     // pré-selecciona visualmente o modo de entrada
-    const preferred = overlay.querySelector(mode === 'restock' ? '#d-pad-restock' : '#d-pad-take');
+    const preferred = overlay.querySelector(effectiveMode === 'restock' ? '#d-pad-restock' : '#d-pad-take');
     if (preferred) preferred.classList.add('is-preferred');
   }
 

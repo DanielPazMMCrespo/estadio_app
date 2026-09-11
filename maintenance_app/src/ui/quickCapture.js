@@ -50,6 +50,10 @@ export class QuickCaptureComponent {
     // Load locations
     try {
       this.locations = await locationsRepo.getAll();
+      if (!this.locations || this.locations.length === 0) {
+        await locationsRepo.seedDefaults();
+        this.locations = await locationsRepo.getAll();
+      }
     } catch (e) {
       // Sem locais a folha continua (texto livre), mas o técnico escolhe
       // às cegas: regista-se o porquê em vez de falhar em silêncio.
@@ -139,10 +143,12 @@ export class QuickCaptureComponent {
 
           <!-- LOCALIZAÇÃO -->
           <div class="form-group" style="margin-bottom: 16px;">
-            <label class="form-label" style="font-size: 0.9rem;">Onde?</label>
+            <label class="form-label" style="font-size: 0.9rem;" for="qc-loc-search">Onde?</label>
             <div style="position: relative;">
-              <input type="text" id="qc-loc-search" class="form-input touch-target" value="${esc(this.selectedLocName)}" autocomplete="off" placeholder="Pesquisar local..." style="padding-right: 40px;" />
-              <svg style="position: absolute; right: 12px; top: 18px; color: var(--color-text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <input type="text" id="qc-loc-search" class="form-input touch-target" value="${esc(this.selectedLocName)}" autocomplete="off" placeholder="Pesquisar local..." style="padding-right: 44px;" />
+              <button type="button" id="qc-loc-toggle" aria-label="Abrir lista de locais" class="qc-loc-toggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
               <div id="qc-loc-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface); border: 1px solid var(--color-border); max-height: 250px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
             </div>
           </div>
@@ -370,10 +376,16 @@ export class QuickCaptureComponent {
     // Location search
     const locInput = this.modal.querySelector('#qc-loc-search');
     const locDropdown = this.modal.querySelector('#qc-loc-dropdown');
+    const locToggle = this.modal.querySelector('#qc-loc-toggle');
     
     if (locInput && locDropdown) {
       const renderLocs = (query) => {
-        const q = query.toLowerCase().trim();
+        let q = (query || '').toLowerCase().trim();
+        // Se a query for o valor de fallback predefinido, mostra todos os locais
+        if (q === 'estádio — local não indicado') {
+          q = '';
+        }
+
         let matches = this.locations;
         if (q) {
           matches = this.locations.filter(l => 
@@ -408,22 +420,61 @@ export class QuickCaptureComponent {
         }
       };
 
-      // Quem decide se a lista aparece é o renderLocs, em função dos resultados.
-      locInput.addEventListener('focus', () => {
-        renderLocs(locInput.value);
+      const openDropdown = () => {
+        const val = locInput.value.trim();
+        if (!val || val === 'Estádio — local não indicado' || val === this.selectedLocName) {
+          renderLocs('');
+          if (val === 'Estádio — local não indicado' || val === this.selectedLocName) {
+            locInput.select();
+          }
+        } else {
+          renderLocs(val);
+        }
+      };
+
+      // Abrir ao focar ou clicar no campo
+      locInput.addEventListener('focus', openDropdown);
+      locInput.addEventListener('click', () => {
+        if (locDropdown.style.display !== 'block') {
+          openDropdown();
+        }
       });
 
+      // Filtrar enquanto o utilizador escreve
       locInput.addEventListener('input', (e) => {
         renderLocs(e.target.value);
+      });
+
+      // Botão de chevron (abrir / fechar dropdown)
+      if (locToggle) {
+        locToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (locDropdown.style.display === 'block') {
+            locDropdown.style.display = 'none';
+          } else {
+            renderLocs('');
+            locInput.focus();
+          }
+        });
+      }
+
+      // Fechar com Escape
+      locInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && locDropdown.style.display === 'block') {
+          e.stopPropagation();
+          locDropdown.style.display = 'none';
+        }
       });
       
       // Fechar ao tocar fora. Guardado numa referência para o close() o poder
       // remover — esta folha abre e fecha muitas vezes por turno.
+      const locContainer = locInput.closest('.form-group') || locInput.parentElement;
       if (this.outsideClickHandler) {
         document.removeEventListener('click', this.outsideClickHandler);
       }
       this.outsideClickHandler = (e) => {
-        if (!locInput.contains(e.target) && !locDropdown.contains(e.target)) {
+        if (locContainer && !locContainer.contains(e.target)) {
           locDropdown.style.display = 'none';
         }
       };

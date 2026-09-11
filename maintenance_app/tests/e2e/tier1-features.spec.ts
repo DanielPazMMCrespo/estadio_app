@@ -2,11 +2,32 @@ import { test, expect } from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MockSyncServer } from '../helpers/mock-server';
+import {
+  unlockApp,
+  goToHistory,
+  openQuickCapture,
+  pickQuickLocation,
+  createQuickReport,
+  saveQuickCapture,
+  openFullReportForm,
+  setOffline,
+  setOnline,
+  waitForSyncDone,
+  acceptNextDialog
+} from '../helpers/e2e';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SAMPLE_BEFORE_PATH = path.join(__dirname, '../fixtures/sample_before.jpg');
 
+/**
+ * Tier 1 — Funcionalidade de base na UI ATUAL.
+ *
+ * Nota de design: o cabeçalho já não mostra saudação ("Olá, João") — saiu de
+ * propósito para dar espaço ao trabalho (ver src/ui/header.js). O fluxo de
+ * registo é a captura rápida a partir do botão verde; o feed vive no
+ * separador "Intervenções".
+ */
 test.describe('Tier 1: Core Feature Verification', () => {
   let mockServer: MockSyncServer;
 
@@ -14,306 +35,217 @@ test.describe('Tier 1: Core Feature Verification', () => {
     mockServer = new MockSyncServer();
     await mockServer.setup(page);
     await page.goto('/');
+    await unlockApp(page);
   });
 
-  test('T1.1: App load & header greeting ("Olá, João")', async ({ page }) => {
+  test('T1.1: App carrega — header, badge e grelha da Home', async ({ page }) => {
     await expect(page.locator('#header-container')).toBeVisible();
-    const greeting = page.locator('.greeting');
-    await expect(greeting).toBeVisible();
-    await expect(greeting).toContainText('Olá, João');
+    await expect(page.locator('#connectivity-badge')).toBeVisible();
+
+    // A saudação saiu de propósito do cabeçalho (design). Nada para encontrar.
+    await expect(page.locator('.greeting')).toHaveCount(0);
+
+    // Grelha de quadrados vivos da Home (botão verde + 4 quadrados + "Mais").
+    await expect(page.locator('#dashboard-feed .ht-tile').first()).toBeVisible();
+    const tileCount = await page.locator('#dashboard-feed .ht-tile').count();
+    expect(tileCount).toBeGreaterThanOrEqual(5);
+    await expect(page.locator('#btn-hero-report')).toBeVisible();
   });
 
-  test('T1.2: Connectivity badge online status (green dot, "Online")', async ({ page }) => {
+  test('T1.2: Badge de ligação — acaba "Sincronizado" após o sync inicial', async ({ page }) => {
     const badge = page.locator('#connectivity-badge');
     await expect(badge).toBeVisible();
-    await expect(badge).toHaveClass(/online/);
-    const statusText = badge.locator('.status-text');
-    await expect(statusText).toHaveText('Online');
+    await expect(badge).toHaveClass(/status-badge/);
+    await expect(badge.locator('.status-text')).toHaveText('Sincronizado', { timeout: 15000 });
   });
 
-  test('T1.3: Pre-cached locations loading in dropdown', async ({ page }) => {
-    await page.click('#btn-new-report');
-    const select = page.locator('#select-location');
-    await expect(select).toBeVisible();
-    
-    // Should contain pre-cached options
-    const options = select.locator('option');
-    await expect(options).toHaveCount(4); // 1 default placeholder + 3 seed locations
-    await expect(select.locator('option[value="LOC_PITCH"]')).toHaveText('Relvado Principal');
-    await expect(select.locator('option[value="LOC_CHANGING"]')).toHaveText('Balneários');
-    await expect(select.locator('option[value="LOC_NORTH_STAND"]')).toHaveText('Bancada Norte');
+  test('T1.3: Botão verde abre a captura rápida completa', async ({ page }) => {
+    await openQuickCapture(page);
+    await expect(page.locator('#qc-description')).toBeVisible();
+    await expect(page.locator('#qc-loc-search')).toBeVisible();
+    await expect(page.locator('#qc-priority-group')).toBeVisible();
+    await expect(page.locator('#btn-save-capture')).toBeVisible();
+    await expect(page.locator('#btn-expand-capture')).toBeVisible();
   });
 
-  test('T1.4: Report creator modal opening via #btn-new-report', async ({ page }) => {
-    const modal = page.locator('#modal-report-form');
-    await expect(modal).not.toBeVisible();
-    await page.click('#btn-new-report');
-    await expect(modal).toBeVisible();
+  test('T1.4: Dropdown de localizações tem os locais pré-definidos', async ({ page }) => {
+    await openQuickCapture(page);
+    const input = page.locator('#qc-loc-search');
+    await input.click();
+    await expect(page.locator('#qc-loc-dropdown .loc-option').first()).toBeVisible();
+    await expect(page.locator('#qc-loc-dropdown .loc-option')).toHaveCount(33);
+
+    await input.fill('Relvado');
+    await page.locator('#qc-loc-dropdown .loc-option').filter({ hasText: 'Relvado Principal' }).first().click();
+    await expect(input).toHaveValue('Relvado Principal');
   });
 
-  test('T1.5: Create report with valid fields', async ({ page }) => {
-    await page.click('#btn-new-report');
-    
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-date', '2026-08-11T14:30');
-    await page.fill('#input-description', 'Reparação de relva da grande área norte');
-    await page.fill('#input-time-spent', '45');
-    
-    await page.click('#btn-save-report');
-    
-    // Modal should close and toast/feed update
+  test('T1.4b: Botão chevron abre e fecha o dropdown de localizações', async ({ page }) => {
+    await openQuickCapture(page);
+    const toggleBtn = page.locator('#qc-loc-toggle');
+    const dropdown = page.locator('#qc-loc-dropdown');
+
+    // Abre ao clicar no chevron
+    await toggleBtn.click();
+    await expect(dropdown).toBeVisible();
+    await expect(dropdown.locator('.loc-option')).toHaveCount(33);
+
+    // Fecha ao clicar no chevron de novo
+    await toggleBtn.click();
+    await expect(dropdown).toBeHidden();
+  });
+
+  test('T1.5: Criar relatório na captura rápida -> cartão Pendente/Local', async ({ page }) => {
+    await createQuickReport(page, 'Reparação da relva da grande área norte', {
+      locationQuery: 'Relvado Principal',
+      priority: 'critical'
+    });
+
+    await goToHistory(page);
+    const card = page.locator('#history-list .issue-card').first();
+    await expect(card).toContainText('Reparação da relva da grande área norte');
+    await expect(card).toContainText('Relvado Principal');
+    await expect(card.locator('.chip-priority.crit')).toHaveText('CRÍTICO');
+    await expect(card.locator('.chip-status.pending')).toHaveText('Pendente');
+    await expect(card.locator('.sync-indicator.pending')).toHaveText('Local');
+  });
+
+  test('T1.6: Relatórios por ordem — o mais recente fica no topo', async ({ page }) => {
+    await createQuickReport(page, 'Relatório Antigo - Limpeza de balneários', {
+      locationQuery: 'Balneário Principal'
+    });
+
+    // Segundo relatório com data +5 min para tornar a ordem determinística.
+    await openQuickCapture(page);
+    await page.locator('#qc-description').fill('Relatório Novo - Baliza reparada');
+    await pickQuickLocation(page, 'Relvado');
+    await page.locator('#btn-expand-capture').click();
+    await expect(page.locator('#modal-report-form')).toBeVisible();
+    const d = new Date(Date.now() + 5 * 60000);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    await page.locator('#input-date').fill(d.toISOString().slice(0, 16));
+    await page.locator('#btn-save-report').click();
     await expect(page.locator('#modal-report-form')).not.toBeVisible();
-    const feed = page.locator('#dashboard-feed');
-    await expect(feed.locator('.report-card')).toHaveCount(1);
-    await expect(feed).toContainText('Reparação de relva da grande área norte');
+
+    await goToHistory(page);
+    const firstCard = page.locator('#history-list .issue-card').first();
+    await expect(firstCard).toContainText('Relatório Novo - Baliza reparada');
   });
 
-  test('T1.6: Verify report appears at top of feed', async ({ page }) => {
-    // Create first report
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_CHANGING');
-    await page.fill('#input-description', 'Relatório Antigo - Limpeza de balneários');
-    await page.fill('#input-time-spent', '30');
-    await page.click('#btn-save-report');
+  test('T1.7: Formulário completo (expandir) — tempo e materiais', async ({ page }) => {
+    await openFullReportForm(page);
+
+    await page.locator('#input-time-spent').fill('45');
+    await expect(page.locator('.mat-checkbox')).not.toHaveCount(0);
+    await page.locator('.mat-checkbox[value="Tinta de Marcação"]').check();
+    await page.locator('#btn-save-report').click();
     await expect(page.locator('#modal-report-form')).not.toBeVisible();
 
-    // Create second report
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório Novo - Marcador de linhas');
-    await page.fill('#input-time-spent', '60');
-    await page.click('#btn-save-report');
-    await expect(page.locator('#modal-report-form')).not.toBeVisible();
+    await goToHistory(page);
+    const card = page.locator('#history-list .issue-card').first();
+    await expect(card.locator('.media-tag.time')).toHaveText('45 min');
 
-    // Second report should be top card
-    const firstCard = page.locator('.report-card').first();
-    await expect(firstCard).toContainText('Relatório Novo - Marcador de linhas');
+    // Materiais só são visíveis na ficha (cartão não os mostra).
+    await card.click();
+    const detail = page.locator('.bottom-sheet-content.detail-sheet');
+    await expect(detail).toBeVisible();
+    await expect(detail.locator('.detail-stat-pill').first()).toHaveText('45 minutos');
+    await expect(detail).toContainText('Tinta de Marcação');
   });
 
-  test('T1.7: Create report with optional materials & tools', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_NORTH_STAND');
-    await page.fill('#input-description', 'Manutenção dos assentos da bancada norte');
-    await page.fill('#input-time-spent', '90');
-    await page.fill('#input-materials', 'Chave de fendas, Parafusos M8, Tinta azul');
-    await page.click('#btn-save-report');
+  test('T1.8: Ficha abre, mostra a descrição e fecha', async ({ page }) => {
+    await createQuickReport(page, 'Inspeção geral do sistema de rega', {
+      locationQuery: 'Sistema de Rega'
+    });
 
-    await expect(page.locator('#modal-report-form')).not.toBeVisible();
-    const card = page.locator('.report-card').first();
-    await expect(card).toContainText('Tinta azul');
+    await goToHistory(page);
+    await page.locator('#history-list .issue-card .issue-description').first().click();
+    const detail = page.locator('.bottom-sheet-content.detail-sheet');
+    await expect(detail).toBeVisible();
+    await expect(detail.locator('.detail-text-box').first()).toContainText('Inspeção geral do sistema de rega');
+
+    await page.locator('#btn-close-detail').click();
+    await expect(detail).not.toBeVisible();
   });
 
-  test('T1.8: Open report detail modal', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Inspeção geral do sistema de rega');
-    await page.fill('#input-time-spent', '20');
-    await page.click('#btn-save-report');
+  test('T1.9: Editar — o formulário abre preenchido e o cartão atualiza', async ({ page }) => {
+    await createQuickReport(page, 'Descrição Inicial');
 
-    await page.click('.report-card');
-    const detailModal = page.locator('#modal-report-detail');
-    await expect(detailModal).toBeVisible();
-    await expect(detailModal).toContainText('Inspeção geral do sistema de rega');
-  });
+    await goToHistory(page);
+    let card = page.locator('#history-list .issue-card').first();
+    await card.click();
+    const detail = page.locator('.bottom-sheet-content.detail-sheet');
+    await expect(detail).toBeVisible();
 
-  test('T1.9: Edit report description & time spent', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Descrição Inicial');
-    await page.fill('#input-time-spent', '30');
-    await page.click('#btn-save-report');
-
-    await page.click('.report-card');
-    await page.click('#btn-edit-report');
-
-    // Report form modal should open pre-populated
-    const formModal = page.locator('#modal-report-form');
-    await expect(formModal).toBeVisible();
+    await page.locator('#btn-edit-report').click();
+    const form = page.locator('#modal-report-form');
+    await expect(form).toBeVisible();
     await expect(page.locator('#input-description')).toHaveValue('Descrição Inicial');
 
-    await page.fill('#input-description', 'Descrição Editada com Sucesso');
-    await page.fill('#input-time-spent', '45');
-    await page.click('#btn-save-report');
+    await page.locator('#input-description').fill('Descrição Editada com Sucesso');
+    await page.locator('#input-time-spent').fill('45');
+    await page.locator('#btn-save-report').click();
+    await expect(form).not.toBeVisible();
 
-    await expect(formModal).not.toBeVisible();
-    await expect(page.locator('.report-card').first()).toContainText('Descrição Editada com Sucesso');
-    await expect(page.locator('.report-card').first()).toContainText('45 min');
+    card = page.locator('#history-list .issue-card').first();
+    await expect(card).toContainText('Descrição Editada com Sucesso');
+    await expect(card.locator('.media-tag.time')).toHaveText('45 min');
   });
 
-  test('T1.10: Soft-delete report & confirmation dialog', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório para Apagar');
-    await page.fill('#input-time-spent', '15');
-    await page.click('#btn-save-report');
+  test('T1.10: Eliminar com confirmação nativa — o cartão desaparece', async ({ page }) => {
+    await createQuickReport(page, 'Relatório para Apagar');
 
-    await page.click('.report-card');
-    await page.click('#btn-delete-report');
+    await goToHistory(page);
+    await page.locator('#history-list .issue-card .issue-description').first().click();
+    await expect(page.locator('.bottom-sheet-content.detail-sheet')).toBeVisible();
 
-    const confirmModal = page.locator('#modal-confirm-delete');
-    await expect(confirmModal).toBeVisible();
-    await expect(confirmModal).toContainText('Tem a certeza');
+    acceptNextDialog(page);
+    await page.locator('#btn-delete-report').click();
+
+    await expect(page.locator('.bottom-sheet-content.detail-sheet')).not.toBeVisible();
+    await expect(page.locator('#history-list .issue-card')).toHaveCount(0);
   });
 
-  test('T1.11: Verify deleted report removed from feed', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório Eliminado Definitivamente');
-    await page.fill('#input-time-spent', '15');
-    await page.click('#btn-save-report');
+  test('T1.11: Foto na captura rápida — miniatura e tag no cartão', async ({ page }) => {
+    await openQuickCapture(page);
+    await page.locator('#qc-photo-input').setInputFiles(SAMPLE_BEFORE_PATH);
+    await expect(page.locator('#qc-photo-list img')).toHaveCount(1, { timeout: 15000 });
+    await page.locator('#qc-description').fill('Avaria com fotografia');
+    await saveQuickCapture(page);
 
-    await page.click('.report-card');
-    await page.click('#btn-delete-report');
-    await page.click('#btn-confirm-delete');
-
-    await expect(page.locator('#modal-confirm-delete')).not.toBeVisible();
-    await expect(page.locator('#modal-report-detail')).not.toBeVisible();
-    await expect(page.locator('.report-card')).toHaveCount(0);
+    await goToHistory(page);
+    const card = page.locator('#history-list .issue-card').first();
+    await expect(card.locator('.media-tag.photo')).toHaveText('1 Foto');
   });
 
-  test('T1.12: Attach photo (sample_before.jpg) & render thumbnail preview', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.setInputFiles('#input-photo-before', SAMPLE_BEFORE_PATH);
+  test('T1.12: Pesquisa instantânea no feed', async ({ page }) => {
+    await createQuickReport(page, 'Trabalho no Relvado', { locationQuery: 'Relvado' });
+    await createQuickReport(page, 'Trabalho nos Balneários', { locationQuery: 'Balneário Principal' });
 
-    const previewContainer = page.locator('#photo-preview-container');
-    await expect(previewContainer).toBeVisible();
-    await expect(previewContainer.locator('img')).toHaveCount(1);
+    await goToHistory(page);
+    await expect(page.locator('#history-list .issue-card')).toHaveCount(2);
+
+    await page.locator('#input-search-reports').fill('Balneários');
+    await expect(page.locator('#history-list .issue-card')).toHaveCount(1, { timeout: 3000 });
+    await expect(page.locator('#history-list .issue-card').first()).toContainText('Trabalho nos Balneários');
+
+    await page.locator('#input-search-reports').fill('');
+    await expect(page.locator('#history-list .issue-card')).toHaveCount(2, { timeout: 3000 });
   });
 
-  test('T1.13: Attach multiple photos (before/after)', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.setInputFiles('#input-photo-before', SAMPLE_BEFORE_PATH);
-    await page.setInputFiles('#input-photo-after', SAMPLE_BEFORE_PATH);
+  test('T1.13: Offline -> online — o relatório sincroniza (badge + cartão)', async ({ page }) => {
+    await setOffline(page);
+    await createQuickReport(page, 'Relatório para sincronizar automaticamente', {
+      locationQuery: 'Relvado Principal'
+    });
 
-    const previewContainer = page.locator('#photo-preview-container');
-    await expect(previewContainer.locator('img')).toHaveCount(2);
-  });
+    await goToHistory(page);
+    await expect(page.locator('#history-list .issue-card .sync-indicator.pending')).toHaveText('Local');
 
-  test('T1.14: Render full-size gallery in detail modal', async ({ page }) => {
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório com galeria de fotos');
-    await page.fill('#input-time-spent', '40');
-    await page.setInputFiles('#input-photo-before', SAMPLE_BEFORE_PATH);
-    await page.click('#btn-save-report');
+    await setOnline(page);
+    await waitForSyncDone(page);
+    await expect(mockServer.getRemoteReports()).toHaveLength(1);
 
-    await page.click('.report-card');
-    const detailModal = page.locator('#modal-report-detail');
-    await expect(detailModal).toBeVisible();
-    const gallery = detailModal.locator('.photo-gallery');
-    await expect(gallery).toBeVisible();
-    await expect(gallery.locator('img')).toHaveCount(1);
-  });
-
-  test('T1.15: Switch network offline -> connectivity badge updates to yellow "Offline"', async ({ page }) => {
-    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.context().setOffline(true);
-
-    const badge = page.locator('#connectivity-badge');
-    await expect(badge).toHaveClass(/offline/);
-    await expect(badge.locator('.status-text')).toHaveText('Offline');
-  });
-
-  test('T1.16: Create report offline -> status badge "Pendente"', async ({ page }) => {
-    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.context().setOffline(true);
-
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório Criado em Modo Offline');
-    await page.fill('#input-time-spent', '50');
-    await page.click('#btn-save-report');
-
-    const card = page.locator('.report-card').first();
-    await expect(card).toBeVisible();
-    const statusBadge = card.locator('.badge-pending');
-    await expect(statusBadge).toBeVisible();
-    await expect(statusBadge).toContainText('Pendente');
-  });
-
-  test('T1.17: Add dynamic custom location offline via "+ Nova Localização"', async ({ page }) => {
-    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.context().setOffline(true);
-
-    await page.click('#btn-new-report');
-    await page.click('#btn-add-location-trigger');
-
-    const locationModal = page.locator('#modal-location');
-    await expect(locationModal).toBeVisible();
-
-    await page.fill('#input-location-name', 'Camarote Presidencial');
-    await page.fill('#input-location-desc', 'Zona VIP superior');
-    await page.click('#btn-save-location');
-
-    await expect(locationModal).not.toBeVisible();
-    // Newly created location should be selected in #select-location
-    const selectedOption = page.locator('#select-location option:checked');
-    await expect(selectedOption).toHaveText('Camarote Presidencial');
-  });
-
-  test('T1.18: Select custom location in report form offline', async ({ page }) => {
-    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.context().setOffline(true);
-
-    await page.click('#btn-new-report');
-    await page.click('#btn-add-location-trigger');
-    await page.fill('#input-location-name', 'Zona de Imprensa');
-    await page.click('#btn-save-location');
-
-    await page.fill('#input-description', 'Manutenção das bancadas de imprensa');
-    await page.fill('#input-time-spent', '30');
-    await page.click('#btn-save-report');
-
-    const card = page.locator('.report-card').first();
-    await expect(card).toContainText('Zona de Imprensa');
-  });
-
-  test('T1.19: Switch network online -> auto-sync executes & card badge updates to "Sincronizado"', async ({ page }) => {
-    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.context().setOffline(true);
-
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Relatório para Sincronizar Automaticamente');
-    await page.fill('#input-time-spent', '25');
-    await page.click('#btn-save-report');
-
-    await expect(page.locator('.badge-pending')).toBeVisible();
-
-    // Switch back online
-    await page.context().setOffline(false);
-    await page.evaluate(() => window.dispatchEvent(new Event('online')));
-
-    // Auto-sync should change badge to synced
-    const syncedBadge = page.locator('.badge-synced');
-    await expect(syncedBadge).toBeVisible({ timeout: 5000 });
-    await expect(syncedBadge).toContainText('Sincronizado');
-  });
-
-  test('T1.20: Search/filter dashboard feed by location', async ({ page }) => {
-    // Create Pitch report
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_PITCH');
-    await page.fill('#input-description', 'Trabalho no Relvado');
-    await page.fill('#input-time-spent', '30');
-    await page.click('#btn-save-report');
-
-    // Create Changing Room report
-    await page.click('#btn-new-report');
-    await page.selectOption('#select-location', 'LOC_CHANGING');
-    await page.fill('#input-description', 'Trabalho nos Balneários');
-    await page.fill('#input-time-spent', '40');
-    await page.click('#btn-save-report');
-
-    await expect(page.locator('.report-card')).toHaveCount(2);
-
-    // Search for "Balneários"
-    await page.fill('#input-search-reports', 'Balneários');
-    await expect(page.locator('.report-card')).toHaveCount(1);
-    await expect(page.locator('.report-card').first()).toContainText('Trabalho nos Balneários');
-
-    // Clear search
-    await page.fill('#input-search-reports', '');
-    await expect(page.locator('.report-card')).toHaveCount(2);
+    await expect(page.locator('#history-list .issue-card .sync-indicator.synced')).toBeVisible({ timeout: 10000 });
   });
 });

@@ -1,6 +1,7 @@
 import { doorsRepo, DOOR_TYPES, DOOR_SIDES, DOOR_FLOORS } from '../db/doorsRepo.js';
 import { reportsRepo } from '../db/reportsRepo.js';
 import { toast } from './toast.js';
+import { canCurrentUserEditDoors } from '../services/profile.js';
 
 import { esc, reportListHtml } from '../utils/html.js';
 
@@ -312,6 +313,7 @@ export class DoorsViewComponent {
     this.closeSheet();
 
     const info = STATUS_INFO[door.status] || STATUS_INFO.ok;
+    const canEditDoors = canCurrentUserEditDoors();
 
     const overlay = document.createElement('div');
     overlay.className = 'bottom-sheet-overlay d-sheet-overlay';
@@ -338,9 +340,14 @@ export class DoorsViewComponent {
         </dl>
 
         <p class="d-field-label">Mudar estado</p>
-        <div class="d-status-row">
+        ${!canEditDoors ? `
+          <div class="d-perm-notice">
+            <span>🔒 Apenas administradores podem alterar o estado da porta. Como técnico, pode registar uma intervenção abaixo.</span>
+          </div>
+        ` : ''}
+        <div class="d-status-row${canEditDoors ? '' : ' is-disabled'}">
           ${Object.keys(STATUS_INFO).map(s => `
-            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${door.status === s ? ' active' : ''}" data-status="${esc(s)}">${esc(STATUS_INFO[s].label)}</button>
+            <button type="button" class="d-status-btn ${STATUS_INFO[s].cls}${door.status === s ? ' active' : ''}" data-status="${esc(s)}" ${canEditDoors ? '' : 'disabled title="Apenas administradores podem alterar o estado" aria-disabled="true"'}>${esc(STATUS_INFO[s].label)}</button>
           `).join('')}
         </div>
 
@@ -361,6 +368,10 @@ export class DoorsViewComponent {
 
     overlay.querySelectorAll('.d-status-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (!canCurrentUserEditDoors()) {
+          toast.warning('Apenas administradores podem alterar o estado da porta.');
+          return;
+        }
         const status = btn.dataset.status;
         if (status === door.status) return;
         btn.disabled = true;

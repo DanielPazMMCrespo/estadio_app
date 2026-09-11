@@ -26,7 +26,7 @@ import { syncEngine } from './services/syncEngine.js';
 import { toast } from './ui/toast.js';
 import { esc as escUtil } from './utils/html.js';
 import { LockScreenComponent } from './ui/lockScreen.js';
-import { hasProfile, profileName, clearProfile } from './services/profile.js';
+import { hasProfile, profileName, clearProfile, getCurrentUser, isCurrentUserAdmin, getUsers, getUserById, createUser, updateUser, deleteUser, setCurrentUser } from './services/profile.js';
 
 export class App {
   constructor() {
@@ -108,6 +108,22 @@ export class App {
       name: profileName(),
       onDone: () => {}
     });
+    lock.open();
+  }
+
+  /** Permite trocar de utilizador escolhendo outro perfil e pedindo o respetivo PIN. */
+  async switchUser() {
+    const lock = new LockScreenComponent(document.body, {
+      mode: 'unlock',
+      onDone: async () => {
+        if (this.currentView === 'settings') {
+          await this.renderSettings();
+        } else {
+          await this.navigateTo(this.currentView);
+        }
+      }
+    });
+    lock.selectingUser = true;
     lock.open();
   }
 
@@ -474,6 +490,9 @@ export class App {
     }
 
     const totalRooms = flatRooms.length;
+    const currentUser = getCurrentUser();
+    const isAdmin = isCurrentUserAdmin();
+    const allUsers = getUsers();
 
     feed.innerHTML = `
       <section class="settings-view animate-fade-in">
@@ -493,7 +512,7 @@ export class App {
           <button type="button" id="btn-manual-sync" class="btn-secondary touch-target" style="width: 100%;">Sincronizar agora</button>
         </div>
 
-        <!-- Sectors & Rooms Database Management -->
+        <!-- Utilizador deste aparelho -->
         <div class="analytics-card">
           <div class="analytics-card-header">
             <h3 class="analytics-card-title">Utilizador deste aparelho</h3>
@@ -504,6 +523,46 @@ export class App {
             <button type="button" id="btn-switch-user" class="btn-secondary touch-target" style="flex: 1;">Trocar de utilizador</button>
           </div>
         </div>
+
+        ${isAdmin ? `
+        <!-- Gestão de Utilizadores & Permissões -->
+        <div class="analytics-card" id="settings-users-card">
+          <div class="analytics-card-header">
+            <div>
+              <h3 class="analytics-card-title">Gestão de Utilizadores (${allUsers.length})</h3>
+              <span class="settings-card-sub">Controlo de acesso a portas e stock</span>
+            </div>
+            <button type="button" id="btn-add-user-settings" class="btn-primary-cta">
+              + Novo Utilizador
+            </button>
+          </div>
+
+          <div id="settings-users-container" class="settings-users-list">
+            ${allUsers.map(u => `
+              <div class="settings-user-row">
+                <div class="settings-user-info">
+                  <div class="settings-user-name-line">
+                    <strong class="settings-user-name">${this.esc(u.name)}</strong>
+                    <span class="role-badge ${u.role === 'admin' ? 'is-admin' : 'is-tech'}">${u.role === 'admin' ? 'Administrador' : 'Técnico'}</span>
+                    ${u.id === (currentUser && currentUser.id) ? '<span class="role-active-badge">(Sessão ativa)</span>' : ''}
+                  </div>
+                  <div class="settings-user-perms">
+                    <span>Portas: ${u.canEditDoors ? 'Total' : 'Apenas adicionar'}</span>
+                    <span>·</span>
+                    <span>Stock: ${u.canEditStock ? 'Total' : 'Apenas adicionar'}</span>
+                  </div>
+                </div>
+                <div class="settings-user-actions">
+                  <button type="button" class="btn-edit-user touch-target" data-id="${this.esc(u.id)}" title="Editar">✎</button>
+                  ${u.id !== (currentUser && currentUser.id) ? `
+                    <button type="button" class="btn-del-user touch-target" data-id="${this.esc(u.id)}" title="Eliminar">&times;</button>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
 
         <!-- Sectors & Rooms Database Management -->
         <div class="analytics-card">
@@ -690,15 +749,60 @@ export class App {
     // Cartão de utilizador: quem está a usar + bloquear + trocar.
     const userText = feed.querySelector('#settings-user-text');
     if (userText) {
-      const who = profileName();
-      userText.textContent = who ? `A usar como ${who}.` : 'Sem perfil neste aparelho.';
+      if (currentUser) {
+        const roleLabel = currentUser.role === 'admin'
+          ? 'Administrador (Controlo total)'
+          : `Técnico (${currentUser.canEditDoors ? 'Portas livre' : 'Sem alterar portas'}, ${currentUser.canEditStock ? 'Stock livre' : 'Sem retirar stock'})`;
+        userText.textContent = `A usar como ${currentUser.name} — ${roleLabel}.`;
+      } else {
+        userText.textContent = 'Sem perfil ativo neste aparelho.';
+      }
     }
     feed.querySelector('#btn-lock-now')?.addEventListener('click', () => this.lockNow());
-    feed.querySelector('#btn-switch-user')?.addEventListener('click', () => {
-      if (confirm('Trocar de utilizador? O perfil atual sai deste aparelho (os dados ficam).')) {
-        clearProfile();
-        window.location.reload();
-      }
+    feed.querySelector('#btn-switch-user')?.addEventListener('click', () => this.switchUser());
+
+    // Ações de Gestão de Utilizadores (Administrador)
+    feed.querySelector('#btn-add-user-settings')?.addEventListener('click', () => {
+      this.openUserModal({
+        onSave: async (data) => {
+          await createUser(data);
+          toast.success('Utilizador criado com sucesso!');
+          this.renderSettings();
+        }
+      });
+    });
+
+    feed.querySelectorAll('.btn-edit-user').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const u = getUserById(id);
+        if (!u) return;
+        this.openUserModal({
+          user: u,
+          onSave: async (data) => {
+            await updateUser(id, data);
+            toast.success('Utilizador atualizado!');
+            this.renderSettings();
+          }
+        });
+      });
+    });
+
+    feed.querySelectorAll('.btn-del-user').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const u = getUserById(id);
+        if (!u) return;
+        if (confirm(`Eliminar o utilizador "${u.name}"?`)) {
+          try {
+            deleteUser(id);
+            toast.success('Utilizador eliminado.');
+            this.renderSettings();
+          } catch (err) {
+            toast.error(err && err.message ? err.message : 'Não foi possível eliminar');
+          }
+        }
+      });
     });
   }
 
@@ -831,6 +935,116 @@ export class App {
         }
       };
     }
+  }
+
+  openUserModal(options = {}) {
+    const { user = null, onSave = null } = options;
+    const isEdit = !!user;
+
+    let modal = document.getElementById('modal-user-editor');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
+    modal.id = 'modal-user-editor';
+    modal.className = 'bottom-sheet-overlay animate-fade-in is-flex';
+
+    modal.innerHTML = `
+      <div class="bottom-sheet-content">
+        <div class="sheet-drag-handle"><div class="drag-bar"></div></div>
+        
+        <div class="modal-header-box">
+          <div>
+            <span class="modal-pre-title">Gestão de Acessos</span>
+            <h3 class="modal-main-title">${isEdit ? 'Editar Utilizador' : 'Novo Utilizador'}</h3>
+          </div>
+          <button type="button" class="btn-close-detail" id="btn-close-user-modal">&times;</button>
+        </div>
+
+        <form id="form-user-editor" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="input-user-name">Nome do Utilizador / Técnico *</label>
+            <input type="text" id="input-user-name" class="form-input" autocomplete="off" placeholder="Ex: Manuel Silva" value="${isEdit ? this.esc(user.name) : ''}" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-user-pin">PIN de 4 dígitos ${isEdit ? '(deixe em branco para manter)' : '*'}</label>
+            <input type="password" id="input-user-pin" class="form-input" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="Ex: 1234" ${isEdit ? '' : 'required'} />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="select-user-role">Papel / Função</label>
+            <select id="select-user-role" class="form-input form-select-styled">
+              <option value="tecnico" ${user && user.role === 'tecnico' ? 'selected' : ''}>Técnico (Apenas adicionar por defeito)</option>
+              <option value="admin" ${user && user.role === 'admin' ? 'selected' : ''}>Administrador (Acesso total)</option>
+            </select>
+          </div>
+
+          <div id="user-perms-group" class="form-group${user && user.role === 'admin' ? ' is-hidden' : ''}">
+            <p class="form-label">Permissões Específicas de Técnico</p>
+            <label class="checkbox-row touch-target">
+              <input type="checkbox" id="check-perm-doors" ${user && user.canEditDoors ? 'checked' : ''} />
+              <span>Pode alterar o estado das portas</span>
+            </label>
+            <label class="checkbox-row touch-target">
+              <input type="checkbox" id="check-perm-stock" ${user && user.canEditStock ? 'checked' : ''} />
+              <span>Pode alterar ou retirar stock de ferramentas</span>
+            </label>
+          </div>
+
+          <button type="button" id="btn-save-user-modal" class="btn-primary-cta btn-full-width">
+            ${isEdit ? 'Atualizar Utilizador' : 'Criar Utilizador'}
+          </button>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const roleSelect = modal.querySelector('#select-user-role');
+    const permsGroup = modal.querySelector('#user-perms-group');
+    if (roleSelect && permsGroup) {
+      roleSelect.addEventListener('change', () => {
+        if (roleSelect.value === 'admin') {
+          permsGroup.classList.add('is-hidden');
+        } else {
+          permsGroup.classList.remove('is-hidden');
+        }
+      });
+    }
+
+    const close = () => { if (modal) modal.remove(); };
+    modal.querySelector('#btn-close-user-modal')?.addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+    modal.querySelector('#btn-save-user-modal')?.addEventListener('click', async () => {
+      const name = modal.querySelector('#input-user-name')?.value?.trim();
+      const pin = modal.querySelector('#input-user-pin')?.value?.trim();
+      const role = roleSelect?.value || 'tecnico';
+      const canEditDoors = modal.querySelector('#check-perm-doors')?.checked || false;
+      const canEditStock = modal.querySelector('#check-perm-stock')?.checked || false;
+
+      if (!name) {
+        toast.warning('Indique o nome do utilizador.');
+        return;
+      }
+      if (!isEdit && (!pin || pin.length !== 4)) {
+        toast.warning('O PIN deve ter 4 dígitos numéricos.');
+        return;
+      }
+      if (pin && pin.length !== 4) {
+        toast.warning('O PIN deve ter exatamente 4 dígitos.');
+        return;
+      }
+
+      try {
+        if (typeof onSave === 'function') {
+          await onSave({ name, pin: pin || undefined, role, canEditDoors, canEditStock });
+        }
+        close();
+      } catch (err) {
+        toast.error(err && err.message ? err.message : 'Erro ao gravar utilizador');
+      }
+    });
   }
 
   /* ===== NEW / EDIT REPORT MODAL ===== */
